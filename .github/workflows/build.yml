@@ -1,0 +1,37 @@
+name: Build
+on: [push, workflow_dispatch]
+jobs:
+  Build-and-Test-CDK:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: "16.x"
+      - run: npm ci
+      - run: npm run build
+      - run: npm run test
+  Build-and-Test-Backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: "16.x"
+      - run: cd backend
+      - run: npm ci
+      - run: npm run build
+    # - run: npm run test
+  Build-and-Test-Frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: "16.x"
+      - run: cd frontend
+      - run: npm ci
+      - run: npm run build
