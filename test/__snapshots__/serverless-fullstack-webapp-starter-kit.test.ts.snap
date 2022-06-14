@@ -767,7 +767,7 @@ Object {
             },
           },
         },
-        "MemorySize": 1792,
+        "MemorySize": 256,
         "PackageType": "Image",
         "Role": Object {
           "Fn::GetAtt": Array [
@@ -803,7 +803,7 @@ Object {
             "handler-public.handler",
           ],
         },
-        "MemorySize": 512,
+        "MemorySize": 256,
         "PackageType": "Image",
         "Role": Object {
           "Fn::GetAtt": Array [
@@ -811,7 +811,7 @@ Object {
             "Arn",
           ],
         },
-        "Timeout": 5,
+        "Timeout": 30,
       },
       "Type": "AWS::Lambda::Function",
     },

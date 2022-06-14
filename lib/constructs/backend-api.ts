@@ -24,7 +24,7 @@ export class BackendApi extends Construct {
 
     const handler = new DockerImageFunction(this, 'Handler', {
       code: DockerImageCode.fromImageAsset('backend'),
-      memorySize: 1792,
+      memorySize: 256,
       timeout: Duration.seconds(30),
       environment: {
         TABLE_NAME: database.tableName,
@@ -38,8 +38,8 @@ export class BackendApi extends Construct {
 
     const handlerPublic = new DockerImageFunction(this, 'HandlerPublic', {
       code: DockerImageCode.fromImageAsset('backend', { cmd: ['handler-public.handler'] }),
-      memorySize: 512,
-      timeout: Duration.seconds(5),
+      memorySize: 256,
+      timeout: Duration.seconds(30),
       environment: {
         TABLE_NAME: database.tableName,
         CORS_ALLOW_ORIGINS: allowOrigins.join(','),
