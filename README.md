@@ -20,7 +20,7 @@ Here is the architecture of this kit. We use:
 * [Amazon Cognito](https://aws.amazon.com/cognito/) for authentication. By default, you can sign in/up by email, but you can federate with other OIDC providers such as Google, Facebook, and more with a little modification.
 * [Amazon SQS](https://aws.amazon.com/sqs/) + AWS Lambda for asynchronous job queue. 
 * [Amazon CloudWatch](https://aws.amazon.com/cloudwatch/) + S3 for access logging.
-* [AWS CDK](https://aws.amazon.com/cdk/) for Infastructure as Code. It enables you to deploy the entire application with the simplest commands.
+* [AWS CDK](https://aws.amazon.com/cdk/) for Infrastructure as Code. It enables you to deploy the entire application with the simplest commands.
 
 ![architecture](imgs/architecture.svg)
 
@@ -103,7 +103,7 @@ Using `cdk watch`, you will access the deployed AWS resources from your local fr
 API Gateway, Lambda, SQS, CloudWatch, CloudFront, and S3 offer free tier plans, which allows you to use those services almost freely for small businesses.
 Up to one million requests per month, most of the costs related to those services are free. See [this page for more details](https://aws.amazon.com/free/).
 
-DynamoDB is billed basically by how many read and write counts processed. See [this page for the current prices](https://aws.amazon.com/dynamodb/pricing/on-demand/). DynamoDB provisioned capcity mode also offers free tier plans, so if you want to pay the minimal cost, you can switch the billing mode (see [database.ts](lib/constructs/database.ts)).
+DynamoDB is billed basically by how many read and write counts processed. See [this page for the current prices](https://aws.amazon.com/dynamodb/pricing/on-demand/). DynamoDB provisioned capacity mode also offers free tier plans, so if you want to pay the minimal cost, you can switch the billing mode (see [database.ts](lib/constructs/database.ts)).
 
 Other costs will be derived from data transfer and Elastic Container Repository (used for Docker Lambda). Although it usually does not cost much compared to other services, you may want to continuously monitor the billing metrics. Please refer to [the document to set CloudWatch alarm for AWS charges](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/monitor_estimated_charges_with_cloudwatch.html).
 
