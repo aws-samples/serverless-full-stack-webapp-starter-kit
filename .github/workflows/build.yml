@@ -21,9 +21,10 @@ jobs:
         with:
           node-version: "16.x"
       - run: cd backend
-      - run: npm ci
-      - run: npm run build
-    # - run: npm run test
+      - run: |
+          npm ci
+          npm run build
+        working-directory: ./backend
   Build-and-Test-Frontend:
     runs-on: ubuntu-latest
     steps:
@@ -32,6 +33,7 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: "16.x"
-      - run: cd frontend
-      - run: npm ci
-      - run: npm run build
+      - run: |
+          npm ci
+          npm run build
+        working-directory: ./frontend
