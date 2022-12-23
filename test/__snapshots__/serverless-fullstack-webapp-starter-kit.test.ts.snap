@@ -186,7 +186,7 @@ Object {
       "Properties": Object {
         "Code": Object {
           "ImageUri": Object {
-            "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:787d76a1ac13ae58ae693dbbdcbd8040fa85ab4094b0c7a83217423436012400",
+            "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:3227a3caa51269f025b7dad9d0c7976e77e1f4ca4b50fe765065e942d740ce83",
           },
         },
         "Environment": Object {
@@ -750,7 +750,7 @@ Object {
       "Properties": Object {
         "Code": Object {
           "ImageUri": Object {
-            "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:787d76a1ac13ae58ae693dbbdcbd8040fa85ab4094b0c7a83217423436012400",
+            "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:3227a3caa51269f025b7dad9d0c7976e77e1f4ca4b50fe765065e942d740ce83",
           },
         },
         "Environment": Object {
@@ -787,7 +787,7 @@ Object {
       "Properties": Object {
         "Code": Object {
           "ImageUri": Object {
-            "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:787d76a1ac13ae58ae693dbbdcbd8040fa85ab4094b0c7a83217423436012400",
+            "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:3227a3caa51269f025b7dad9d0c7976e77e1f4ca4b50fe765065e942d740ce83",
           },
         },
         "Environment": Object {
