@@ -9,6 +9,7 @@ Features include:
 * Fully serverless Express API endpoint (both for with and without authentication)
 * Built-in E-mail authentication
 * Asynchronous job queue
+* Scheduled job runner
 * Instant deployment of the entire app
 
 ## Overview
@@ -19,6 +20,7 @@ Here is the architecture of this kit. We use:
 * [Amazon CloudFront](https://aws.amazon.com/cloudfront/) + [S3](https://aws.amazon.com/s3/) to distribute frontend assets (React.js, Amplify libraries, MUI)
 * [Amazon Cognito](https://aws.amazon.com/cognito/) for authentication. By default, you can sign in/up by email, but you can federate with other OIDC providers such as Google, Facebook, and more with a little modification.
 * [Amazon SQS](https://aws.amazon.com/sqs/) + AWS Lambda for asynchronous job queue. 
+* [Amazon EventBridge](https://aws.amazon.com/eventbridge/) to run scheduled jobs. 
 * [Amazon CloudWatch](https://aws.amazon.com/cloudwatch/) + S3 for access logging.
 * [AWS CDK](https://aws.amazon.com/cdk/) for Infrastructure as Code. It enables you to deploy the entire application with the simplest commands.
 
@@ -57,7 +59,7 @@ npx cdk bootstrap
 npx cdk deploy
 ```
 
-Initial deployment usually takes about 10 minutes. You can also use `npx cdk deploy` command to deploy your changes.
+Initial deployment usually takes about 10 minutes. You can also use `npx cdk deploy` command to deploy when you modified your CDK templates in the future.
 
 After a successful deployment, you will get a CLI output like the below:
 
@@ -81,7 +83,6 @@ Opening the URL in `FrontendDomainName` output, you can now try the sample app o
 To implement your own features, you may want to add frontend pages, backend API endpoints, or async jobs. The frontend is an ordinary React.js application, so you can follow the conventional ways to add pages to it. As for backend, there are step-by-step guides to add features in [backend/README.md](backend/README.md), so please follow the guide.
 
 If you want to add another authentication method such as Google or Facebook federation, you can follow this document: [Add social sign-in to a user pool](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-configuring-federation-with-social-idp.html).
-
 
 ## Local development
 To develop frontend or backend locally, please refer to each `README.md` in the subdirectories:

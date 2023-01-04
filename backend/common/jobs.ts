@@ -10,6 +10,8 @@ export type JobHandlerEvent = {
   jobKey: { PK: string; SK: string };
 } & JobEvent;
 
+// You will append new job event types as union
+// e.g. type JobEvent = SampleJobEvent | NewJobEvent | AnotherJobEvent
 export type JobEvent = SampleJobEvent;
 
 export const runJob = async (userId: string, event: JobEvent) => {
