@@ -7,11 +7,13 @@ export default defineConfig({
   build: {
     rollupOptions: {
       // without this vite build fails
+      // related to: https://github.com/aws-amplify/amplify-js/issues/9866
       external: ['mapbox-gl'],
     },
   },
   define: {
-    global: {},
+    // https://stackoverflow.com/a/73541205/18550269
+    global: 'window',
   },
   plugins: [
     react(),

@@ -4,6 +4,7 @@ import { Construct } from 'constructs';
 import { AsyncJob } from './constructs/async-job';
 import { Auth } from './constructs/auth';
 import { BackendApi } from './constructs/backend-api';
+import { CronJobs } from './constructs/cron-jobs';
 import { Database } from './constructs/database';
 import { Frontend } from './constructs/frontend';
 
@@ -22,6 +23,7 @@ export class ServerlessFullstackWebappStarterKitStack extends Stack {
     const auth = new Auth(this, 'Auth');
     const database = new Database(this, 'Database');
     const asyncJob = new AsyncJob(this, 'AsyncJob', { database: database.table });
+    const cronJobs = new CronJobs(this, 'CronJobs', { database: database.table, jobQueue: asyncJob.queue });
     const backend = new BackendApi(this, 'BackendApi', {
       database: database.table,
       auth,

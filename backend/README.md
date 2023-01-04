@@ -43,3 +43,14 @@ When you add another asynchronous job, please follow the below steps:
 ```
 
 You can then run your new job using `runJob` function in [`common/jobs.ts`](common/jobs.ts).
+
+### Schedules jobs 
+You can also execute the async jobs in a scheduled manner. To configure scheduled rules, please edit [cron-jobs.ts](../lib/constructs/cron-jobs.ts) in CDK templates. 
+
+To add a scheduled job, you have to call `addRule` function in the `CronJobs` construct.
+When calling the function, you can specify a job type, a cron schedule, and any event payload if required for the job.
+
+```ts
+    // private addRule(jobType: string, schedule: Schedule, payload?: any)
+    this.addRule('SampleJob', Schedule.cron({ minute: '0', hour: '0', day: '1' }, {}));
+```

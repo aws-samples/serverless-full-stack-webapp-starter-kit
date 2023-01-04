@@ -12,13 +12,13 @@
     },
     "scripts": {
         "build": "tsc",
-        "bundle": "esbuild handler.ts handler-public.ts handler-job.ts --bundle --outdir=dist --platform=node --sourcemap",
+        "bundle": "esbuild handler.ts handler-public.ts handler-job.ts handler-cron-job.ts --bundle --outdir=dist --platform=node --sourcemap",
         "local": "ts-node-dev -r tsconfig-paths/register app.local.ts"
     },
     "devDependencies": {
         "@types/aws-lambda": "^8.10.72",
         "@types/express": "^4.17.11",
-        "@types/jsonwebtoken": "^8.5.8",
+        "@types/jsonwebtoken": "^9.0.0",
         "@types/node": "^14.14.35",
         "@types/uuid": "^8.3.4",
         "esbuild": "^0.14.36",

@@ -186,7 +186,7 @@ Object {
       "Properties": Object {
         "Code": Object {
           "ImageUri": Object {
-            "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:3227a3caa51269f025b7dad9d0c7976e77e1f4ca4b50fe765065e942d740ce83",
+            "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:f089ae1b04cb4508c6574b3bf14d7ca1b71abfd53f5b4bebbdd4e743458ff7ce",
           },
         },
         "Environment": Object {
@@ -750,7 +750,7 @@ Object {
       "Properties": Object {
         "Code": Object {
           "ImageUri": Object {
-            "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:3227a3caa51269f025b7dad9d0c7976e77e1f4ca4b50fe765065e942d740ce83",
+            "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:f089ae1b04cb4508c6574b3bf14d7ca1b71abfd53f5b4bebbdd4e743458ff7ce",
           },
         },
         "Environment": Object {
@@ -787,7 +787,7 @@ Object {
       "Properties": Object {
         "Code": Object {
           "ImageUri": Object {
-            "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:3227a3caa51269f025b7dad9d0c7976e77e1f4ca4b50fe765065e942d740ce83",
+            "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:f089ae1b04cb4508c6574b3bf14d7ca1b71abfd53f5b4bebbdd4e743458ff7ce",
           },
         },
         "Environment": Object {
@@ -1212,6 +1212,176 @@ Object {
               },
               "/*/*/public/{proxy+}",
             ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "CronJobsHandler90E3B2B8": Object {
+      "DependsOn": Array [
+        "CronJobsHandlerServiceRoleDefaultPolicy55D60D75",
+        "CronJobsHandlerServiceRole666BE531",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "ImageUri": Object {
+            "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:f089ae1b04cb4508c6574b3bf14d7ca1b71abfd53f5b4bebbdd4e743458ff7ce",
+          },
+        },
+        "Environment": Object {
+          "Variables": Object {
+            "JOB_QUEUE_NAME": Object {
+              "Fn::GetAtt": Array [
+                "AsyncJobQueue0CD355DA",
+                "QueueName",
+              ],
+            },
+            "TABLE_NAME": Object {
+              "Ref": "DatabaseB269D8BB",
+            },
+          },
+        },
+        "ImageConfig": Object {
+          "Command": Array [
+            "handler-cron-job.handler",
+          ],
+        },
+        "MemorySize": 256,
+        "PackageType": "Image",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "CronJobsHandlerServiceRole666BE531",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "CronJobsHandlerServiceRole666BE531": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "CronJobsHandlerServiceRoleDefaultPolicy55D60D75": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "dynamodb:BatchGetItem",
+                "dynamodb:GetRecords",
+                "dynamodb:GetShardIterator",
+                "dynamodb:Query",
+                "dynamodb:GetItem",
+                "dynamodb:Scan",
+                "dynamodb:ConditionCheckItem",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem",
+                "dynamodb:DeleteItem",
+                "dynamodb:DescribeTable",
+              ],
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "DatabaseB269D8BB",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Ref": "AWS::NoValue",
+                },
+              ],
+            },
+            Object {
+              "Action": Array [
+                "sqs:SendMessage",
+                "sqs:GetQueueAttributes",
+                "sqs:GetQueueUrl",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::GetAtt": Array [
+                  "AsyncJobQueue0CD355DA",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "CronJobsHandlerServiceRoleDefaultPolicy55D60D75",
+        "Roles": Array [
+          Object {
+            "Ref": "CronJobsHandlerServiceRole666BE531",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "CronJobsSampleJob259B9181": Object {
+      "Properties": Object {
+        "ScheduleExpression": "cron(0 0 1 * ? *)",
+        "State": "ENABLED",
+        "Targets": Array [
+          Object {
+            "Arn": Object {
+              "Fn::GetAtt": Array [
+                "CronJobsHandler90E3B2B8",
+                "Arn",
+              ],
+            },
+            "Id": "Target0",
+            "Input": "{\\"jobType\\":\\"SampleJob\\"}",
+            "RetryPolicy": Object {
+              "MaximumRetryAttempts": 3,
+            },
+          },
+        ],
+      },
+      "Type": "AWS::Events::Rule",
+    },
+    "CronJobsSampleJobAllowEventRuleTestStackCronJobsHandler81C1F58395C7FF87": Object {
+      "Properties": Object {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "CronJobsHandler90E3B2B8",
+            "Arn",
+          ],
+        },
+        "Principal": "events.amazonaws.com",
+        "SourceArn": Object {
+          "Fn::GetAtt": Array [
+            "CronJobsSampleJob259B9181",
+            "Arn",
           ],
         },
       },
@@ -1759,7 +1929,7 @@ Object {
           },
         ],
         "SourceObjectKeys": Array [
-          "5e99d81effb8db1f963cce63dee51ab5.zip",
+          "fb2f1dadf73b185aecce13d846b1f55b.zip",
         ],
       },
       "Type": "Custom::CDKBucketDeployment",
@@ -1780,7 +1950,7 @@ Object {
         "destinationBucketName": Object {
           "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
         },
-        "destinationObjectKey": "5e99d81effb8db1f963cce63dee51ab5.zip",
+        "destinationObjectKey": "fb2f1dadf73b185aecce13d846b1f55b.zip",
         "environment": Object {
           "VITE_AWS_REGION": Object {
             "Ref": "AWS::Region",
@@ -1808,7 +1978,7 @@ Object {
             "sourceBucketName": Object {
               "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
             },
-            "sourceObjectKey": "2aaba61e888179293fd40ea54bc2e2f3a75e59d7b1a7cd5330fa3069051ce1dd.zip",
+            "sourceObjectKey": "6e98c13f83378a0930f68229088e4ecc1876cb9c2013dc761ecba91d7f928be1.zip",
           },
         ],
         "workingDirectory": "frontend",
