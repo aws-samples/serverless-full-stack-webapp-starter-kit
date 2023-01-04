@@ -59,10 +59,10 @@ const Memo: FC = () => {
       <Grid container spacing={1}>
         {memos.map((memo, i) => (
           <Grid item key={i} lg={6} sm={3} md={4} zeroMinWidth>
-            <Card sx={{ height: 180 }}>
+            <Card sx={{ height: 187 }}>
               <CardContent>
                 <Box sx={{ width: '100%' }}>
-                  <Typography noWrap gutterBottom variant="h5" component="h2">
+                  <Typography noWrap gutterBottom variant="h5">
                     {memo.title}
                   </Typography>
                   <Typography noWrap paragraph>
@@ -80,9 +80,9 @@ const Memo: FC = () => {
           </Grid>
         ))}
         <Grid item key={-1} lg={6}>
-          <Card style={{ minHeight: 180 }}>
+          <Card sx={{ minHeight: 187 }}>
             <CardContent>
-              <Stack>
+              <Stack spacing={1.5}>
                 <TextField id="title" label="Title" size="small" required {...register('title')} />
                 <TextField id="content" label="Content" multiline required {...register('content')} />
               </Stack>
