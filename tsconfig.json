@@ -18,6 +18,7 @@
     "inlineSourceMap": true,
     "inlineSources": true,
     "experimentalDecorators": true,
+    "noEmit": true,
     "strictPropertyInitialization": false,
     "typeRoots": [
       "./node_modules/@types"
