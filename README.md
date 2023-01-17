@@ -5,9 +5,9 @@ This is a full stack webapp kit for starters who want to leverage the power of A
 
 Features include:
 
-* React.js frontend assets distribution via CDN
-* Fully serverless Express API endpoint (both for with and without authentication)
-* Built-in E-mail authentication
+* Express API endpoint (both with and without authentication)
+* React.js frontend (assets are delivered via CDN)
+* E-mail authentication
 * Asynchronous job queue
 * Scheduled job runner
 * Instant deployment of the entire app
@@ -15,7 +15,7 @@ Features include:
 ## Overview
 Here is the architecture of this kit. We use:
 
-* [Amazon DynamoDB](https://aws.amazon.com/dynamodb/), a serverless scalable NoSQL for database
+* [Amazon DynamoDB](https://aws.amazon.com/dynamodb/), a serverless scalable NoSQL database
 * [Amazon API Gateway HTTP API](https://aws.amazon.com/api-gateway/) + [AWS Lambda](https://aws.amazon.com/lambda/) to build serverless API endpoint ([`serverless-express`](https://github.com/vendia/serverless-express))
 * [Amazon CloudFront](https://aws.amazon.com/cloudfront/) + [S3](https://aws.amazon.com/s3/) to distribute frontend assets (React.js, Amplify libraries, MUI)
 * [Amazon Cognito](https://aws.amazon.com/cognito/) for authentication. By default, you can sign in/up by email, but you can federate with other OIDC providers such as Google, Facebook, and more with a little modification.
