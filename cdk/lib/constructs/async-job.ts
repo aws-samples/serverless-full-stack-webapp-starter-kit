@@ -23,7 +23,7 @@ export class AsyncJob extends Construct {
     });
 
     const handler = new DockerImageFunction(this, 'Handler', {
-      code: DockerImageCode.fromImageAsset('backend', { cmd: ['handler-job.handler'] }),
+      code: DockerImageCode.fromImageAsset('../backend', { cmd: ['handler-job.handler'] }),
       memorySize: 256,
       timeout: visibilityTimeout,
       environment: {

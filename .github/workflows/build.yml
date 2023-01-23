@@ -9,9 +9,11 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: "16.x"
-      - run: npm ci
-      - run: npm run build
-      - run: npm run test
+      - run: |
+          npm ci
+          npm run build
+          npm run test
+        working-directory: ./cdk
   Build-and-Test-Backend:
     runs-on: ubuntu-latest
     steps:
@@ -20,7 +22,6 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: "16.x"
-      - run: cd backend
       - run: |
           npm ci
           npm run build

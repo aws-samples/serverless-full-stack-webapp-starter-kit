@@ -54,6 +54,7 @@ You need the following tools to deploy this sample:
 Then run the following commands:
 
 ```sh
+cd cdk
 npm ci
 npx cdk bootstrap
 npx cdk deploy
@@ -93,18 +94,19 @@ To develop frontend or backend locally, please refer to each `README.md` in the 
 Instead of running the backend API on your local environment, you can use `cdk watch` feature for development by just running the following command:
 
 ```sh
+cd cdk
 npx cdk watch
 ```
 
 `cdk watch` allows you to instantly deploy your backend as soon as you change the code and "tail" logs from your Lambda functions,  enabling rapid iteration cycles.　See [this blog for more details](https://aws.amazon.com/blogs/developer/increasing-development-speed-with-cdk-watch/).
 
-Using `cdk watch`, you will access the deployed AWS resources from your local frontend. You have to configure environment variables in [frontend/.env](frontend/.env) file to properly access these resources. Please refer to [Frontend README](./frontend/README.md) for more details.
+Using `cdk watch`, you will access the deployed AWS resources from your local frontend. You have to configure environment variables in [frontend/.env](./frontend/.env) file to properly access these resources. Please refer to [Frontend README](./frontend/README.md) for more details.
 
 ## Cost
 API Gateway, Lambda, SQS, CloudWatch, CloudFront, and S3 offer free tier plans, which allows you to use those services almost freely for small businesses.
 Up to one million requests per month, most of the costs related to those services are free. See [this page for more details](https://aws.amazon.com/free/).
 
-DynamoDB is billed basically by how many read and write counts processed. See [this page for the current prices](https://aws.amazon.com/dynamodb/pricing/on-demand/). DynamoDB provisioned capacity mode also offers free tier plans, so if you want to pay the minimal cost, you can switch the billing mode (see [database.ts](lib/constructs/database.ts)).
+DynamoDB is billed basically by how many read and write counts processed. See [this page for the current prices](https://aws.amazon.com/dynamodb/pricing/on-demand/). DynamoDB provisioned capacity mode also offers free tier plans, so if you want to pay the minimal cost, you can switch the billing mode (see [database.ts](cdk/lib/constructs/database.ts)).
 
 Other costs will be derived from data transfer and Elastic Container Repository (used for Docker Lambda). Although it usually does not cost much compared to other services, you may want to continuously monitor the billing metrics. Please refer to [the document to set CloudWatch alarm for AWS charges](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/monitor_estimated_charges_with_cloudwatch.html).
 
@@ -114,6 +116,7 @@ To avoid incurring future charges, clean up the resources you created.
 You can remove all the AWS resources deployed by this sample running the following command:
 
 ```sh
+cd cdk
 npx cdk destroy --force
 ```
 
