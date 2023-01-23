@@ -18,7 +18,7 @@ export class CronJobs extends Construct {
     const { database, jobQueue } = props;
 
     this.handler = new DockerImageFunction(this, 'Handler', {
-      code: DockerImageCode.fromImageAsset('backend', { cmd: ['handler-cron-job.handler'] }),
+      code: DockerImageCode.fromImageAsset('../backend', { cmd: ['handler-cron-job.handler'] }),
       memorySize: 256,
       environment: {
         TABLE_NAME: database.tableName,

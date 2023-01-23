@@ -23,7 +23,7 @@ export class BackendApi extends Construct {
     const { database, jobQueue, corsAllowOrigins: allowOrigins = ['*'] } = props;
 
     const handler = new DockerImageFunction(this, 'Handler', {
-      code: DockerImageCode.fromImageAsset('backend'),
+      code: DockerImageCode.fromImageAsset('../backend'),
       memorySize: 256,
       timeout: Duration.seconds(30),
       environment: {
@@ -37,7 +37,7 @@ export class BackendApi extends Construct {
     jobQueue.grantSendMessages(handler);
 
     const handlerPublic = new DockerImageFunction(this, 'HandlerPublic', {
-      code: DockerImageCode.fromImageAsset('backend', { cmd: ['handler-public.handler'] }),
+      code: DockerImageCode.fromImageAsset('../backend', { cmd: ['handler-public.handler'] }),
       memorySize: 256,
       timeout: Duration.seconds(30),
       environment: {

@@ -186,7 +186,7 @@ Object {
       "Properties": Object {
         "Code": Object {
           "ImageUri": Object {
-            "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:f089ae1b04cb4508c6574b3bf14d7ca1b71abfd53f5b4bebbdd4e743458ff7ce",
+            "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:ad8117b5be9e5504255ca6690302e354e18d16ae4369592fbeadf3b164b46ce5",
           },
         },
         "Environment": Object {
@@ -750,7 +750,7 @@ Object {
       "Properties": Object {
         "Code": Object {
           "ImageUri": Object {
-            "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:f089ae1b04cb4508c6574b3bf14d7ca1b71abfd53f5b4bebbdd4e743458ff7ce",
+            "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:ad8117b5be9e5504255ca6690302e354e18d16ae4369592fbeadf3b164b46ce5",
           },
         },
         "Environment": Object {
@@ -787,7 +787,7 @@ Object {
       "Properties": Object {
         "Code": Object {
           "ImageUri": Object {
-            "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:f089ae1b04cb4508c6574b3bf14d7ca1b71abfd53f5b4bebbdd4e743458ff7ce",
+            "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:ad8117b5be9e5504255ca6690302e354e18d16ae4369592fbeadf3b164b46ce5",
           },
         },
         "Environment": Object {
@@ -1225,7 +1225,7 @@ Object {
       "Properties": Object {
         "Code": Object {
           "ImageUri": Object {
-            "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:f089ae1b04cb4508c6574b3bf14d7ca1b71abfd53f5b4bebbdd4e743458ff7ce",
+            "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:ad8117b5be9e5504255ca6690302e354e18d16ae4369592fbeadf3b164b46ce5",
           },
         },
         "Environment": Object {
@@ -1968,20 +1968,20 @@ Object {
             "Ref": "AuthUserPool8115E87F",
           },
         },
-        "outputSourceDirectory": "frontend/dist",
+        "outputSourceDirectory": "../frontend/dist",
         "sources": Array [
           Object {
             "commands": Array [
               "npm ci",
             ],
-            "directoryName": "frontend",
+            "directoryName": "../frontend",
             "sourceBucketName": Object {
               "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
             },
             "sourceObjectKey": "6e98c13f83378a0930f68229088e4ecc1876cb9c2013dc761ecba91d7f928be1.zip",
           },
         ],
-        "workingDirectory": "frontend",
+        "workingDirectory": "../frontend",
       },
       "Type": "Custom::CDKNodejsBuild",
       "UpdateReplacePolicy": "Delete",
