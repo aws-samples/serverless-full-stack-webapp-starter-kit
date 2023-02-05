@@ -9,7 +9,7 @@ docker-compose up -d
 npm run local
 ```
 
-We use [DynamoDB Local](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html) to mock DynamoDB locally. To use a DynamoDB table deployed on AWS, you can modify the environment variables defined in [`app.local.ts`](apps/local.ts); set `TABLE_NAME` and `AWS_REGION` to the actual table name and region, and remove `DYNAMODB_ENDPOINT` variable. 
+We use [DynamoDB Local](https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.html) to mock DynamoDB locally. To use a DynamoDB table deployed on AWS, you can modify the environment variables defined in [`app.local.ts`](app.local.ts); set the `TABLE_NAME` and `AWS_REGION` environment variables to the actual table name and region, and remove the `DYNAMODB_ENDPOINT`. 
 
 You can additonally set `JOB_QUEUE_NAME` to the SQS queue name you deployed to AWS, if you want to test job enqueue feature locally.
 
