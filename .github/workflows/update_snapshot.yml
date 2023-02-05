@@ -14,7 +14,7 @@ jobs:
           node-version: "16.x"
       - run: |
           npm ci
-          npm run test -u
+          npm run test -- -u
         working-directory: ./cdk
       - name: Add & Commit
         uses: EndBug/add-and-commit@v7.2.0
