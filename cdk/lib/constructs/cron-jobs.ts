@@ -4,6 +4,7 @@ import { DockerImageCode, DockerImageFunction } from 'aws-cdk-lib/aws-lambda';
 import { Rule, RuleTargetInput, Schedule } from 'aws-cdk-lib/aws-events';
 import { ITable } from 'aws-cdk-lib/aws-dynamodb';
 import { IQueue } from 'aws-cdk-lib/aws-sqs';
+import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 
 export interface CronJobsProps {
   readonly database: ITable;
@@ -18,7 +19,10 @@ export class CronJobs extends Construct {
     const { database, jobQueue } = props;
 
     this.handler = new DockerImageFunction(this, 'Handler', {
-      code: DockerImageCode.fromImageAsset('../backend', { cmd: ['handler-cron-job.handler'] }),
+      code: DockerImageCode.fromImageAsset('../backend', {
+        cmd: ['handler-cron-job.handler'],
+        platform: Platform.LINUX_AMD64,
+      }),
       memorySize: 256,
       environment: {
         TABLE_NAME: database.tableName,

@@ -7,6 +7,7 @@ import { DockerImageCode, DockerImageFunction } from 'aws-cdk-lib/aws-lambda';
 import { CorsHttpMethod, HttpApi, HttpMethod } from '@aws-cdk/aws-apigatewayv2-alpha';
 import { Auth } from './auth';
 import { IQueue } from 'aws-cdk-lib/aws-sqs';
+import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 
 export interface BackendApiProps {
   readonly database: ITable;
@@ -23,7 +24,7 @@ export class BackendApi extends Construct {
     const { database, jobQueue, corsAllowOrigins: allowOrigins = ['*'] } = props;
 
     const handler = new DockerImageFunction(this, 'Handler', {
-      code: DockerImageCode.fromImageAsset('../backend'),
+      code: DockerImageCode.fromImageAsset('../backend', { platform: Platform.LINUX_AMD64 }),
       memorySize: 256,
       timeout: Duration.seconds(30),
       environment: {
@@ -37,7 +38,10 @@ export class BackendApi extends Construct {
     jobQueue.grantSendMessages(handler);
 
     const handlerPublic = new DockerImageFunction(this, 'HandlerPublic', {
-      code: DockerImageCode.fromImageAsset('../backend', { cmd: ['handler-public.handler'] }),
+      code: DockerImageCode.fromImageAsset('../backend', {
+        cmd: ['handler-public.handler'],
+        platform: Platform.LINUX_AMD64,
+      }),
       memorySize: 256,
       timeout: Duration.seconds(30),
       environment: {
@@ -60,7 +64,6 @@ export class BackendApi extends Construct {
         allowOrigins: allowOrigins,
         maxAge: Duration.days(10),
       },
-      
     });
 
     {

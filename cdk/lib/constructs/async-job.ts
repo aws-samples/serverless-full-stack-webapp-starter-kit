@@ -4,6 +4,7 @@ import { ITable } from 'aws-cdk-lib/aws-dynamodb';
 import { DockerImageCode, DockerImageFunction } from 'aws-cdk-lib/aws-lambda';
 import { Queue, QueueEncryption } from 'aws-cdk-lib/aws-sqs';
 import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
+import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 
 export interface AsyncJobProps {
   readonly database: ITable;
@@ -23,12 +24,16 @@ export class AsyncJob extends Construct {
     });
 
     const handler = new DockerImageFunction(this, 'Handler', {
-      code: DockerImageCode.fromImageAsset('../backend', { cmd: ['handler-job.handler'] }),
+      code: DockerImageCode.fromImageAsset('../backend', {
+        cmd: ['handler-job.handler'],
+        platform: Platform.LINUX_AMD64,
+      }),
       memorySize: 256,
       timeout: visibilityTimeout,
       environment: {
         TABLE_NAME: database.tableName,
       },
+      // limit concurrency to mitigate any possible EDoS attacks 
       reservedConcurrentExecutions: 1,
     });
 
