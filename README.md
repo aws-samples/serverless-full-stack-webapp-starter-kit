@@ -1,6 +1,8 @@
 # Serverless Full Stack WebApp Starter Kit
 [![Build](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/actions/workflows/build.yml/badge.svg)](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/actions/workflows/build.yml)
 
+[日本語の解説記事はこちら](https://tmokmss.hatenablog.com/entry/20220611/1654931458)。 (Additional article about this kit in Japanese.)
+
 This is a full stack webapp kit for starters who want to leverage the power of AWS serverless services!
 
 Features include:
