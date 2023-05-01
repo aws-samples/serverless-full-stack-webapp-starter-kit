@@ -2057,6 +2057,9 @@ Object {
         "buildCommands": Array [
           "npm run bundle",
         ],
+        "codeBuildProjectName": Object {
+          "Ref": "FrontendReactBuildProject48A6230E",
+        },
         "destinationBucketName": Object {
           "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
         },
@@ -2078,53 +2081,83 @@ Object {
             "Ref": "AuthUserPool8115E87F",
           },
         },
-        "outputSourceDirectory": "../frontend/dist",
+        "outputSourceDirectory": "frontend/dist",
         "sources": Array [
           Object {
             "commands": Array [
               "npm ci",
             ],
-            "directoryName": "../frontend",
+            "extractPath": "frontend",
             "sourceBucketName": Object {
               "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
             },
             "sourceObjectKey": "b211d0cce9ffad3b493dc62d6f40a2bb4de6216a039a8e01795266699863b9e4.zip",
           },
         ],
-        "workingDirectory": "../frontend",
+        "workingDirectory": "frontend",
       },
       "Type": "Custom::CDKNodejsBuild",
       "UpdateReplacePolicy": "Delete",
     },
-    "NodejsBuildCustomResourceHandler25648b212c404f09aa65b6bbb0c446591C4101F8": Object {
-      "DependsOn": Array [
-        "NodejsBuildCustomResourceHandler25648b212c404f09aa65b6bbb0c44659ServiceRoleDefaultPolicyCF8879D3",
-        "NodejsBuildCustomResourceHandler25648b212c404f09aa65b6bbb0c44659ServiceRoleCB01FBE6",
-      ],
+    "FrontendReactBuildProject48A6230E": Object {
       "Properties": Object {
-        "Code": Object {
-          "S3Bucket": Object {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-          },
-          "S3Key": "13039ed50e1b40dd1a973f8d2992872d2d3c7b9869926910595df18ec8266bc5.zip",
+        "Artifacts": Object {
+          "Type": "NO_ARTIFACTS",
         },
-        "EphemeralStorage": Object {
-          "Size": 5120,
+        "Cache": Object {
+          "Type": "NO_CACHE",
         },
-        "Handler": "index.handler",
-        "MemorySize": 1792,
-        "Role": Object {
+        "EncryptionKey": "alias/aws/s3",
+        "Environment": Object {
+          "ComputeType": "BUILD_GENERAL1_SMALL",
+          "Image": "aws/codebuild/standard:7.0",
+          "ImagePullCredentialsType": "CODEBUILD",
+          "PrivilegedMode": false,
+          "Type": "LINUX_CONTAINER",
+        },
+        "ServiceRole": Object {
           "Fn::GetAtt": Array [
-            "NodejsBuildCustomResourceHandler25648b212c404f09aa65b6bbb0c44659ServiceRoleCB01FBE6",
+            "FrontendReactBuildProjectRole67F82260",
             "Arn",
           ],
         },
-        "Runtime": "nodejs18.x",
-        "Timeout": 600,
-      },
-      "Type": "AWS::Lambda::Function",
+        "Source": Object {
+          "BuildSpec": "{
+  \\"version\\": \\"0.2\\",
+  \\"phases\\": {
+    \\"install\\": {
+      \\"runtime-versions\\": {
+        \\"nodejs\\": 18
+      }
     },
-    "NodejsBuildCustomResourceHandler25648b212c404f09aa65b6bbb0c44659ServiceRoleCB01FBE6": Object {
+    \\"build\\": {
+      \\"commands\\": [
+        \\"current_dir=$(pwd)\\",
+        \\"\\\\necho \\\\\\"$input\\\\\\"\\\\nfor obj in $(echo \\\\\\"$input\\\\\\" | jq -r '.[] | @base64'); do\\\\n  decoded=$(echo \\\\\\"$obj\\\\\\" | base64 --decode)\\\\n  assetUrl=$(echo \\\\\\"$decoded\\\\\\" | jq -r '.assetUrl')\\\\n  extractPath=$(echo \\\\\\"$decoded\\\\\\" | jq -r '.extractPath')\\\\n  commands=$(echo \\\\\\"$decoded\\\\\\" | jq -r '.commands')\\\\n\\\\n  # Download the zip file\\\\n  aws s3 cp \\\\\\"$assetUrl\\\\\\" temp.zip\\\\n\\\\n  # Extract the zip file to the extractPath directory\\\\n  mkdir -p \\\\\\"$extractPath\\\\\\"\\\\n  unzip temp.zip -d \\\\\\"$extractPath\\\\\\"\\\\n\\\\n  # Remove the zip file\\\\n  rm temp.zip\\\\n\\\\n  # Run the specified commands in the extractPath directory\\\\n  cd \\\\\\"$extractPath\\\\\\"\\\\n  ls -la\\\\n  eval \\\\\\"$commands\\\\\\"\\\\n  cd \\\\\\"$current_dir\\\\\\"\\\\n  ls -la\\\\ndone\\\\n              \\",
+        \\"ls -la\\",
+        \\"cd \\\\\\"$workingDirectory\\\\\\"\\",
+        \\"eval \\\\\\"$buildCommands\\\\\\"\\",
+        \\"ls -la\\",
+        \\"cd \\\\\\"$current_dir\\\\\\"\\",
+        \\"cd \\\\\\"$outputSourceDirectory\\\\\\"\\",
+        \\"zip -r output.zip ./\\",
+        \\"aws s3 cp output.zip \\\\\\"s3://$destinationBucketName/$destinationObjectKey\\\\\\"\\"
+      ]
+    },
+    \\"post_build\\": {
+      \\"commands\\": [
+        \\"echo Build completed on \`date\`\\",
+        \\"\\\\nSTATUS='SUCCESS'\\\\nif [ $CODEBUILD_BUILD_SUCCEEDING -ne 1 ] # Test if the build is failing\\\\nthen\\\\nSTATUS='FAILED'\\\\nREASON=\\\\\\"NodejsBuild failed. See CloudWatch Log stream for the detailed reason: \\\\nhttps://$AWS_REGION.console.aws.amazon.com/cloudwatch/home?region=$AWS_REGION#logsV2:log-groups/log-group/\\\\\\\\$252Faws\\\\\\\\$252Fcodebuild\\\\\\\\$252F$projectName/log-events/$CODEBUILD_LOG_PATH\\\\\\"\\\\nfi\\\\ncat <<EOF > payload.json\\\\n{\\\\n  \\\\\\"StackId\\\\\\": \\\\\\"$stackId\\\\\\",\\\\n  \\\\\\"RequestId\\\\\\": \\\\\\"$requestId\\\\\\",\\\\n  \\\\\\"LogicalResourceId\\\\\\":\\\\\\"$logicalResourceId\\\\\\",\\\\n  \\\\\\"PhysicalResourceId\\\\\\": \\\\\\"$destinationObjectKey\\\\\\",\\\\n  \\\\\\"Status\\\\\\": \\\\\\"$STATUS\\\\\\",\\\\n  \\\\\\"Reason\\\\\\": \\\\\\"$REASON\\\\\\"\\\\n}\\\\nEOF\\\\ncurl -vv -i -X PUT -H 'Content-Type:' -d \\\\\\"@payload.json\\\\\\" \\\\\\"$responseURL\\\\\\"\\\\n              \\"
+      ]
+    }
+  }
+}",
+          "Type": "NO_SOURCE",
+        },
+      },
+      "Type": "AWS::CodeBuild::Project",
+    },
+    "FrontendReactBuildProjectRole67F82260": Object {
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
           "Statement": Array [
@@ -2132,33 +2165,110 @@ Object {
               "Action": "sts:AssumeRole",
               "Effect": "Allow",
               "Principal": Object {
-                "Service": "lambda.amazonaws.com",
+                "Service": "codebuild.amazonaws.com",
               },
             },
           ],
           "Version": "2012-10-17",
         },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                "arn:",
-                Object {
-                  "Ref": "AWS::Partition",
-                },
-                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-              ],
-            ],
-          },
-        ],
       },
       "Type": "AWS::IAM::Role",
     },
-    "NodejsBuildCustomResourceHandler25648b212c404f09aa65b6bbb0c44659ServiceRoleDefaultPolicyCF8879D3": Object {
+    "FrontendReactBuildProjectRoleDefaultPolicyDFEE9CCE": Object {
       "Properties": Object {
         "PolicyDocument": Object {
           "Statement": Array [
+            Object {
+              "Action": Array [
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
+              ],
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":logs:",
+                      Object {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      Object {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":log-group:/aws/codebuild/",
+                      Object {
+                        "Ref": "FrontendReactBuildProject48A6230E",
+                      },
+                    ],
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":logs:",
+                      Object {
+                        "Ref": "AWS::Region",
+                      },
+                      ":",
+                      Object {
+                        "Ref": "AWS::AccountId",
+                      },
+                      ":log-group:/aws/codebuild/",
+                      Object {
+                        "Ref": "FrontendReactBuildProject48A6230E",
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+            Object {
+              "Action": Array [
+                "codebuild:CreateReportGroup",
+                "codebuild:CreateReport",
+                "codebuild:UpdateReport",
+                "codebuild:BatchPutTestCases",
+                "codebuild:BatchPutCodeCoverages",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":codebuild:",
+                    Object {
+                      "Ref": "AWS::Region",
+                    },
+                    ":",
+                    Object {
+                      "Ref": "AWS::AccountId",
+                    },
+                    ":report-group/",
+                    Object {
+                      "Ref": "FrontendReactBuildProject48A6230E",
+                    },
+                    "-*",
+                  ],
+                ],
+              },
+            },
             Object {
               "Action": Array [
                 "s3:GetObject*",
@@ -2244,6 +2354,87 @@ Object {
                   ],
                 },
               ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "FrontendReactBuildProjectRoleDefaultPolicyDFEE9CCE",
+        "Roles": Array [
+          Object {
+            "Ref": "FrontendReactBuildProjectRole67F82260",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "NodejsBuildCustomResourceHandler25648b212c404f09aa65b6bbb0c446591C4101F8": Object {
+      "DependsOn": Array [
+        "NodejsBuildCustomResourceHandler25648b212c404f09aa65b6bbb0c44659ServiceRoleDefaultPolicyCF8879D3",
+        "NodejsBuildCustomResourceHandler25648b212c404f09aa65b6bbb0c44659ServiceRoleCB01FBE6",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": Object {
+            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
+          },
+          "S3Key": "a89beece57b97d45d5016b9e88de3696daaf6ae49a79344dcb1386fe581a125b.zip",
+        },
+        "Handler": "index.handler",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "NodejsBuildCustomResourceHandler25648b212c404f09aa65b6bbb0c44659ServiceRoleCB01FBE6",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs18.x",
+        "Timeout": 300,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "NodejsBuildCustomResourceHandler25648b212c404f09aa65b6bbb0c44659ServiceRoleCB01FBE6": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "NodejsBuildCustomResourceHandler25648b212c404f09aa65b6bbb0c44659ServiceRoleDefaultPolicyCF8879D3": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "codebuild:StartBuild",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::GetAtt": Array [
+                  "FrontendReactBuildProject48A6230E",
+                  "Arn",
+                ],
+              },
             },
           ],
           "Version": "2012-10-17",
