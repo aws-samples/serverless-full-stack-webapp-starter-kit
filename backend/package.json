@@ -2,8 +2,8 @@
     "name": "backend-api",
     "private": true,
     "dependencies": {
-        "@aws-sdk/client-dynamodb": "^3.100.0",
-        "@aws-sdk/client-sqs": "^3.100.0",
+        "@aws-sdk/client-dynamodb": "^3.351.0",
+        "@aws-sdk/client-sqs": "^3.350.0",
         "@aws-sdk/lib-dynamodb": "^3.100.0",
         "@vendia/serverless-express": "^4.5.4",
         "express": "^4.17.1",
