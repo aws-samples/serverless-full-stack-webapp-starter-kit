@@ -1509,6 +1509,11 @@ Object {
           },
           "S3Key": "9eb41a5505d37607ac419321497a4f8c21cf0ee1f9b4a6b29aa04301aea5c7fd.zip",
         },
+        "Environment": Object {
+          "Variables": Object {
+            "AWS_CA_BUNDLE": "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem",
+          },
+        },
         "Handler": "index.handler",
         "Layers": Array [
           Object {
@@ -1668,7 +1673,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "40aa87cdf43c4095cec18bc443965f22ab2f8c1ace47e482a0ba4e35d83b0cc9.zip",
+          "S3Key": "350185a1069fa20a23a583e20c77f6844218bd73097902362dc94f1a108f5d89.zip",
         },
         "Description": Object {
           "Fn::Join": Array [
@@ -2008,7 +2013,7 @@ Object {
           "S3Bucket": Object {
             "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
           },
-          "S3Key": "ae425a54db1deda1936d2f7a541020d40ec5b16e8334c1c068761a8fafa0275f.zip",
+          "S3Key": "10972873dd8a3bc33ae1cb91d834617be249fd84bed5bdbb6ffbb581650aea83.zip",
         },
         "Description": "/opt/awscli/aws",
       },
@@ -2039,7 +2044,7 @@ Object {
           },
         ],
         "SourceObjectKeys": Array [
-          "29e8db70c7758ae75384fa1f04df1978.zip",
+          "447c3114d61f52528fa616f74a15a15b.zip",
         ],
       },
       "Type": "Custom::CDKBucketDeployment",
@@ -2063,7 +2068,7 @@ Object {
         "destinationBucketName": Object {
           "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
         },
-        "destinationObjectKey": "29e8db70c7758ae75384fa1f04df1978.zip",
+        "destinationObjectKey": "447c3114d61f52528fa616f74a15a15b.zip",
         "environment": Object {
           "VITE_AWS_REGION": Object {
             "Ref": "AWS::Region",
@@ -2091,7 +2096,7 @@ Object {
             "sourceBucketName": Object {
               "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
             },
-            "sourceObjectKey": "4e15aebbd5910974765372da6eb17633c78435db16f39b1e761b1f20d09d969b.zip",
+            "sourceObjectKey": "bc68bd068eb31240371b6760faac83c942f8cd1b8b4bb496620f1a6842724bcf.zip",
           },
         ],
         "workingDirectory": "frontend",

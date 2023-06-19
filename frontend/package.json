@@ -9,12 +9,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@aws-amplify/ui-react": "^2.19.0",
+    "@aws-amplify/ui-react": "^5.0.0",
     "@emotion/react": "^11.9.0",
     "@emotion/styled": "^11.8.1",
     "@mui/material": "^5.8.2",
     "@rollup/plugin-node-resolve": "^13.3.0",
-    "aws-amplify": "^4.3.46",
+    "aws-amplify": "^5.2.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-hook-form": "^7.31.3"
