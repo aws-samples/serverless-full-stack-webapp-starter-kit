@@ -1,8 +1,6 @@
-import { Box, Grid, Stack, Typography } from '@mui/material';
-import { API, selectInput } from 'aws-amplify';
-import React, { FC, useEffect, useState } from 'react';
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+import { Grid, Stack, Typography } from '@mui/material';
+import { API } from 'aws-amplify';
+import { FC, useEffect, useState } from 'react';
 
 const Stats: FC = () => {
   const getStats = async () => {
