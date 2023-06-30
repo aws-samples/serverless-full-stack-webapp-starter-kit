@@ -3,8 +3,8 @@ process.env.AWS_REGION = 'us-east-1';
 process.env.DYNAMODB_ENDPOINT = 'http://localhost:8000';
 process.env.JOB_QUEUE_NAME = 'dummy';
 
-import { ddb, TableName } from './common/dynamodb';
-import { CreateTableCommand } from '@aws-sdk/client-dynamodb';
+import { client, TableName } from './common/dynamodb';
+import { CreateTableCommand, ResourceInUseException } from '@aws-sdk/client-dynamodb';
 import app from './apps/local';
 
 const port = 3001;
@@ -17,7 +17,7 @@ process.on('SIGTERM', (err: any) => {
 const main = async () => {
   try {
     // Initialize the main table
-    await ddb.send(
+    await client.send(
       new CreateTableCommand({
         TableName,
         AttributeDefinitions: [
@@ -34,8 +34,13 @@ const main = async () => {
         },
       }),
     );
+    console.log('Successfully created a DynamoDB table.')
   } catch (e) {
-    console.log(e);
+    if (e instanceof ResourceInUseException) {
+      // the table is already created.
+    } else {
+      console.log(`Failure in creating a DynamoDB table ${e}`);
+    }
   }
 
   app.listen(port, () => {
