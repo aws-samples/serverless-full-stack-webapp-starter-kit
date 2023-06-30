@@ -1,10 +1,10 @@
 import { ScanCommand } from '@aws-sdk/client-dynamodb';
-import { ddb, TableName } from '../../common/dynamodb';
+import { client, TableName } from '../../common/dynamodb';
 import { Handler } from '../../common/express';
 
 export const getStats: Handler = async (req, res) => {
   // You should avoid DynamoDB scan on production. It is used here just for demo purpose.
-  const memoCount = await ddb.send(
+  const memoCount = await client.send(
     new ScanCommand({
       TableName,
       Select: 'COUNT',
@@ -15,7 +15,7 @@ export const getStats: Handler = async (req, res) => {
     }),
   );
 
-  const jobCount = await ddb.send(
+  const jobCount = await client.send(
     new ScanCommand({
       TableName,
       Select: 'COUNT',
