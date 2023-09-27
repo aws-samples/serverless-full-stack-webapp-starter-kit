@@ -1,5 +1,5 @@
 {
-  "name": "frontend",
+  "name": "@aws-samples/frontend",
   "private": true,
   "version": "0.0.0",
   "scripts": {

@@ -1,5 +1,5 @@
 {
-  "name": "serverless-fullstack-webapp-starter-kit",
+  "name": "@aws-samples/serverless-fullstack-webapp-starter-kit",
   "version": "0.1.0",
   "private": true,
   "bin": {

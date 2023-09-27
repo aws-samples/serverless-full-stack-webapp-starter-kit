@@ -1,5 +1,5 @@
 {
-    "name": "backend-api",
+    "name": "@aws-samples/backend-api",
     "private": true,
     "dependencies": {
         "@aws-sdk/client-dynamodb": "^3.363.0",
