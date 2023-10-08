@@ -2,6 +2,7 @@ name: Update snapshot
 
 on:
   workflow_dispatch:
+  push:
 
 jobs:
   update:
