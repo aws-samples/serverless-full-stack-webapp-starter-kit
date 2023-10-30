@@ -2044,7 +2044,7 @@ Object {
           },
         ],
         "SourceObjectKeys": Array [
-          "bf841a86b1bef88d1f8de0a5ae3ad231.zip",
+          "d7d93b4262725616807e4d46527b2543.zip",
         ],
       },
       "Type": "Custom::CDKBucketDeployment",
@@ -2068,7 +2068,7 @@ Object {
         "destinationBucketName": Object {
           "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
         },
-        "destinationObjectKey": "bf841a86b1bef88d1f8de0a5ae3ad231.zip",
+        "destinationObjectKey": "d7d93b4262725616807e4d46527b2543.zip",
         "environment": Object {
           "VITE_AWS_REGION": Object {
             "Ref": "AWS::Region",
@@ -2096,7 +2096,7 @@ Object {
             "sourceBucketName": Object {
               "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
             },
-            "sourceObjectKey": "d6e2f1882ac7d7e3fedba8a3bd098960001871257ed42ec995b107a255854ac8.zip",
+            "sourceObjectKey": "ca33fa35463b864338ceea7d20f7772ffff6e2d0ffb4b78046934c4bc323bd2c.zip",
           },
         ],
         "workingDirectory": "frontend",
