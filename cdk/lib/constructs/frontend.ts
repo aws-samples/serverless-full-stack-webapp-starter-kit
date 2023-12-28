@@ -4,7 +4,7 @@ import { BlockPublicAccess, Bucket, BucketEncryption, IBucket } from 'aws-cdk-li
 import { CloudFrontWebDistribution, OriginAccessIdentity } from 'aws-cdk-lib/aws-cloudfront';
 import { NodejsBuild } from 'deploy-time-build';
 import { Auth } from './auth';
-import { IHttpApi } from '@aws-cdk/aws-apigatewayv2-alpha';
+import { IHttpApi } from 'aws-cdk-lib/aws-apigatewayv2';
 
 export interface FrontendProps {
   readonly backendApi: IHttpApi;
