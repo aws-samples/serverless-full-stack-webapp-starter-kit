@@ -14,6 +14,8 @@ Features include:
 * Scheduled job runner
 * Instant deployment of the entire app
 
+**NOTE:** You can also refer to [aws-samples/trpc-nextjs-ssr-prisma-lambda](https://github.com/aws-samples/trpc-nextjs-ssr-prisma-lambda) for end-to-end type safety, server side rendering, or relational database examples.
+
 ## Overview
 Here is the architecture of this kit. We use:
 
