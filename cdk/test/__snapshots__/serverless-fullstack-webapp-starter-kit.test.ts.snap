@@ -2,6 +2,7 @@
 
 exports[`Snapshot test 1`] = `
 Object {
+  "Description": "Serverless fullstack webapp stack (uksb-1tupboc47)",
   "Outputs": Object {
     "AuthUserPoolClientId8216BF9A": Object {
       "Value": Object {

@@ -10,7 +10,7 @@ import { Frontend } from './constructs/frontend';
 
 export class ServerlessFullstackWebappStarterKitStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
-    super(scope, id, props);
+    super(scope, id, { description: 'Serverless fullstack webapp stack (uksb-1tupboc47)', ...props });
 
     const accessLogBucket = new Bucket(this, 'AccessLogBucket', {
       encryption: BucketEncryption.S3_MANAGED,
