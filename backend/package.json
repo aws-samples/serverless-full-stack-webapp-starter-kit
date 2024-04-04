@@ -6,7 +6,7 @@
         "@aws-sdk/client-sqs": "^3.363.0",
         "@aws-sdk/lib-dynamodb": "^3.100.0",
         "@vendia/serverless-express": "^4.5.4",
-        "express": "^4.17.1",
+        "express": "^4.19.2",
         "jsonwebtoken": "^9.0.0",
         "uuid": "^8.3.2"
     },
