@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: "public.ecr.aws/docker/library/postgres:16"
+    ports:
+      - "5432:5432"
+    volumes:
+      - "postgres_data:/var/lib/postgresql/data"
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: root
+volumes:
+  mysql_data:
+  postgres_data:
