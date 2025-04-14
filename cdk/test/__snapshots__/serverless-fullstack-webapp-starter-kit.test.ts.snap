@@ -2,7 +2,268 @@
 
 exports[`Snapshot test 1`] = `
 Object {
+  "Parameters": Object {
+    "BootstrapVersion": Object {
+      "Default": "/cdk-bootstrap/hnb659fds/version",
+      "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
+      "Type": "AWS::SSM::Parameter::Value<String>",
+    },
+  },
+  "Resources": Object {
+    "CertificateV29EE77EAF": Object {
+      "Properties": Object {
+        "DomainName": "*.example.com",
+        "DomainValidationOptions": Array [
+          Object {
+            "DomainName": "example.com",
+            "HostedZoneId": "DUMMY",
+          },
+        ],
+        "SubjectAlternativeNames": Array [
+          "example.com",
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "Name",
+            "Value": "ServerlessWebappStarterKitUsEast1Stack/CertificateV2",
+          },
+        ],
+        "ValidationMethod": "DNS",
+      },
+      "Type": "AWS::CertificateManager::Certificate",
+    },
+    "CustomCrossRegionExportWriterCustomResourceProviderHandlerD8786E8A": Object {
+      "DependsOn": Array [
+        "CustomCrossRegionExportWriterCustomResourceProviderRoleC951B1E1",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
+          "S3Key": "8a17fb3ceee821f797100bf65fa3047c164a08c03aa5a07fbcff9a676fb73b97.zip",
+        },
+        "Handler": "__entrypoint__.handler",
+        "MemorySize": 128,
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "CustomCrossRegionExportWriterCustomResourceProviderRoleC951B1E1",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs20.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "CustomCrossRegionExportWriterCustomResourceProviderRoleC951B1E1": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Sub": "arn:\${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+          },
+        ],
+        "Policies": Array [
+          Object {
+            "PolicyDocument": Object {
+              "Statement": Array [
+                Object {
+                  "Action": Array [
+                    "ssm:DeleteParameters",
+                    "ssm:ListTagsForResource",
+                    "ssm:GetParameters",
+                    "ssm:PutParameter",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": Array [
+                    Object {
+                      "Fn::Join": Array [
+                        "",
+                        Array [
+                          "arn:",
+                          Object {
+                            "Ref": "AWS::Partition",
+                          },
+                          ":ssm:us-west-2:123456789012:parameter/cdk/exports/*",
+                        ],
+                      ],
+                    },
+                  ],
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "Inline",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "ExportsWriteruswest209BD44F0A7CF058B": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "CustomCrossRegionExportWriterCustomResourceProviderHandlerD8786E8A",
+            "Arn",
+          ],
+        },
+        "WriterProps": Object {
+          "exports": Object {
+            "/cdk/exports/ServerlessWebappStarterKitStack/ServerlessWebappStarterKitUsEast1Stackuseast1RefCertificateV29EE77EAF5C85697F": Object {
+              "Ref": "CertificateV29EE77EAF",
+            },
+            "/cdk/exports/ServerlessWebappStarterKitStack/ServerlessWebappStarterKitUsEast1Stackuseast1RefSignPayloadHandlerFunctionVersionF9FE430A3006B9FA": Object {
+              "Ref": "SignPayloadHandlerFunctionVersionF9FE430A",
+            },
+          },
+          "region": "us-west-2",
+        },
+      },
+      "Type": "Custom::CrossRegionExportWriter",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "Record83264F3E": Object {
+      "Properties": Object {
+        "HostedZoneId": "DUMMY",
+        "Name": "example.com.",
+        "ResourceRecords": Array [
+          "8.8.8.8",
+        ],
+        "TTL": "1800",
+        "Type": "A",
+      },
+      "Type": "AWS::Route53::RecordSet",
+    },
+    "SignPayloadHandlerCFEAA14C": Object {
+      "DependsOn": Array [
+        "SignPayloadHandlerServiceRole29261232",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
+          "S3Key": "75826bacb6e32002567601abc1e4f7f7dddd5f721ad7d4a62b2ae425c3976381.zip",
+        },
+        "Handler": "index.handler",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "SignPayloadHandlerServiceRole29261232",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "SignPayloadHandlerCurrentVersionF9D1B5C2cb548e0bd5e980a726eee0f3426c8898": Object {
+      "Properties": Object {
+        "FunctionName": Object {
+          "Ref": "SignPayloadHandlerCFEAA14C",
+        },
+      },
+      "Type": "AWS::Lambda::Version",
+    },
+    "SignPayloadHandlerFunctionVersionF9FE430A": Object {
+      "Properties": Object {
+        "Type": "String",
+        "Value": Object {
+          "Ref": "SignPayloadHandlerCurrentVersionF9D1B5C2cb548e0bd5e980a726eee0f3426c8898",
+        },
+      },
+      "Type": "AWS::SSM::Parameter",
+    },
+    "SignPayloadHandlerServiceRole29261232": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "edgelambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+  },
+  "Rules": Object {
+    "CheckBootstrapVersion": Object {
+      "Assertions": Array [
+        Object {
+          "Assert": Object {
+            "Fn::Not": Array [
+              Object {
+                "Fn::Contains": Array [
+                  Array [
+                    "1",
+                    "2",
+                    "3",
+                    "4",
+                    "5",
+                  ],
+                  Object {
+                    "Ref": "BootstrapVersion",
+                  },
+                ],
+              },
+            ],
+          },
+          "AssertDescription": "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+        },
+      ],
+    },
+  },
+}
+`;
+
+exports[`Snapshot test 2`] = `
+Object {
   "Description": "Serverless fullstack webapp stack (uksb-1tupboc47)",
+  "Mappings": Object {
+    "AWSCloudFrontPartitionHostedZoneIdMap": Object {
+      "aws": Object {
+        "zoneId": "Z2FDTNDATAQYW2",
+      },
+      "aws-cn": Object {
+        "zoneId": "Z3RFFRIM2A3IF5",
+      },
+    },
+  },
   "Outputs": Object {
     "AuthUserPoolClientId8216BF9A": Object {
       "Value": Object {
@@ -14,29 +275,135 @@ Object {
         "Ref": "AuthUserPool8115E87F",
       },
     },
-    "BackendApiBackendApiUrl4A0A7879": Object {
+    "DatabaseBastionHostBastionHostId1600F37C": Object {
+      "Description": "Instance ID of the bastion host. Use this to connect via SSM Session Manager",
       "Value": Object {
-        "Fn::GetAtt": Array [
-          "BackendApiED3D8698",
-          "ApiEndpoint",
-        ],
+        "Ref": "DatabaseBastionHost4C4FAD9C",
       },
     },
-    "FrontendDomainName": Object {
+    "DatabaseDatabaseSecretsCommandF4A622EB": Object {
       "Value": Object {
         "Fn::Join": Array [
           "",
           Array [
-            "https://",
+            "aws secretsmanager get-secret-value --secret-id ",
             Object {
-              "Fn::GetAtt": Array [
-                "FrontendDistributionCFDistributionAE9BA647",
-                "DomainName",
+              "Fn::Join": Array [
+                "-",
+                Array [
+                  Object {
+                    "Fn::Select": Array [
+                      0,
+                      Object {
+                        "Fn::Split": Array [
+                          "-",
+                          Object {
+                            "Fn::Select": Array [
+                              6,
+                              Object {
+                                "Fn::Split": Array [
+                                  ":",
+                                  Object {
+                                    "Ref": "DatabaseClusterSecretD1FB634F",
+                                  },
+                                ],
+                              },
+                            ],
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                  Object {
+                    "Fn::Select": Array [
+                      1,
+                      Object {
+                        "Fn::Split": Array [
+                          "-",
+                          Object {
+                            "Fn::Select": Array [
+                              6,
+                              Object {
+                                "Fn::Split": Array [
+                                  ":",
+                                  Object {
+                                    "Ref": "DatabaseClusterSecretD1FB634F",
+                                  },
+                                ],
+                              },
+                            ],
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
               ],
             },
+            " --region us-west-2",
           ],
         ],
       },
+    },
+    "DatabasePortForwardCommandC3718B89": Object {
+      "Value": Object {
+        "Fn::Join": Array [
+          "",
+          Array [
+            "aws ssm start-session --region us-west-2 --target ",
+            Object {
+              "Ref": "DatabaseBastionHost4C4FAD9C",
+            },
+            " --document-name AWS-StartPortForwardingSessionToRemoteHost --parameters '{\\"portNumber\\":[\\"",
+            Object {
+              "Fn::GetAtt": Array [
+                "DatabaseCluster5B53A178",
+                "Endpoint.Port",
+              ],
+            },
+            "\\"], \\"localPortNumber\\":[\\"",
+            Object {
+              "Fn::GetAtt": Array [
+                "DatabaseCluster5B53A178",
+                "Endpoint.Port",
+              ],
+            },
+            "\\"], \\"host\\": [\\"",
+            Object {
+              "Fn::GetAtt": Array [
+                "DatabaseCluster5B53A178",
+                "Endpoint.Address",
+              ],
+            },
+            "\\"]}'",
+          ],
+        ],
+      },
+    },
+    "FrontendDomainName": Object {
+      "Value": "https://web.example.com",
+    },
+    "MigrationCommand": Object {
+      "Value": Object {
+        "Fn::Join": Array [
+          "",
+          Array [
+            "aws lambda invoke --function-name ",
+            Object {
+              "Ref": "WebappMigrationRunnerAC67C012",
+            },
+            " --payload '{\\"command\\":\\"deploy\\"}' --cli-binary-format raw-in-base64-out /dev/stdout",
+          ],
+        ],
+      },
+    },
+    "MigrationFunctionName": Object {
+      "Value": Object {
+        "Ref": "WebappMigrationRunnerAC67C012",
+      },
+    },
+    "WebappCloudFrontUrl0A14F88B": Object {
+      "Value": "https://web.example.com",
     },
   },
   "Parameters": Object {
@@ -45,8 +412,140 @@ Object {
       "Description": "Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]",
       "Type": "AWS::SSM::Parameter::Value<String>",
     },
+    "SsmParameterValueawsserviceamiamazonlinuxlatestal2023amikernel61arm64C96584B6F00A464EAD1953AFF4B05118Parameter": Object {
+      "Default": "/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-arm64",
+      "Type": "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>",
+    },
   },
   "Resources": Object {
+    "AWS679f53fac002430cb0da5b7982bd22872D164C4C": Object {
+      "DependsOn": Array [
+        "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-west-2",
+          "S3Key": "9d043014be736e8162bcc7ec5590cc6d2ff24fd0d9c73a5c5d595151c5fdad00.zip",
+        },
+        "Handler": "index.handler",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs20.x",
+        "Timeout": 120,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "AWSCDKTriggerCustomResourceProviderCustomResourceProviderHandler97BECD91": Object {
+      "DependsOn": Array [
+        "AWSCDKTriggerCustomResourceProviderCustomResourceProviderRoleE18FAF0A",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-west-2",
+          "S3Key": "b585179dc46d9100f31367c1eb03e063c4e1a396f99a6a188ac4a05a16ae4fa5.zip",
+        },
+        "Handler": "__entrypoint__.handler",
+        "MemorySize": 128,
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "AWSCDKTriggerCustomResourceProviderCustomResourceProviderRoleE18FAF0A",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs20.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "AWSCDKTriggerCustomResourceProviderCustomResourceProviderRoleE18FAF0A": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Sub": "arn:\${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+          },
+        ],
+        "Policies": Array [
+          Object {
+            "PolicyDocument": Object {
+              "Statement": Array [
+                Object {
+                  "Action": Array [
+                    "lambda:InvokeFunction",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": Array [
+                    Object {
+                      "Fn::Join": Array [
+                        "",
+                        Array [
+                          Object {
+                            "Fn::GetAtt": Array [
+                              "WebappMigrationRunnerAC67C012",
+                              "Arn",
+                            ],
+                          },
+                          ":*",
+                        ],
+                      ],
+                    },
+                  ],
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "Inline",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
     "AccessLogBucketAutoDeleteObjectsCustomResource01AB31E8": Object {
       "DeletionPolicy": "Delete",
       "DependsOn": Array [
@@ -187,159 +686,37 @@ Object {
       },
       "Type": "AWS::S3::BucketPolicy",
     },
-    "AsyncJobHandler438266BD": Object {
-      "DependsOn": Array [
-        "AsyncJobHandlerServiceRoleDefaultPolicy0B2DEDB5",
-        "AsyncJobHandlerServiceRoleFE9F530F",
-      ],
+    "AuthBranding34BB87FD": Object {
       "Properties": Object {
-        "Code": Object {
-          "ImageUri": Object {
-            "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:5a37c27b879478fc1e0a685b58e4cbec3c4c29e2221ee533dff6f7b00cef089b",
-          },
+        "ClientId": Object {
+          "Ref": "AuthUserPoolClientC635291F",
         },
-        "Environment": Object {
-          "Variables": Object {
-            "TABLE_NAME": Object {
-              "Ref": "DatabaseB269D8BB",
-            },
-          },
+        "UseCognitoProvidedValues": true,
+        "UserPoolId": Object {
+          "Ref": "AuthUserPool8115E87F",
         },
-        "ImageConfig": Object {
-          "Command": Array [
-            "handler-job.handler",
-          ],
-        },
-        "MemorySize": 256,
-        "PackageType": "Image",
-        "ReservedConcurrentExecutions": 1,
-        "Role": Object {
-          "Fn::GetAtt": Array [
-            "AsyncJobHandlerServiceRoleFE9F530F",
-            "Arn",
-          ],
-        },
-        "Timeout": 600,
       },
-      "Type": "AWS::Lambda::Function",
+      "Type": "AWS::Cognito::ManagedLoginBranding",
     },
-    "AsyncJobHandlerServiceRoleDefaultPolicy0B2DEDB5": Object {
+    "AuthCognitoDomainRecordBA8AA168": Object {
       "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
-                "dynamodb:BatchGetItem",
-                "dynamodb:GetRecords",
-                "dynamodb:GetShardIterator",
-                "dynamodb:Query",
-                "dynamodb:GetItem",
-                "dynamodb:Scan",
-                "dynamodb:ConditionCheckItem",
-                "dynamodb:BatchWriteItem",
-                "dynamodb:PutItem",
-                "dynamodb:UpdateItem",
-                "dynamodb:DeleteItem",
-                "dynamodb:DescribeTable",
-              ],
-              "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "DatabaseB269D8BB",
-                    "Arn",
-                  ],
-                },
-                Object {
-                  "Ref": "AWS::NoValue",
-                },
-              ],
-            },
-            Object {
-              "Action": Array [
-                "sqs:ReceiveMessage",
-                "sqs:ChangeMessageVisibility",
-                "sqs:GetQueueUrl",
-                "sqs:DeleteMessage",
-                "sqs:GetQueueAttributes",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::GetAtt": Array [
-                  "AsyncJobQueue0CD355DA",
-                  "Arn",
-                ],
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "AsyncJobHandlerServiceRoleDefaultPolicy0B2DEDB5",
-        "Roles": Array [
+        "HostedZoneId": "DUMMY",
+        "Name": "auth.example.com.",
+        "ResourceRecords": Array [
           Object {
-            "Ref": "AsyncJobHandlerServiceRoleFE9F530F",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
-    "AsyncJobHandlerServiceRoleFE9F530F": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "lambda.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                "arn:",
-                Object {
-                  "Ref": "AWS::Partition",
-                },
-                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-              ],
+            "Fn::GetAtt": Array [
+              "AuthUserPoolCognitoDomainAD9D79E1",
+              "CloudFrontDistribution",
             ],
           },
         ],
+        "TTL": "1800",
+        "Type": "CNAME",
       },
-      "Type": "AWS::IAM::Role",
-    },
-    "AsyncJobHandlerSqsEventSourceTestStackAsyncJobQueue9C604E6F5924853A": Object {
-      "Properties": Object {
-        "EventSourceArn": Object {
-          "Fn::GetAtt": Array [
-            "AsyncJobQueue0CD355DA",
-            "Arn",
-          ],
-        },
-        "FunctionName": Object {
-          "Ref": "AsyncJobHandler438266BD",
-        },
-        "MaximumBatchingWindowInSeconds": 5,
-      },
-      "Type": "AWS::Lambda::EventSourceMapping",
-    },
-    "AsyncJobQueue0CD355DA": Object {
-      "DeletionPolicy": "Delete",
-      "Properties": Object {
-        "KmsMasterKeyId": "alias/aws/sqs",
-        "VisibilityTimeout": 600,
-      },
-      "Type": "AWS::SQS::Queue",
-      "UpdateReplacePolicy": "Delete",
+      "Type": "AWS::Route53::RecordSet",
     },
     "AuthUserPool8115E87F": Object {
-      "DeletionPolicy": "Retain",
+      "DeletionPolicy": "Delete",
       "Properties": Object {
         "AccountRecoverySetting": Object {
           "RecoveryMechanisms": Array [
@@ -381,12 +758,11 @@ Object {
         },
       },
       "Type": "AWS::Cognito::UserPool",
-      "UpdateReplacePolicy": "Retain",
+      "UpdateReplacePolicy": "Delete",
     },
     "AuthUserPoolClientC635291F": Object {
       "Properties": Object {
         "AllowedOAuthFlows": Array [
-          "implicit",
           "code",
         ],
         "AllowedOAuthFlowsUserPoolClient": true,
@@ -398,9 +774,19 @@ Object {
           "aws.cognito.signin.user.admin",
         ],
         "CallbackURLs": Array [
-          "https://example.com",
+          "http://localhost:3010/api/auth/sign-in-callback",
+          "https://web.example.com/api/auth/sign-in-callback",
+        ],
+        "ExplicitAuthFlows": Array [
+          "ALLOW_USER_PASSWORD_AUTH",
+          "ALLOW_USER_SRP_AUTH",
+          "ALLOW_REFRESH_TOKEN_AUTH",
         ],
         "IdTokenValidity": 1440,
+        "LogoutURLs": Array [
+          "http://localhost:3010/api/auth/sign-out-callback",
+          "https://web.example.com/api/auth/sign-out-callback",
+        ],
         "SupportedIdentityProviders": Array [
           "COGNITO",
         ],
@@ -413,418 +799,80 @@ Object {
       },
       "Type": "AWS::Cognito::UserPoolClient",
     },
-    "BackendApiAuthorizerD604C09E": Object {
+    "AuthUserPoolCognitoDomainAD9D79E1": Object {
       "Properties": Object {
-        "ApiId": Object {
-          "Ref": "BackendApiED3D8698",
-        },
-        "AuthorizerType": "JWT",
-        "IdentitySource": Array [
-          "$request.header.Authorization",
-        ],
-        "JwtConfiguration": Object {
-          "Audience": Array [
-            Object {
-              "Ref": "AuthUserPoolClientC635291F",
-            },
-          ],
-          "Issuer": Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                "https://cognito-idp.",
-                Object {
-                  "Ref": "AWS::Region",
-                },
-                ".amazonaws.com/",
-                Object {
-                  "Ref": "AuthUserPool8115E87F",
-                },
-              ],
+        "CustomDomainConfig": Object {
+          "CertificateArn": Object {
+            "Fn::GetAtt": Array [
+              "ExportsReader8B249524",
+              "/cdk/exports/ServerlessWebappStarterKitStack/ServerlessWebappStarterKitUsEast1Stackuseast1RefCertificateV29EE77EAF5C85697F",
             ],
           },
         },
-        "Name": "Authorizer",
-      },
-      "Type": "AWS::ApiGatewayV2::Authorizer",
-    },
-    "BackendApiDELETEproxy5E114AEA": Object {
-      "Properties": Object {
-        "ApiId": Object {
-          "Ref": "BackendApiED3D8698",
-        },
-        "AuthorizationType": "JWT",
-        "AuthorizerId": Object {
-          "Ref": "BackendApiAuthorizerD604C09E",
-        },
-        "RouteKey": "DELETE /{proxy+}",
-        "Target": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "integrations/",
-              Object {
-                "Ref": "BackendApiGETproxyIntegration291A9206",
-              },
-            ],
-          ],
+        "Domain": "auth.example.com",
+        "ManagedLoginVersion": 2,
+        "UserPoolId": Object {
+          "Ref": "AuthUserPool8115E87F",
         },
       },
-      "Type": "AWS::ApiGatewayV2::Route",
+      "Type": "AWS::Cognito::UserPoolDomain",
     },
-    "BackendApiDELETEproxyIntegrationPermission8A59D167": Object {
+    "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64C13E3549": Object {
       "Properties": Object {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": Object {
-          "Fn::GetAtt": Array [
-            "BackendApiHandlerF69AE07A",
-            "Arn",
-          ],
+        "Artifacts": Object {
+          "Type": "NO_ARTIFACTS",
         },
-        "Principal": "apigateway.amazonaws.com",
-        "SourceArn": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "arn:",
-              Object {
-                "Ref": "AWS::Partition",
-              },
-              ":execute-api:",
-              Object {
-                "Ref": "AWS::Region",
-              },
-              ":",
-              Object {
-                "Ref": "AWS::AccountId",
-              },
-              ":",
-              Object {
-                "Ref": "BackendApiED3D8698",
-              },
-              "/*/*/{proxy+}",
-            ],
-          ],
+        "Cache": Object {
+          "Type": "NO_CACHE",
         },
-      },
-      "Type": "AWS::Lambda::Permission",
-    },
-    "BackendApiDELETEpublicproxy7B293125": Object {
-      "Properties": Object {
-        "ApiId": Object {
-          "Ref": "BackendApiED3D8698",
-        },
-        "AuthorizationType": "NONE",
-        "RouteKey": "DELETE /public/{proxy+}",
-        "Target": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "integrations/",
-              Object {
-                "Ref": "BackendApiGETpublicproxyPublicIntegration27407C42",
-              },
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::ApiGatewayV2::Route",
-    },
-    "BackendApiDELETEpublicproxyPublicIntegrationPermission35ACAA42": Object {
-      "Properties": Object {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": Object {
-          "Fn::GetAtt": Array [
-            "BackendApiHandlerPublicF3ADF520",
-            "Arn",
-          ],
-        },
-        "Principal": "apigateway.amazonaws.com",
-        "SourceArn": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "arn:",
-              Object {
-                "Ref": "AWS::Partition",
-              },
-              ":execute-api:",
-              Object {
-                "Ref": "AWS::Region",
-              },
-              ":",
-              Object {
-                "Ref": "AWS::AccountId",
-              },
-              ":",
-              Object {
-                "Ref": "BackendApiED3D8698",
-              },
-              "/*/*/public/{proxy+}",
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::Lambda::Permission",
-    },
-    "BackendApiDefaultStage395BF519": Object {
-      "Properties": Object {
-        "ApiId": Object {
-          "Ref": "BackendApiED3D8698",
-        },
-        "AutoDeploy": true,
-        "StageName": "$default",
-      },
-      "Type": "AWS::ApiGatewayV2::Stage",
-    },
-    "BackendApiED3D8698": Object {
-      "Properties": Object {
-        "CorsConfiguration": Object {
-          "AllowHeaders": Array [
-            "*",
-          ],
-          "AllowMethods": Array [
-            "GET",
-            "HEAD",
-            "OPTIONS",
-            "POST",
-            "PUT",
-          ],
-          "AllowOrigins": Array [
-            "*",
-          ],
-          "MaxAge": 864000,
-        },
-        "Name": "Default",
-        "ProtocolType": "HTTP",
-      },
-      "Type": "AWS::ApiGatewayV2::Api",
-    },
-    "BackendApiGETproxyFCC836F3": Object {
-      "Properties": Object {
-        "ApiId": Object {
-          "Ref": "BackendApiED3D8698",
-        },
-        "AuthorizationType": "JWT",
-        "AuthorizerId": Object {
-          "Ref": "BackendApiAuthorizerD604C09E",
-        },
-        "RouteKey": "GET /{proxy+}",
-        "Target": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "integrations/",
-              Object {
-                "Ref": "BackendApiGETproxyIntegration291A9206",
-              },
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::ApiGatewayV2::Route",
-    },
-    "BackendApiGETproxyIntegration291A9206": Object {
-      "Properties": Object {
-        "ApiId": Object {
-          "Ref": "BackendApiED3D8698",
-        },
-        "IntegrationType": "AWS_PROXY",
-        "IntegrationUri": Object {
-          "Fn::GetAtt": Array [
-            "BackendApiHandlerF69AE07A",
-            "Arn",
-          ],
-        },
-        "PayloadFormatVersion": "2.0",
-      },
-      "Type": "AWS::ApiGatewayV2::Integration",
-    },
-    "BackendApiGETproxyIntegrationPermissionA99552CF": Object {
-      "Properties": Object {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": Object {
-          "Fn::GetAtt": Array [
-            "BackendApiHandlerF69AE07A",
-            "Arn",
-          ],
-        },
-        "Principal": "apigateway.amazonaws.com",
-        "SourceArn": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "arn:",
-              Object {
-                "Ref": "AWS::Partition",
-              },
-              ":execute-api:",
-              Object {
-                "Ref": "AWS::Region",
-              },
-              ":",
-              Object {
-                "Ref": "AWS::AccountId",
-              },
-              ":",
-              Object {
-                "Ref": "BackendApiED3D8698",
-              },
-              "/*/*/{proxy+}",
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::Lambda::Permission",
-    },
-    "BackendApiGETpublicproxy5F167DDD": Object {
-      "Properties": Object {
-        "ApiId": Object {
-          "Ref": "BackendApiED3D8698",
-        },
-        "AuthorizationType": "NONE",
-        "RouteKey": "GET /public/{proxy+}",
-        "Target": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "integrations/",
-              Object {
-                "Ref": "BackendApiGETpublicproxyPublicIntegration27407C42",
-              },
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::ApiGatewayV2::Route",
-    },
-    "BackendApiGETpublicproxyPublicIntegration27407C42": Object {
-      "Properties": Object {
-        "ApiId": Object {
-          "Ref": "BackendApiED3D8698",
-        },
-        "IntegrationType": "AWS_PROXY",
-        "IntegrationUri": Object {
-          "Fn::GetAtt": Array [
-            "BackendApiHandlerPublicF3ADF520",
-            "Arn",
-          ],
-        },
-        "PayloadFormatVersion": "2.0",
-      },
-      "Type": "AWS::ApiGatewayV2::Integration",
-    },
-    "BackendApiGETpublicproxyPublicIntegrationPermission42ACEAE2": Object {
-      "Properties": Object {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": Object {
-          "Fn::GetAtt": Array [
-            "BackendApiHandlerPublicF3ADF520",
-            "Arn",
-          ],
-        },
-        "Principal": "apigateway.amazonaws.com",
-        "SourceArn": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "arn:",
-              Object {
-                "Ref": "AWS::Partition",
-              },
-              ":execute-api:",
-              Object {
-                "Ref": "AWS::Region",
-              },
-              ":",
-              Object {
-                "Ref": "AWS::AccountId",
-              },
-              ":",
-              Object {
-                "Ref": "BackendApiED3D8698",
-              },
-              "/*/*/public/{proxy+}",
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::Lambda::Permission",
-    },
-    "BackendApiHandlerF69AE07A": Object {
-      "DependsOn": Array [
-        "BackendApiHandlerServiceRoleDefaultPolicyED65AEB4",
-        "BackendApiHandlerServiceRoleD7E0A5D4",
-      ],
-      "Properties": Object {
-        "Code": Object {
-          "ImageUri": Object {
-            "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:5a37c27b879478fc1e0a685b58e4cbec3c4c29e2221ee533dff6f7b00cef089b",
-          },
-        },
+        "EncryptionKey": "alias/aws/s3",
         "Environment": Object {
-          "Variables": Object {
-            "CORS_ALLOW_ORIGINS": "*",
-            "JOB_QUEUE_NAME": Object {
-              "Fn::GetAtt": Array [
-                "AsyncJobQueue0CD355DA",
-                "QueueName",
-              ],
-            },
-            "TABLE_NAME": Object {
-              "Ref": "DatabaseB269D8BB",
-            },
-          },
+          "ComputeType": "BUILD_GENERAL1_SMALL",
+          "Image": "aws/codebuild/amazonlinux2-aarch64-standard:3.0",
+          "ImagePullCredentialsType": "CODEBUILD",
+          "PrivilegedMode": true,
+          "Type": "ARM_CONTAINER",
         },
-        "MemorySize": 256,
-        "PackageType": "Image",
-        "Role": Object {
+        "ServiceRole": Object {
           "Fn::GetAtt": Array [
-            "BackendApiHandlerServiceRoleD7E0A5D4",
+            "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64RoleC5F7BBFE",
             "Arn",
           ],
         },
-        "Timeout": 30,
-      },
-      "Type": "AWS::Lambda::Function",
+        "Source": Object {
+          "BuildSpec": "{
+  \\"version\\": \\"0.2\\",
+  \\"phases\\": {
+    \\"build\\": {
+      \\"commands\\": [
+        \\"current_dir=$(pwd)\\",
+        \\"echo \\\\\\"$input\\\\\\"\\",
+        \\"mkdir workdir\\",
+        \\"cd workdir\\",
+        \\"aws s3 cp \\\\\\"$sourceS3Url\\\\\\" temp.zip\\",
+        \\"unzip temp.zip\\",
+        \\"ls -la\\",
+        \\"aws ecr get-login-password | docker login --username AWS --password-stdin $repositoryAuthUri\\",
+        \\"aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws\\",
+        \\"docker buildx create --use\\",
+        \\"docker buildx ls\\",
+        \\"eval \\\\\\"$buildCommand\\\\\\"\\"
+      ]
     },
-    "BackendApiHandlerPublicF3ADF520": Object {
-      "DependsOn": Array [
-        "BackendApiHandlerPublicServiceRoleDefaultPolicy78498204",
-        "BackendApiHandlerPublicServiceRoleB93A19E2",
-      ],
-      "Properties": Object {
-        "Code": Object {
-          "ImageUri": Object {
-            "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:5a37c27b879478fc1e0a685b58e4cbec3c4c29e2221ee533dff6f7b00cef089b",
-          },
+    \\"post_build\\": {
+      \\"commands\\": [
+        \\"echo Build completed on \`date\`\\",
+        \\"\\\\nSTATUS='SUCCESS'\\\\nif [ $CODEBUILD_BUILD_SUCCEEDING -ne 1 ] # Test if the build is failing\\\\nthen\\\\nSTATUS='FAILED'\\\\nREASON=\\\\\\"ContainerImageBuild failed. See CloudWatch Log stream for the detailed reason: \\\\nhttps://$AWS_REGION.console.aws.amazon.com/cloudwatch/home?region=$AWS_REGION#logsV2:log-groups/log-group/\\\\\\\\$252Faws\\\\\\\\$252Fcodebuild\\\\\\\\$252F$projectName/log-events/$CODEBUILD_LOG_PATH\\\\\\"\\\\nfi\\\\ncat <<EOF > payload.json\\\\n{\\\\n  \\\\\\"StackId\\\\\\": \\\\\\"$stackId\\\\\\",\\\\n  \\\\\\"RequestId\\\\\\": \\\\\\"$requestId\\\\\\",\\\\n  \\\\\\"LogicalResourceId\\\\\\":\\\\\\"$logicalResourceId\\\\\\",\\\\n  \\\\\\"PhysicalResourceId\\\\\\": \\\\\\"$imageTag\\\\\\",\\\\n  \\\\\\"Status\\\\\\": \\\\\\"$STATUS\\\\\\",\\\\n  \\\\\\"Reason\\\\\\": \\\\\\"$REASON\\\\\\",\\\\n  \\\\\\"Data\\\\\\": {\\\\n    \\\\\\"ImageTag\\\\\\": \\\\\\"$imageTag\\\\\\"\\\\n  }\\\\n}\\\\nEOF\\\\ncurl -v -i -X PUT -H 'Content-Type:' -d \\\\\\"@payload.json\\\\\\" \\\\\\"$responseURL\\\\\\"\\\\n              \\"
+      ]
+    }
+  }
+}",
+          "Type": "NO_SOURCE",
         },
-        "Environment": Object {
-          "Variables": Object {
-            "CORS_ALLOW_ORIGINS": "*",
-            "TABLE_NAME": Object {
-              "Ref": "DatabaseB269D8BB",
-            },
-          },
-        },
-        "ImageConfig": Object {
-          "Command": Array [
-            "handler-public.handler",
-          ],
-        },
-        "MemorySize": 256,
-        "PackageType": "Image",
-        "Role": Object {
-          "Fn::GetAtt": Array [
-            "BackendApiHandlerPublicServiceRoleB93A19E2",
-            "Arn",
-          ],
-        },
-        "Timeout": 30,
       },
-      "Type": "AWS::Lambda::Function",
+      "Type": "AWS::CodeBuild::Project",
     },
-    "BackendApiHandlerPublicServiceRoleB93A19E2": Object {
+    "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64RoleC5F7BBFE": Object {
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
           "Statement": Array [
@@ -832,7 +880,7 @@ Object {
               "Action": "sts:AssumeRole",
               "Effect": "Allow",
               "Principal": Object {
-                "Service": "lambda.amazonaws.com",
+                "Service": "codebuild.amazonaws.com",
               },
             },
           ],
@@ -847,7 +895,7 @@ Object {
                 Object {
                   "Ref": "AWS::Partition",
                 },
-                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+                ":iam::aws:policy/AmazonElasticContainerRegistryPublicReadOnly",
               ],
             ],
           },
@@ -855,582 +903,179 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "BackendApiHandlerPublicServiceRoleDefaultPolicy78498204": Object {
+    "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64RoleDefaultPolicy2316728F": Object {
       "Properties": Object {
         "PolicyDocument": Object {
           "Statement": Array [
             Object {
               "Action": Array [
-                "dynamodb:BatchGetItem",
-                "dynamodb:GetRecords",
-                "dynamodb:GetShardIterator",
-                "dynamodb:Query",
-                "dynamodb:GetItem",
-                "dynamodb:Scan",
-                "dynamodb:ConditionCheckItem",
-                "dynamodb:BatchWriteItem",
-                "dynamodb:PutItem",
-                "dynamodb:UpdateItem",
-                "dynamodb:DeleteItem",
-                "dynamodb:DescribeTable",
+                "logs:CreateLogGroup",
+                "logs:CreateLogStream",
+                "logs:PutLogEvents",
               ],
               "Effect": "Allow",
               "Resource": Array [
                 Object {
-                  "Fn::GetAtt": Array [
-                    "DatabaseB269D8BB",
-                    "Arn",
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":logs:us-west-2:123456789012:log-group:/aws/codebuild/",
+                      Object {
+                        "Ref": "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64C13E3549",
+                      },
+                    ],
                   ],
                 },
                 Object {
-                  "Ref": "AWS::NoValue",
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":logs:us-west-2:123456789012:log-group:/aws/codebuild/",
+                      Object {
+                        "Ref": "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64C13E3549",
+                      },
+                      ":*",
+                    ],
+                  ],
                 },
               ],
             },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "BackendApiHandlerPublicServiceRoleDefaultPolicy78498204",
-        "Roles": Array [
-          Object {
-            "Ref": "BackendApiHandlerPublicServiceRoleB93A19E2",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
-    "BackendApiHandlerServiceRoleD7E0A5D4": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
             Object {
-              "Action": "sts:AssumeRole",
+              "Action": Array [
+                "codebuild:CreateReportGroup",
+                "codebuild:CreateReport",
+                "codebuild:UpdateReport",
+                "codebuild:BatchPutTestCases",
+                "codebuild:BatchPutCodeCoverages",
+              ],
               "Effect": "Allow",
-              "Principal": Object {
-                "Service": "lambda.amazonaws.com",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":codebuild:us-west-2:123456789012:report-group/",
+                    Object {
+                      "Ref": "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64C13E3549",
+                    },
+                    "-*",
+                  ],
+                ],
               },
             },
-          ],
-          "Version": "2012-10-17",
-        },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                "arn:",
-                Object {
-                  "Ref": "AWS::Partition",
-                },
-                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-              ],
-            ],
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "BackendApiHandlerServiceRoleDefaultPolicyED65AEB4": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
             Object {
               "Action": Array [
-                "dynamodb:BatchGetItem",
-                "dynamodb:GetRecords",
-                "dynamodb:GetShardIterator",
-                "dynamodb:Query",
-                "dynamodb:GetItem",
-                "dynamodb:Scan",
-                "dynamodb:ConditionCheckItem",
-                "dynamodb:BatchWriteItem",
-                "dynamodb:PutItem",
-                "dynamodb:UpdateItem",
-                "dynamodb:DeleteItem",
-                "dynamodb:DescribeTable",
-              ],
-              "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "DatabaseB269D8BB",
-                    "Arn",
-                  ],
-                },
-                Object {
-                  "Ref": "AWS::NoValue",
-                },
-              ],
-            },
-            Object {
-              "Action": Array [
-                "sqs:SendMessage",
-                "sqs:GetQueueAttributes",
-                "sqs:GetQueueUrl",
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:BatchGetImage",
+                "ecr:CompleteLayerUpload",
+                "ecr:UploadLayerPart",
+                "ecr:InitiateLayerUpload",
+                "ecr:PutImage",
               ],
               "Effect": "Allow",
               "Resource": Object {
                 "Fn::GetAtt": Array [
-                  "AsyncJobQueue0CD355DA",
+                  "WebappBuildRepository4C93D48D",
                   "Arn",
                 ],
               },
             },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "BackendApiHandlerServiceRoleDefaultPolicyED65AEB4",
-        "Roles": Array [
-          Object {
-            "Ref": "BackendApiHandlerServiceRoleD7E0A5D4",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
-    },
-    "BackendApiPOSTproxy1D699989": Object {
-      "Properties": Object {
-        "ApiId": Object {
-          "Ref": "BackendApiED3D8698",
-        },
-        "AuthorizationType": "JWT",
-        "AuthorizerId": Object {
-          "Ref": "BackendApiAuthorizerD604C09E",
-        },
-        "RouteKey": "POST /{proxy+}",
-        "Target": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "integrations/",
-              Object {
-                "Ref": "BackendApiGETproxyIntegration291A9206",
-              },
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::ApiGatewayV2::Route",
-    },
-    "BackendApiPOSTproxyIntegrationPermissionFA8B3572": Object {
-      "Properties": Object {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": Object {
-          "Fn::GetAtt": Array [
-            "BackendApiHandlerF69AE07A",
-            "Arn",
-          ],
-        },
-        "Principal": "apigateway.amazonaws.com",
-        "SourceArn": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "arn:",
-              Object {
-                "Ref": "AWS::Partition",
-              },
-              ":execute-api:",
-              Object {
-                "Ref": "AWS::Region",
-              },
-              ":",
-              Object {
-                "Ref": "AWS::AccountId",
-              },
-              ":",
-              Object {
-                "Ref": "BackendApiED3D8698",
-              },
-              "/*/*/{proxy+}",
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::Lambda::Permission",
-    },
-    "BackendApiPOSTpublicproxy14254C5A": Object {
-      "Properties": Object {
-        "ApiId": Object {
-          "Ref": "BackendApiED3D8698",
-        },
-        "AuthorizationType": "NONE",
-        "RouteKey": "POST /public/{proxy+}",
-        "Target": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "integrations/",
-              Object {
-                "Ref": "BackendApiGETpublicproxyPublicIntegration27407C42",
-              },
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::ApiGatewayV2::Route",
-    },
-    "BackendApiPOSTpublicproxyPublicIntegrationPermissionA34DBA5F": Object {
-      "Properties": Object {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": Object {
-          "Fn::GetAtt": Array [
-            "BackendApiHandlerPublicF3ADF520",
-            "Arn",
-          ],
-        },
-        "Principal": "apigateway.amazonaws.com",
-        "SourceArn": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "arn:",
-              Object {
-                "Ref": "AWS::Partition",
-              },
-              ":execute-api:",
-              Object {
-                "Ref": "AWS::Region",
-              },
-              ":",
-              Object {
-                "Ref": "AWS::AccountId",
-              },
-              ":",
-              Object {
-                "Ref": "BackendApiED3D8698",
-              },
-              "/*/*/public/{proxy+}",
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::Lambda::Permission",
-    },
-    "BackendApiPUTproxyDC049326": Object {
-      "Properties": Object {
-        "ApiId": Object {
-          "Ref": "BackendApiED3D8698",
-        },
-        "AuthorizationType": "JWT",
-        "AuthorizerId": Object {
-          "Ref": "BackendApiAuthorizerD604C09E",
-        },
-        "RouteKey": "PUT /{proxy+}",
-        "Target": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "integrations/",
-              Object {
-                "Ref": "BackendApiGETproxyIntegration291A9206",
-              },
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::ApiGatewayV2::Route",
-    },
-    "BackendApiPUTproxyIntegrationPermission3DD7AC0F": Object {
-      "Properties": Object {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": Object {
-          "Fn::GetAtt": Array [
-            "BackendApiHandlerF69AE07A",
-            "Arn",
-          ],
-        },
-        "Principal": "apigateway.amazonaws.com",
-        "SourceArn": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "arn:",
-              Object {
-                "Ref": "AWS::Partition",
-              },
-              ":execute-api:",
-              Object {
-                "Ref": "AWS::Region",
-              },
-              ":",
-              Object {
-                "Ref": "AWS::AccountId",
-              },
-              ":",
-              Object {
-                "Ref": "BackendApiED3D8698",
-              },
-              "/*/*/{proxy+}",
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::Lambda::Permission",
-    },
-    "BackendApiPUTpublicproxy1B549058": Object {
-      "Properties": Object {
-        "ApiId": Object {
-          "Ref": "BackendApiED3D8698",
-        },
-        "AuthorizationType": "NONE",
-        "RouteKey": "PUT /public/{proxy+}",
-        "Target": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "integrations/",
-              Object {
-                "Ref": "BackendApiGETpublicproxyPublicIntegration27407C42",
-              },
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::ApiGatewayV2::Route",
-    },
-    "BackendApiPUTpublicproxyPublicIntegrationPermissionD2C1A814": Object {
-      "Properties": Object {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": Object {
-          "Fn::GetAtt": Array [
-            "BackendApiHandlerPublicF3ADF520",
-            "Arn",
-          ],
-        },
-        "Principal": "apigateway.amazonaws.com",
-        "SourceArn": Object {
-          "Fn::Join": Array [
-            "",
-            Array [
-              "arn:",
-              Object {
-                "Ref": "AWS::Partition",
-              },
-              ":execute-api:",
-              Object {
-                "Ref": "AWS::Region",
-              },
-              ":",
-              Object {
-                "Ref": "AWS::AccountId",
-              },
-              ":",
-              Object {
-                "Ref": "BackendApiED3D8698",
-              },
-              "/*/*/public/{proxy+}",
-            ],
-          ],
-        },
-      },
-      "Type": "AWS::Lambda::Permission",
-    },
-    "CronJobsHandler90E3B2B8": Object {
-      "DependsOn": Array [
-        "CronJobsHandlerServiceRoleDefaultPolicy55D60D75",
-        "CronJobsHandlerServiceRole666BE531",
-      ],
-      "Properties": Object {
-        "Code": Object {
-          "ImageUri": Object {
-            "Fn::Sub": "\${AWS::AccountId}.dkr.ecr.\${AWS::Region}.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-\${AWS::AccountId}-\${AWS::Region}:5a37c27b879478fc1e0a685b58e4cbec3c4c29e2221ee533dff6f7b00cef089b",
-          },
-        },
-        "Environment": Object {
-          "Variables": Object {
-            "JOB_QUEUE_NAME": Object {
-              "Fn::GetAtt": Array [
-                "AsyncJobQueue0CD355DA",
-                "QueueName",
-              ],
-            },
-            "TABLE_NAME": Object {
-              "Ref": "DatabaseB269D8BB",
-            },
-          },
-        },
-        "ImageConfig": Object {
-          "Command": Array [
-            "handler-cron-job.handler",
-          ],
-        },
-        "MemorySize": 256,
-        "PackageType": "Image",
-        "Role": Object {
-          "Fn::GetAtt": Array [
-            "CronJobsHandlerServiceRole666BE531",
-            "Arn",
-          ],
-        },
-      },
-      "Type": "AWS::Lambda::Function",
-    },
-    "CronJobsHandlerServiceRole666BE531": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
             Object {
-              "Action": "sts:AssumeRole",
+              "Action": "ecr:GetAuthorizationToken",
               "Effect": "Allow",
-              "Principal": Object {
-                "Service": "lambda.amazonaws.com",
+              "Resource": "*",
+            },
+            Object {
+              "Action": "ecr:DescribeImages",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::GetAtt": Array [
+                  "WebappBuildRepository4C93D48D",
+                  "Arn",
+                ],
               },
             },
-          ],
-          "Version": "2012-10-17",
-        },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                "arn:",
-                Object {
-                  "Ref": "AWS::Partition",
-                },
-                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-              ],
-            ],
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "CronJobsHandlerServiceRoleDefaultPolicy55D60D75": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
             Object {
               "Action": Array [
-                "dynamodb:BatchGetItem",
-                "dynamodb:GetRecords",
-                "dynamodb:GetShardIterator",
-                "dynamodb:Query",
-                "dynamodb:GetItem",
-                "dynamodb:Scan",
-                "dynamodb:ConditionCheckItem",
-                "dynamodb:BatchWriteItem",
-                "dynamodb:PutItem",
-                "dynamodb:UpdateItem",
-                "dynamodb:DeleteItem",
-                "dynamodb:DescribeTable",
+                "s3:GetObject*",
+                "s3:GetBucket*",
+                "s3:List*",
               ],
               "Effect": "Allow",
               "Resource": Array [
                 Object {
-                  "Fn::GetAtt": Array [
-                    "DatabaseB269D8BB",
-                    "Arn",
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::cdk-hnb659fds-assets-123456789012-us-west-2",
+                    ],
                   ],
                 },
                 Object {
-                  "Ref": "AWS::NoValue",
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      "arn:",
+                      Object {
+                        "Ref": "AWS::Partition",
+                      },
+                      ":s3:::cdk-hnb659fds-assets-123456789012-us-west-2/*",
+                    ],
+                  ],
                 },
               ],
-            },
-            Object {
-              "Action": Array [
-                "sqs:SendMessage",
-                "sqs:GetQueueAttributes",
-                "sqs:GetQueueUrl",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::GetAtt": Array [
-                  "AsyncJobQueue0CD355DA",
-                  "Arn",
-                ],
-              },
             },
           ],
           "Version": "2012-10-17",
         },
-        "PolicyName": "CronJobsHandlerServiceRoleDefaultPolicy55D60D75",
+        "PolicyName": "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64RoleDefaultPolicy2316728F",
         "Roles": Array [
           Object {
-            "Ref": "CronJobsHandlerServiceRole666BE531",
+            "Ref": "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64RoleC5F7BBFE",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "CronJobsSampleJob259B9181": Object {
-      "Properties": Object {
-        "ScheduleExpression": "cron(0 0 1 * ? *)",
-        "State": "ENABLED",
-        "Targets": Array [
-          Object {
-            "Arn": Object {
-              "Fn::GetAtt": Array [
-                "CronJobsHandler90E3B2B8",
-                "Arn",
-              ],
-            },
-            "Id": "Target0",
-            "Input": "{\\"jobType\\":\\"SampleJob\\"}",
-            "RetryPolicy": Object {
-              "MaximumRetryAttempts": 3,
-            },
-          },
-        ],
-      },
-      "Type": "AWS::Events::Rule",
-    },
-    "CronJobsSampleJobAllowEventRuleTestStackCronJobsHandler81C1F58395C7FF87": Object {
-      "Properties": Object {
-        "Action": "lambda:InvokeFunction",
-        "FunctionName": Object {
-          "Fn::GetAtt": Array [
-            "CronJobsHandler90E3B2B8",
-            "Arn",
-          ],
-        },
-        "Principal": "events.amazonaws.com",
-        "SourceArn": Object {
-          "Fn::GetAtt": Array [
-            "CronJobsSampleJob259B9181",
-            "Arn",
-          ],
-        },
-      },
-      "Type": "AWS::Lambda::Permission",
-    },
-    "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C81C01536": Object {
+    "CustomCrossRegionExportReaderCustomResourceProviderHandler46647B68": Object {
       "DependsOn": Array [
-        "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF",
-        "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265",
+        "CustomCrossRegionExportReaderCustomResourceProviderRole10531BBD",
       ],
       "Properties": Object {
         "Code": Object {
-          "S3Bucket": Object {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-          },
-          "S3Key": "e976a796f036a5efbf44b99e44cfb5a961df08d8dbf7cd37e60bf216fb982a00.zip",
+          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-west-2",
+          "S3Key": "d41c8e6342cd078b5ea5aec11522bdb605eae00f4bb98a3fb0b44c827e9b5ca9.zip",
         },
-        "Environment": Object {
-          "Variables": Object {
-            "AWS_CA_BUNDLE": "/etc/pki/ca-trust/extracted/pem/tls-ca-bundle.pem",
-          },
-        },
-        "Handler": "index.handler",
-        "Layers": Array [
-          Object {
-            "Ref": "FrontendReactBuildDeployAwsCliLayer6AE670F6",
-          },
-        ],
+        "Handler": "__entrypoint__.handler",
+        "MemorySize": 128,
         "Role": Object {
           "Fn::GetAtt": Array [
-            "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265",
+            "CustomCrossRegionExportReaderCustomResourceProviderRole10531BBD",
             "Arn",
           ],
         },
-        "Runtime": "python3.9",
+        "Runtime": "nodejs20.x",
         "Timeout": 900,
       },
       "Type": "AWS::Lambda::Function",
     },
-    "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265": Object {
+    "CustomCrossRegionExportReaderCustomResourceProviderRole10531BBD": Object {
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
           "Statement": Array [
@@ -1446,122 +1091,41 @@ Object {
         },
         "ManagedPolicyArns": Array [
           Object {
-            "Fn::Join": Array [
-              "",
-              Array [
-                "arn:",
+            "Fn::Sub": "arn:\${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+          },
+        ],
+        "Policies": Array [
+          Object {
+            "PolicyDocument": Object {
+              "Statement": Array [
                 Object {
-                  "Ref": "AWS::Partition",
+                  "Action": Array [
+                    "ssm:AddTagsToResource",
+                    "ssm:RemoveTagsFromResource",
+                    "ssm:GetParameters",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": Object {
+                    "Fn::Join": Array [
+                      "",
+                      Array [
+                        "arn:",
+                        Object {
+                          "Ref": "AWS::Partition",
+                        },
+                        ":ssm:us-west-2:123456789012:parameter/cdk/exports/ServerlessWebappStarterKitStack/*",
+                      ],
+                    ],
+                  },
                 },
-                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
               ],
-            ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "Inline",
           },
         ],
       },
       "Type": "AWS::IAM::Role",
-    },
-    "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF": Object {
-      "Properties": Object {
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": Array [
-                "s3:GetObject*",
-                "s3:GetBucket*",
-                "s3:List*",
-              ],
-              "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "arn:",
-                      Object {
-                        "Ref": "AWS::Partition",
-                      },
-                      ":s3:::",
-                      Object {
-                        "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-                      },
-                    ],
-                  ],
-                },
-                Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "arn:",
-                      Object {
-                        "Ref": "AWS::Partition",
-                      },
-                      ":s3:::",
-                      Object {
-                        "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-                      },
-                      "/*",
-                    ],
-                  ],
-                },
-              ],
-            },
-            Object {
-              "Action": Array [
-                "s3:GetObject*",
-                "s3:GetBucket*",
-                "s3:List*",
-                "s3:DeleteObject*",
-                "s3:PutObject",
-                "s3:PutObjectLegalHold",
-                "s3:PutObjectRetention",
-                "s3:PutObjectTagging",
-                "s3:PutObjectVersionTagging",
-                "s3:Abort*",
-              ],
-              "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "FrontendAssetBucket3FA96E62",
-                    "Arn",
-                  ],
-                },
-                Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      Object {
-                        "Fn::GetAtt": Array [
-                          "FrontendAssetBucket3FA96E62",
-                          "Arn",
-                        ],
-                      },
-                      "/*",
-                    ],
-                  ],
-                },
-              ],
-            },
-            Object {
-              "Action": Array [
-                "cloudfront:GetInvalidation",
-                "cloudfront:CreateInvalidation",
-              ],
-              "Effect": "Allow",
-              "Resource": "*",
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "PolicyName": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRoleDefaultPolicy88902FDF",
-        "Roles": Array [
-          Object {
-            "Ref": "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756CServiceRole89A01265",
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Policy",
     },
     "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F": Object {
       "DependsOn": Array [
@@ -1569,10 +1133,8 @@ Object {
       ],
       "Properties": Object {
         "Code": Object {
-          "S3Bucket": Object {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-          },
-          "S3Key": "b7f33614a69548d6bafe224d751a7ef238cde19097415e553fe8b63a4c8fd8a6.zip",
+          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-west-2",
+          "S3Key": "faa95a81ae7d7373f3e1f242268f904eb748d8d0fdd306e8a6fe515a1905a7d6.zip",
         },
         "Description": Object {
           "Fn::Join": Array [
@@ -1594,7 +1156,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs18.x",
+        "Runtime": "nodejs20.x",
         "Timeout": 900,
       },
       "Type": "AWS::Lambda::Function",
@@ -1621,449 +1183,63 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "DatabaseB269D8BB": Object {
-      "DeletionPolicy": "Delete",
+    "DatabaseBastionHost4C4FAD9C": Object {
+      "DependsOn": Array [
+        "DatabaseBastionHostInstanceRoleDefaultPolicy15D8D0EA",
+        "DatabaseBastionHostInstanceRole87A429B0",
+      ],
       "Properties": Object {
-        "AttributeDefinitions": Array [
+        "AvailabilityZone": "dummy1a",
+        "BlockDeviceMappings": Array [
           Object {
-            "AttributeName": "PK",
-            "AttributeType": "S",
-          },
-          Object {
-            "AttributeName": "SK",
-            "AttributeType": "S",
-          },
-        ],
-        "BillingMode": "PAY_PER_REQUEST",
-        "KeySchema": Array [
-          Object {
-            "AttributeName": "PK",
-            "KeyType": "HASH",
-          },
-          Object {
-            "AttributeName": "SK",
-            "KeyType": "RANGE",
-          },
-        ],
-      },
-      "Type": "AWS::DynamoDB::Table",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "FrontendAssetBucket3FA96E62": Object {
-      "DeletionPolicy": "Delete",
-      "Properties": Object {
-        "BucketEncryption": Object {
-          "ServerSideEncryptionConfiguration": Array [
-            Object {
-              "ServerSideEncryptionByDefault": Object {
-                "SSEAlgorithm": "AES256",
-              },
+            "DeviceName": "/dev/sdf",
+            "Ebs": Object {
+              "Encrypted": true,
+              "VolumeSize": 8,
             },
-          ],
+          },
+        ],
+        "IamInstanceProfile": Object {
+          "Ref": "DatabaseBastionHostInstanceProfile0F4F3411",
         },
-        "PublicAccessBlockConfiguration": Object {
-          "BlockPublicAcls": true,
-          "BlockPublicPolicy": true,
-          "IgnorePublicAcls": true,
-          "RestrictPublicBuckets": true,
+        "ImageId": Object {
+          "Ref": "SsmParameterValueawsserviceamiamazonlinuxlatestal2023amikernel61arm64C96584B6F00A464EAD1953AFF4B05118Parameter",
+        },
+        "InstanceType": "t4g.nano",
+        "SecurityGroupIds": Array [
+          Object {
+            "Fn::GetAtt": Array [
+              "DatabaseBastionHostInstanceSecurityGroup39D7809A",
+              "GroupId",
+            ],
+          },
+        ],
+        "SubnetId": Object {
+          "Ref": "VpcPrivateSubnet1Subnet536B997A",
         },
         "Tags": Array [
           Object {
-            "Key": "aws-cdk:auto-delete-objects",
-            "Value": "true",
+            "Key": "Name",
+            "Value": "BastionHost",
           },
+        ],
+        "UserData": Object {
+          "Fn::Base64": "#!/bin/bash",
+        },
+      },
+      "Type": "AWS::EC2::Instance",
+    },
+    "DatabaseBastionHostInstanceProfile0F4F3411": Object {
+      "Properties": Object {
+        "Roles": Array [
           Object {
-            "Key": "aws-cdk:cr-owned:e1ed62f7",
-            "Value": "true",
+            "Ref": "DatabaseBastionHostInstanceRole87A429B0",
           },
         ],
       },
-      "Type": "AWS::S3::Bucket",
-      "UpdateReplacePolicy": "Delete",
+      "Type": "AWS::IAM::InstanceProfile",
     },
-    "FrontendAssetBucketAutoDeleteObjectsCustomResource8D0834F0": Object {
-      "DeletionPolicy": "Delete",
-      "DependsOn": Array [
-        "FrontendAssetBucketPolicyE9D0C32D",
-      ],
-      "Properties": Object {
-        "BucketName": Object {
-          "Ref": "FrontendAssetBucket3FA96E62",
-        },
-        "ServiceToken": Object {
-          "Fn::GetAtt": Array [
-            "CustomS3AutoDeleteObjectsCustomResourceProviderHandler9D90184F",
-            "Arn",
-          ],
-        },
-      },
-      "Type": "Custom::S3AutoDeleteObjects",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "FrontendAssetBucketPolicyE9D0C32D": Object {
-      "Properties": Object {
-        "Bucket": Object {
-          "Ref": "FrontendAssetBucket3FA96E62",
-        },
-        "PolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "s3:*",
-              "Condition": Object {
-                "Bool": Object {
-                  "aws:SecureTransport": "false",
-                },
-              },
-              "Effect": "Deny",
-              "Principal": Object {
-                "AWS": "*",
-              },
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "FrontendAssetBucket3FA96E62",
-                    "Arn",
-                  ],
-                },
-                Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      Object {
-                        "Fn::GetAtt": Array [
-                          "FrontendAssetBucket3FA96E62",
-                          "Arn",
-                        ],
-                      },
-                      "/*",
-                    ],
-                  ],
-                },
-              ],
-            },
-            Object {
-              "Action": Array [
-                "s3:PutBucketPolicy",
-                "s3:GetBucket*",
-                "s3:List*",
-                "s3:DeleteObject*",
-              ],
-              "Effect": "Allow",
-              "Principal": Object {
-                "AWS": Object {
-                  "Fn::GetAtt": Array [
-                    "CustomS3AutoDeleteObjectsCustomResourceProviderRole3B1BD092",
-                    "Arn",
-                  ],
-                },
-              },
-              "Resource": Array [
-                Object {
-                  "Fn::GetAtt": Array [
-                    "FrontendAssetBucket3FA96E62",
-                    "Arn",
-                  ],
-                },
-                Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      Object {
-                        "Fn::GetAtt": Array [
-                          "FrontendAssetBucket3FA96E62",
-                          "Arn",
-                        ],
-                      },
-                      "/*",
-                    ],
-                  ],
-                },
-              ],
-            },
-            Object {
-              "Action": "s3:GetObject",
-              "Effect": "Allow",
-              "Principal": Object {
-                "CanonicalUser": Object {
-                  "Fn::GetAtt": Array [
-                    "FrontendOriginAccessIdentity15749265",
-                    "S3CanonicalUserId",
-                  ],
-                },
-              },
-              "Resource": Object {
-                "Fn::Join": Array [
-                  "",
-                  Array [
-                    Object {
-                      "Fn::GetAtt": Array [
-                        "FrontendAssetBucket3FA96E62",
-                        "Arn",
-                      ],
-                    },
-                    "/*",
-                  ],
-                ],
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-      },
-      "Type": "AWS::S3::BucketPolicy",
-    },
-    "FrontendDistributionCFDistributionAE9BA647": Object {
-      "Properties": Object {
-        "DistributionConfig": Object {
-          "CustomErrorResponses": Array [
-            Object {
-              "ErrorCachingMinTTL": 0,
-              "ErrorCode": 404,
-              "ResponseCode": 200,
-              "ResponsePagePath": "/",
-            },
-            Object {
-              "ErrorCachingMinTTL": 0,
-              "ErrorCode": 403,
-              "ResponseCode": 200,
-              "ResponsePagePath": "/",
-            },
-          ],
-          "DefaultCacheBehavior": Object {
-            "AllowedMethods": Array [
-              "GET",
-              "HEAD",
-            ],
-            "CachedMethods": Array [
-              "GET",
-              "HEAD",
-            ],
-            "Compress": true,
-            "ForwardedValues": Object {
-              "Cookies": Object {
-                "Forward": "none",
-              },
-              "QueryString": false,
-            },
-            "TargetOriginId": "origin1",
-            "ViewerProtocolPolicy": "redirect-to-https",
-          },
-          "DefaultRootObject": "index.html",
-          "Enabled": true,
-          "HttpVersion": "http2",
-          "IPV6Enabled": true,
-          "Logging": Object {
-            "Bucket": Object {
-              "Fn::GetAtt": Array [
-                "AccessLogBucketDA470295",
-                "RegionalDomainName",
-              ],
-            },
-            "IncludeCookies": false,
-            "Prefix": "Frontend/",
-          },
-          "Origins": Array [
-            Object {
-              "ConnectionAttempts": 3,
-              "ConnectionTimeout": 10,
-              "DomainName": Object {
-                "Fn::GetAtt": Array [
-                  "FrontendAssetBucket3FA96E62",
-                  "RegionalDomainName",
-                ],
-              },
-              "Id": "origin1",
-              "S3OriginConfig": Object {
-                "OriginAccessIdentity": Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "origin-access-identity/cloudfront/",
-                      Object {
-                        "Ref": "FrontendOriginAccessIdentity15749265",
-                      },
-                    ],
-                  ],
-                },
-              },
-            },
-          ],
-          "PriceClass": "PriceClass_100",
-          "ViewerCertificate": Object {
-            "CloudFrontDefaultCertificate": true,
-          },
-        },
-      },
-      "Type": "AWS::CloudFront::Distribution",
-    },
-    "FrontendOriginAccessIdentity15749265": Object {
-      "Properties": Object {
-        "CloudFrontOriginAccessIdentityConfig": Object {
-          "Comment": "Allows CloudFront to reach the bucket",
-        },
-      },
-      "Type": "AWS::CloudFront::CloudFrontOriginAccessIdentity",
-    },
-    "FrontendReactBuildDeployAwsCliLayer6AE670F6": Object {
-      "DependsOn": Array [
-        "FrontendReactBuildE02FF220",
-      ],
-      "Properties": Object {
-        "Content": Object {
-          "S3Bucket": Object {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-          },
-          "S3Key": "3fb6287214999ddeafa7cd0e3e58bc5144c8678bb720f3b5e45e8fd32f333eb3.zip",
-        },
-        "Description": "/opt/awscli/aws",
-      },
-      "Type": "AWS::Lambda::LayerVersion",
-    },
-    "FrontendReactBuildDeployCustomResourceA2CE2F1C": Object {
-      "DeletionPolicy": "Delete",
-      "DependsOn": Array [
-        "FrontendReactBuildE02FF220",
-      ],
-      "Properties": Object {
-        "DestinationBucketName": Object {
-          "Ref": "FrontendAssetBucket3FA96E62",
-        },
-        "DistributionId": Object {
-          "Ref": "FrontendDistributionCFDistributionAE9BA647",
-        },
-        "Prune": true,
-        "ServiceToken": Object {
-          "Fn::GetAtt": Array [
-            "CustomCDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C81C01536",
-            "Arn",
-          ],
-        },
-        "SourceBucketNames": Array [
-          Object {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-          },
-        ],
-        "SourceObjectKeys": Array [
-          "2cd9eb17761cd94f6751fdcfd7d0db62.zip",
-        ],
-      },
-      "Type": "Custom::CDKBucketDeployment",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "FrontendReactBuildE02FF220": Object {
-      "DeletionPolicy": "Delete",
-      "Properties": Object {
-        "ServiceToken": Object {
-          "Fn::GetAtt": Array [
-            "NodejsBuildCustomResourceHandler25648b212c404f09aa65b6bbb0c446591C4101F8",
-            "Arn",
-          ],
-        },
-        "buildCommands": Array [
-          "npm run bundle",
-        ],
-        "codeBuildProjectName": Object {
-          "Ref": "FrontendReactBuildProject48A6230E",
-        },
-        "destinationBucketName": Object {
-          "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-        },
-        "destinationObjectKey": "2cd9eb17761cd94f6751fdcfd7d0db62.zip",
-        "environment": Object {
-          "VITE_AWS_REGION": Object {
-            "Ref": "AWS::Region",
-          },
-          "VITE_BACKEND_API_URL": Object {
-            "Fn::GetAtt": Array [
-              "BackendApiED3D8698",
-              "ApiEndpoint",
-            ],
-          },
-          "VITE_USER_POOL_CLIENT_ID": Object {
-            "Ref": "AuthUserPoolClientC635291F",
-          },
-          "VITE_USER_POOL_ID": Object {
-            "Ref": "AuthUserPool8115E87F",
-          },
-        },
-        "outputSourceDirectory": "frontend/dist",
-        "sources": Array [
-          Object {
-            "commands": Array [
-              "npm ci",
-            ],
-            "extractPath": "frontend",
-            "sourceBucketName": Object {
-              "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-            },
-            "sourceObjectKey": "609877dd95035b847fecc49ce056b664029e563cf4be8fb0723d128cb03aa323.zip",
-          },
-        ],
-        "type": "NodejsBuild",
-        "workingDirectory": "frontend",
-      },
-      "Type": "Custom::CDKNodejsBuild",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "FrontendReactBuildProject48A6230E": Object {
-      "Properties": Object {
-        "Artifacts": Object {
-          "Type": "NO_ARTIFACTS",
-        },
-        "Cache": Object {
-          "Type": "NO_CACHE",
-        },
-        "EncryptionKey": "alias/aws/s3",
-        "Environment": Object {
-          "ComputeType": "BUILD_GENERAL1_SMALL",
-          "Image": "aws/codebuild/standard:7.0",
-          "ImagePullCredentialsType": "CODEBUILD",
-          "PrivilegedMode": false,
-          "Type": "LINUX_CONTAINER",
-        },
-        "ServiceRole": Object {
-          "Fn::GetAtt": Array [
-            "FrontendReactBuildProjectRole67F82260",
-            "Arn",
-          ],
-        },
-        "Source": Object {
-          "BuildSpec": "{
-  \\"version\\": \\"0.2\\",
-  \\"phases\\": {
-    \\"install\\": {
-      \\"runtime-versions\\": {
-        \\"nodejs\\": 18
-      }
-    },
-    \\"build\\": {
-      \\"commands\\": [
-        \\"current_dir=$(pwd)\\",
-        \\"\\\\necho \\\\\\"$input\\\\\\"\\\\nfor obj in $(echo \\\\\\"$input\\\\\\" | jq -r '.[] | @base64'); do\\\\n  decoded=$(echo \\\\\\"$obj\\\\\\" | base64 --decode)\\\\n  assetUrl=$(echo \\\\\\"$decoded\\\\\\" | jq -r '.assetUrl')\\\\n  extractPath=$(echo \\\\\\"$decoded\\\\\\" | jq -r '.extractPath')\\\\n  commands=$(echo \\\\\\"$decoded\\\\\\" | jq -r '.commands')\\\\n\\\\n  # Download the zip file\\\\n  aws s3 cp \\\\\\"$assetUrl\\\\\\" temp.zip\\\\n\\\\n  # Extract the zip file to the extractPath directory\\\\n  mkdir -p \\\\\\"$extractPath\\\\\\"\\\\n  unzip temp.zip -d \\\\\\"$extractPath\\\\\\"\\\\n\\\\n  # Remove the zip file\\\\n  rm temp.zip\\\\n\\\\n  # Run the specified commands in the extractPath directory\\\\n  cd \\\\\\"$extractPath\\\\\\"\\\\n  ls -la\\\\n  eval \\\\\\"$commands\\\\\\"\\\\n  cd \\\\\\"$current_dir\\\\\\"\\\\n  ls -la\\\\ndone\\\\n              \\",
-        \\"ls -la\\",
-        \\"cd \\\\\\"$workingDirectory\\\\\\"\\",
-        \\"eval \\\\\\"$buildCommands\\\\\\"\\",
-        \\"ls -la\\",
-        \\"cd \\\\\\"$current_dir\\\\\\"\\",
-        \\"cd \\\\\\"$outputSourceDirectory\\\\\\"\\",
-        \\"zip -r output.zip ./\\",
-        \\"aws s3 cp output.zip \\\\\\"s3://$destinationBucketName/$destinationObjectKey\\\\\\"\\"
-      ]
-    },
-    \\"post_build\\": {
-      \\"commands\\": [
-        \\"echo Build completed on \`date\`\\",
-        \\"\\\\nSTATUS='SUCCESS'\\\\nif [ $CODEBUILD_BUILD_SUCCEEDING -ne 1 ] # Test if the build is failing\\\\nthen\\\\nSTATUS='FAILED'\\\\nREASON=\\\\\\"NodejsBuild failed. See CloudWatch Log stream for the detailed reason: \\\\nhttps://$AWS_REGION.console.aws.amazon.com/cloudwatch/home?region=$AWS_REGION#logsV2:log-groups/log-group/\\\\\\\\$252Faws\\\\\\\\$252Fcodebuild\\\\\\\\$252F$projectName/log-events/$CODEBUILD_LOG_PATH\\\\\\"\\\\nfi\\\\ncat <<EOF > payload.json\\\\n{\\\\n  \\\\\\"StackId\\\\\\": \\\\\\"$stackId\\\\\\",\\\\n  \\\\\\"RequestId\\\\\\": \\\\\\"$requestId\\\\\\",\\\\n  \\\\\\"LogicalResourceId\\\\\\":\\\\\\"$logicalResourceId\\\\\\",\\\\n  \\\\\\"PhysicalResourceId\\\\\\": \\\\\\"$destinationObjectKey\\\\\\",\\\\n  \\\\\\"Status\\\\\\": \\\\\\"$STATUS\\\\\\",\\\\n  \\\\\\"Reason\\\\\\": \\\\\\"$REASON\\\\\\"\\\\n}\\\\nEOF\\\\ncurl -vv -i -X PUT -H 'Content-Type:' -d \\\\\\"@payload.json\\\\\\" \\\\\\"$responseURL\\\\\\"\\\\n              \\"
-      ]
-    }
-  }
-}",
-          "Type": "NO_SOURCE",
-        },
-      },
-      "Type": "AWS::CodeBuild::Project",
-    },
-    "FrontendReactBuildProjectRole67F82260": Object {
+    "DatabaseBastionHostInstanceRole87A429B0": Object {
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
           "Statement": Array [
@@ -2071,224 +1247,333 @@ Object {
               "Action": "sts:AssumeRole",
               "Effect": "Allow",
               "Principal": Object {
-                "Service": "codebuild.amazonaws.com",
+                "Service": "ec2.amazonaws.com",
               },
             },
           ],
           "Version": "2012-10-17",
         },
+        "Tags": Array [
+          Object {
+            "Key": "Name",
+            "Value": "BastionHost",
+          },
+        ],
       },
       "Type": "AWS::IAM::Role",
     },
-    "FrontendReactBuildProjectRoleDefaultPolicyDFEE9CCE": Object {
+    "DatabaseBastionHostInstanceRoleDefaultPolicy15D8D0EA": Object {
       "Properties": Object {
         "PolicyDocument": Object {
           "Statement": Array [
             Object {
               "Action": Array [
-                "logs:CreateLogGroup",
-                "logs:CreateLogStream",
-                "logs:PutLogEvents",
+                "ssmmessages:*",
+                "ssm:UpdateInstanceInformation",
+                "ec2messages:*",
               ],
               "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "arn:",
-                      Object {
-                        "Ref": "AWS::Partition",
-                      },
-                      ":logs:",
-                      Object {
-                        "Ref": "AWS::Region",
-                      },
-                      ":",
-                      Object {
-                        "Ref": "AWS::AccountId",
-                      },
-                      ":log-group:/aws/codebuild/",
-                      Object {
-                        "Ref": "FrontendReactBuildProject48A6230E",
-                      },
-                    ],
-                  ],
-                },
-                Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "arn:",
-                      Object {
-                        "Ref": "AWS::Partition",
-                      },
-                      ":logs:",
-                      Object {
-                        "Ref": "AWS::Region",
-                      },
-                      ":",
-                      Object {
-                        "Ref": "AWS::AccountId",
-                      },
-                      ":log-group:/aws/codebuild/",
-                      Object {
-                        "Ref": "FrontendReactBuildProject48A6230E",
-                      },
-                      ":*",
-                    ],
-                  ],
-                },
-              ],
-            },
-            Object {
-              "Action": Array [
-                "codebuild:CreateReportGroup",
-                "codebuild:CreateReport",
-                "codebuild:UpdateReport",
-                "codebuild:BatchPutTestCases",
-                "codebuild:BatchPutCodeCoverages",
-              ],
-              "Effect": "Allow",
-              "Resource": Object {
-                "Fn::Join": Array [
-                  "",
-                  Array [
-                    "arn:",
-                    Object {
-                      "Ref": "AWS::Partition",
-                    },
-                    ":codebuild:",
-                    Object {
-                      "Ref": "AWS::Region",
-                    },
-                    ":",
-                    Object {
-                      "Ref": "AWS::AccountId",
-                    },
-                    ":report-group/",
-                    Object {
-                      "Ref": "FrontendReactBuildProject48A6230E",
-                    },
-                    "-*",
-                  ],
-                ],
-              },
-            },
-            Object {
-              "Action": Array [
-                "s3:GetObject*",
-                "s3:GetBucket*",
-                "s3:List*",
-              ],
-              "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "arn:",
-                      Object {
-                        "Ref": "AWS::Partition",
-                      },
-                      ":s3:::",
-                      Object {
-                        "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-                      },
-                    ],
-                  ],
-                },
-                Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "arn:",
-                      Object {
-                        "Ref": "AWS::Partition",
-                      },
-                      ":s3:::",
-                      Object {
-                        "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-                      },
-                      "/*",
-                    ],
-                  ],
-                },
-              ],
-            },
-            Object {
-              "Action": Array [
-                "s3:DeleteObject*",
-                "s3:PutObject",
-                "s3:PutObjectLegalHold",
-                "s3:PutObjectRetention",
-                "s3:PutObjectTagging",
-                "s3:PutObjectVersionTagging",
-                "s3:Abort*",
-              ],
-              "Effect": "Allow",
-              "Resource": Array [
-                Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "arn:",
-                      Object {
-                        "Ref": "AWS::Partition",
-                      },
-                      ":s3:::",
-                      Object {
-                        "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-                      },
-                    ],
-                  ],
-                },
-                Object {
-                  "Fn::Join": Array [
-                    "",
-                    Array [
-                      "arn:",
-                      Object {
-                        "Ref": "AWS::Partition",
-                      },
-                      ":s3:::",
-                      Object {
-                        "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-                      },
-                      "/*",
-                    ],
-                  ],
-                },
-              ],
+              "Resource": "*",
             },
           ],
           "Version": "2012-10-17",
         },
-        "PolicyName": "FrontendReactBuildProjectRoleDefaultPolicyDFEE9CCE",
+        "PolicyName": "DatabaseBastionHostInstanceRoleDefaultPolicy15D8D0EA",
         "Roles": Array [
           Object {
-            "Ref": "FrontendReactBuildProjectRole67F82260",
+            "Ref": "DatabaseBastionHostInstanceRole87A429B0",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
     },
-    "NodejsBuildCustomResourceHandler25648b212c404f09aa65b6bbb0c446591C4101F8": Object {
+    "DatabaseBastionHostInstanceSecurityGroup39D7809A": Object {
+      "Properties": Object {
+        "GroupDescription": "ServerlessWebappStarterKitStack/Database/BastionHost/Resource/InstanceSecurityGroup",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "Name",
+            "Value": "BastionHost",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "DatabaseCluster5B53A178": Object {
+      "DeletionPolicy": "Snapshot",
+      "Properties": Object {
+        "CopyTagsToSnapshot": true,
+        "DBClusterParameterGroupName": Object {
+          "Ref": "DatabaseParameterGroup2A921026",
+        },
+        "DBSubnetGroupName": Object {
+          "Ref": "DatabaseClusterSubnets5540150D",
+        },
+        "Engine": "aurora-postgresql",
+        "EngineVersion": "16.6",
+        "MasterUserPassword": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "{{resolve:secretsmanager:",
+              Object {
+                "Ref": "DatabaseClusterSecretD1FB634F",
+              },
+              ":SecretString:password::}}",
+            ],
+          ],
+        },
+        "MasterUsername": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "{{resolve:secretsmanager:",
+              Object {
+                "Ref": "DatabaseClusterSecretD1FB634F",
+              },
+              ":SecretString:username::}}",
+            ],
+          ],
+        },
+        "Port": 5432,
+        "ServerlessV2ScalingConfiguration": Object {
+          "MaxCapacity": 2,
+          "MinCapacity": 0,
+        },
+        "StorageEncrypted": true,
+        "VpcSecurityGroupIds": Array [
+          Object {
+            "Fn::GetAtt": Array [
+              "DatabaseClusterSecurityGroupFEF1426A",
+              "GroupId",
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::RDS::DBCluster",
+      "UpdateReplacePolicy": "Snapshot",
+    },
+    "DatabaseClusterSecretAttachmentDC8466C0": Object {
+      "Properties": Object {
+        "SecretId": Object {
+          "Ref": "DatabaseClusterSecretD1FB634F",
+        },
+        "TargetId": Object {
+          "Ref": "DatabaseCluster5B53A178",
+        },
+        "TargetType": "AWS::RDS::DBCluster",
+      },
+      "Type": "AWS::SecretsManager::SecretTargetAttachment",
+    },
+    "DatabaseClusterSecretD1FB634F": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "Description": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "Generated by the CDK for stack: ",
+              Object {
+                "Ref": "AWS::StackName",
+              },
+            ],
+          ],
+        },
+        "GenerateSecretString": Object {
+          "ExcludeCharacters": " %+~\`#$&*()|[]{}:;<>?!'/@\\"\\\\,=^",
+          "GenerateStringKey": "password",
+          "PasswordLength": 30,
+          "SecretStringTemplate": "{\\"username\\":\\"postgres\\"}",
+        },
+      },
+      "Type": "AWS::SecretsManager::Secret",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "DatabaseClusterSecurityGroupFEF1426A": Object {
+      "Properties": Object {
+        "GroupDescription": "RDS security group",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "DatabaseClusterSecurityGroupfromServerlessWebappStarterKitStackDatabaseBastionHostInstanceSecurityGroup4F0DD25BIndirectPort8AFD9922": Object {
+      "Properties": Object {
+        "Description": "from ServerlessWebappStarterKitStackDatabaseBastionHostInstanceSecurityGroup4F0DD25B:{IndirectPort}",
+        "FromPort": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseCluster5B53A178",
+            "Endpoint.Port",
+          ],
+        },
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseClusterSecurityGroupFEF1426A",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseBastionHostInstanceSecurityGroup39D7809A",
+            "GroupId",
+          ],
+        },
+        "ToPort": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseCluster5B53A178",
+            "Endpoint.Port",
+          ],
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "DatabaseClusterSecurityGroupfromServerlessWebappStarterKitStackWebappHandlerSecurityGroupA009CF4AIndirectPort7311063E": Object {
+      "Properties": Object {
+        "Description": "from ServerlessWebappStarterKitStackWebappHandlerSecurityGroupA009CF4A:{IndirectPort}",
+        "FromPort": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseCluster5B53A178",
+            "Endpoint.Port",
+          ],
+        },
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseClusterSecurityGroupFEF1426A",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "WebappHandlerSecurityGroup5451B519",
+            "GroupId",
+          ],
+        },
+        "ToPort": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseCluster5B53A178",
+            "Endpoint.Port",
+          ],
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "DatabaseClusterSecurityGroupfromServerlessWebappStarterKitStackWebappMigrationRunnerSecurityGroupC0959349IndirectPortDCF4A356": Object {
+      "Properties": Object {
+        "Description": "from ServerlessWebappStarterKitStackWebappMigrationRunnerSecurityGroupC0959349:{IndirectPort}",
+        "FromPort": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseCluster5B53A178",
+            "Endpoint.Port",
+          ],
+        },
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseClusterSecurityGroupFEF1426A",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "WebappMigrationRunnerSecurityGroup7F0DF264",
+            "GroupId",
+          ],
+        },
+        "ToPort": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseCluster5B53A178",
+            "Endpoint.Port",
+          ],
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
+    "DatabaseClusterSubnets5540150D": Object {
+      "Properties": Object {
+        "DBSubnetGroupDescription": "Subnets for Cluster database",
+        "SubnetIds": Array [
+          Object {
+            "Ref": "VpcPrivateSubnet1Subnet536B997A",
+          },
+          Object {
+            "Ref": "VpcPrivateSubnet2Subnet3788AAA1",
+          },
+          Object {
+            "Ref": "VpcPrivateSubnet3SubnetF258B56E",
+          },
+        ],
+      },
+      "Type": "AWS::RDS::DBSubnetGroup",
+    },
+    "DatabaseClusterWriterD43085C6": Object {
+      "DeletionPolicy": "Delete",
       "DependsOn": Array [
-        "NodejsBuildCustomResourceHandler25648b212c404f09aa65b6bbb0c44659ServiceRoleDefaultPolicyCF8879D3",
-        "NodejsBuildCustomResourceHandler25648b212c404f09aa65b6bbb0c44659ServiceRoleCB01FBE6",
+        "VpcPrivateSubnet1DefaultRouteBE02A9ED",
+        "VpcPrivateSubnet1RouteTableAssociation70C59FA6",
+        "VpcPrivateSubnet2DefaultRoute060D2087",
+        "VpcPrivateSubnet2RouteTableAssociationA89CAD56",
+        "VpcPrivateSubnet3DefaultRoute94B74F0D",
+        "VpcPrivateSubnet3RouteTableAssociation16BDDC43",
+      ],
+      "Properties": Object {
+        "AutoMinorVersionUpgrade": true,
+        "DBClusterIdentifier": Object {
+          "Ref": "DatabaseCluster5B53A178",
+        },
+        "DBInstanceClass": "db.serverless",
+        "EnablePerformanceInsights": true,
+        "Engine": "aurora-postgresql",
+        "PerformanceInsightsRetentionPeriod": 7,
+        "PromotionTier": 0,
+        "PubliclyAccessible": false,
+      },
+      "Type": "AWS::RDS::DBInstance",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "DatabaseParameterGroup2A921026": Object {
+      "Properties": Object {
+        "Description": "Cluster parameter group for aurora-postgresql16",
+        "Family": "aurora-postgresql16",
+        "Parameters": Object {
+          "idle_session_timeout": "60000",
+        },
+      },
+      "Type": "AWS::RDS::DBClusterParameterGroup",
+    },
+    "DeployTimeBuildCustomResourceHandlerdb740fd554364a848a09e6dfcd01f4f306AEFF37": Object {
+      "DependsOn": Array [
+        "DeployTimeBuildCustomResourceHandlerdb740fd554364a848a09e6dfcd01f4f3ServiceRoleDefaultPolicyFECC51DC",
+        "DeployTimeBuildCustomResourceHandlerdb740fd554364a848a09e6dfcd01f4f3ServiceRoleB008BAA4",
       ],
       "Properties": Object {
         "Code": Object {
-          "S3Bucket": Object {
-            "Fn::Sub": "cdk-hnb659fds-assets-\${AWS::AccountId}-\${AWS::Region}",
-          },
-          "S3Key": "b49cc8147b0bf86afefc1c551a4b5cf9165167cf31a5d50e4bf169f944f6a363.zip",
+          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-west-2",
+          "S3Key": "aa47254059d94cff79a1f8a5a97c4e8a0e14a3f105d2b089464c0beeeb6cfe8d.zip",
         },
         "Handler": "index.handler",
         "Role": Object {
           "Fn::GetAtt": Array [
-            "NodejsBuildCustomResourceHandler25648b212c404f09aa65b6bbb0c44659ServiceRoleCB01FBE6",
+            "DeployTimeBuildCustomResourceHandlerdb740fd554364a848a09e6dfcd01f4f3ServiceRoleB008BAA4",
             "Arn",
           ],
         },
@@ -2297,7 +1582,7 @@ Object {
       },
       "Type": "AWS::Lambda::Function",
     },
-    "NodejsBuildCustomResourceHandler25648b212c404f09aa65b6bbb0c44659ServiceRoleCB01FBE6": Object {
+    "DeployTimeBuildCustomResourceHandlerdb740fd554364a848a09e6dfcd01f4f3ServiceRoleB008BAA4": Object {
       "Properties": Object {
         "AssumeRolePolicyDocument": Object {
           "Statement": Array [
@@ -2328,7 +1613,7 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
-    "NodejsBuildCustomResourceHandler25648b212c404f09aa65b6bbb0c44659ServiceRoleDefaultPolicyCF8879D3": Object {
+    "DeployTimeBuildCustomResourceHandlerdb740fd554364a848a09e6dfcd01f4f3ServiceRoleDefaultPolicyFECC51DC": Object {
       "Properties": Object {
         "PolicyDocument": Object {
           "Statement": Array [
@@ -2337,7 +1622,7 @@ Object {
               "Effect": "Allow",
               "Resource": Object {
                 "Fn::GetAtt": Array [
-                  "FrontendReactBuildProject48A6230E",
+                  "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64C13E3549",
                   "Arn",
                 ],
               },
@@ -2345,14 +1630,1504 @@ Object {
           ],
           "Version": "2012-10-17",
         },
-        "PolicyName": "NodejsBuildCustomResourceHandler25648b212c404f09aa65b6bbb0c44659ServiceRoleDefaultPolicyCF8879D3",
+        "PolicyName": "DeployTimeBuildCustomResourceHandlerdb740fd554364a848a09e6dfcd01f4f3ServiceRoleDefaultPolicyFECC51DC",
         "Roles": Array [
           Object {
-            "Ref": "NodejsBuildCustomResourceHandler25648b212c404f09aa65b6bbb0c44659ServiceRoleCB01FBE6",
+            "Ref": "DeployTimeBuildCustomResourceHandlerdb740fd554364a848a09e6dfcd01f4f3ServiceRoleB008BAA4",
           },
         ],
       },
       "Type": "AWS::IAM::Policy",
+    },
+    "ExportsReader8B249524": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "ReaderProps": Object {
+          "imports": Object {
+            "/cdk/exports/ServerlessWebappStarterKitStack/ServerlessWebappStarterKitUsEast1Stackuseast1RefCertificateV29EE77EAF5C85697F": "{{resolve:ssm:/cdk/exports/ServerlessWebappStarterKitStack/ServerlessWebappStarterKitUsEast1Stackuseast1RefCertificateV29EE77EAF5C85697F}}",
+            "/cdk/exports/ServerlessWebappStarterKitStack/ServerlessWebappStarterKitUsEast1Stackuseast1RefSignPayloadHandlerFunctionVersionF9FE430A3006B9FA": "{{resolve:ssm:/cdk/exports/ServerlessWebappStarterKitStack/ServerlessWebappStarterKitUsEast1Stackuseast1RefSignPayloadHandlerFunctionVersionF9FE430A3006B9FA}}",
+          },
+          "prefix": "ServerlessWebappStarterKitStack",
+          "region": "us-west-2",
+        },
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "CustomCrossRegionExportReaderCustomResourceProviderHandler46647B68",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::CrossRegionExportReader",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "LookupVersionArnc8730278af02f875114ca902814c77b68f19b0087110E04D0A": Object {
+      "DeletionPolicy": "Delete",
+      "DependsOn": Array [
+        "LookupVersionArnc8730278af02f875114ca902814c77b68f19b00871CustomResourcePolicy7CD24C5F",
+      ],
+      "Properties": Object {
+        "Create": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "{\\"service\\":\\"SSM\\",\\"action\\":\\"getParameter\\",\\"parameters\\":{\\"Name\\":\\"",
+              Object {
+                "Fn::GetAtt": Array [
+                  "ExportsReader8B249524",
+                  "/cdk/exports/ServerlessWebappStarterKitStack/ServerlessWebappStarterKitUsEast1Stackuseast1RefSignPayloadHandlerFunctionVersionF9FE430A3006B9FA",
+                ],
+              },
+              "\\"},\\"physicalResourceId\\":{\\"id\\":\\"1744612514828\\"},\\"region\\":\\"us-east-1\\"}",
+            ],
+          ],
+        },
+        "InstallLatestAwsSdk": true,
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "AWS679f53fac002430cb0da5b7982bd22872D164C4C",
+            "Arn",
+          ],
+        },
+        "Update": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "{\\"service\\":\\"SSM\\",\\"action\\":\\"getParameter\\",\\"parameters\\":{\\"Name\\":\\"",
+              Object {
+                "Fn::GetAtt": Array [
+                  "ExportsReader8B249524",
+                  "/cdk/exports/ServerlessWebappStarterKitStack/ServerlessWebappStarterKitUsEast1Stackuseast1RefSignPayloadHandlerFunctionVersionF9FE430A3006B9FA",
+                ],
+              },
+              "\\"},\\"physicalResourceId\\":{\\"id\\":\\"1744612514828\\"},\\"region\\":\\"us-east-1\\"}",
+            ],
+          ],
+        },
+      },
+      "Type": "Custom::AWS",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "LookupVersionArnc8730278af02f875114ca902814c77b68f19b00871CustomResourcePolicy7CD24C5F": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "ssm:GetParameter",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":ssm:us-east-1:123456789012:parameter/",
+                    Object {
+                      "Fn::GetAtt": Array [
+                        "ExportsReader8B249524",
+                        "/cdk/exports/ServerlessWebappStarterKitStack/ServerlessWebappStarterKitUsEast1Stackuseast1RefSignPayloadHandlerFunctionVersionF9FE430A3006B9FA",
+                      ],
+                    },
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "LookupVersionArnc8730278af02f875114ca902814c77b68f19b00871CustomResourcePolicy7CD24C5F",
+        "Roles": Array [
+          Object {
+            "Ref": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "Vpc8378EB38": Object {
+      "Properties": Object {
+        "CidrBlock": "10.0.0.0/16",
+        "EnableDnsHostnames": true,
+        "EnableDnsSupport": true,
+        "InstanceTenancy": "default",
+        "Tags": Array [
+          Object {
+            "Key": "Name",
+            "Value": "ServerlessWebappStarterKitStack/Vpc",
+          },
+        ],
+      },
+      "Type": "AWS::EC2::VPC",
+    },
+    "VpcIGWD7BA715C": Object {
+      "Properties": Object {
+        "Tags": Array [
+          Object {
+            "Key": "Name",
+            "Value": "ServerlessWebappStarterKitStack/Vpc",
+          },
+        ],
+      },
+      "Type": "AWS::EC2::InternetGateway",
+    },
+    "VpcPrivateSubnet1DefaultRouteBE02A9ED": Object {
+      "Properties": Object {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "NatGatewayId": Object {
+          "Ref": "VpcPublicSubnet1NATGateway4D7517AA",
+        },
+        "RouteTableId": Object {
+          "Ref": "VpcPrivateSubnet1RouteTableB2C5B500",
+        },
+      },
+      "Type": "AWS::EC2::Route",
+    },
+    "VpcPrivateSubnet1RouteTableAssociation70C59FA6": Object {
+      "Properties": Object {
+        "RouteTableId": Object {
+          "Ref": "VpcPrivateSubnet1RouteTableB2C5B500",
+        },
+        "SubnetId": Object {
+          "Ref": "VpcPrivateSubnet1Subnet536B997A",
+        },
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+    },
+    "VpcPrivateSubnet1RouteTableB2C5B500": Object {
+      "Properties": Object {
+        "Tags": Array [
+          Object {
+            "Key": "Name",
+            "Value": "ServerlessWebappStarterKitStack/Vpc/PrivateSubnet1",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::RouteTable",
+    },
+    "VpcPrivateSubnet1Subnet536B997A": Object {
+      "Properties": Object {
+        "AvailabilityZone": "dummy1a",
+        "CidrBlock": "10.0.96.0/19",
+        "MapPublicIpOnLaunch": false,
+        "Tags": Array [
+          Object {
+            "Key": "aws-cdk:subnet-name",
+            "Value": "Private",
+          },
+          Object {
+            "Key": "aws-cdk:subnet-type",
+            "Value": "Private",
+          },
+          Object {
+            "Key": "Name",
+            "Value": "ServerlessWebappStarterKitStack/Vpc/PrivateSubnet1",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::Subnet",
+    },
+    "VpcPrivateSubnet2DefaultRoute060D2087": Object {
+      "Properties": Object {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "NatGatewayId": Object {
+          "Ref": "VpcPublicSubnet1NATGateway4D7517AA",
+        },
+        "RouteTableId": Object {
+          "Ref": "VpcPrivateSubnet2RouteTableA678073B",
+        },
+      },
+      "Type": "AWS::EC2::Route",
+    },
+    "VpcPrivateSubnet2RouteTableA678073B": Object {
+      "Properties": Object {
+        "Tags": Array [
+          Object {
+            "Key": "Name",
+            "Value": "ServerlessWebappStarterKitStack/Vpc/PrivateSubnet2",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::RouteTable",
+    },
+    "VpcPrivateSubnet2RouteTableAssociationA89CAD56": Object {
+      "Properties": Object {
+        "RouteTableId": Object {
+          "Ref": "VpcPrivateSubnet2RouteTableA678073B",
+        },
+        "SubnetId": Object {
+          "Ref": "VpcPrivateSubnet2Subnet3788AAA1",
+        },
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+    },
+    "VpcPrivateSubnet2Subnet3788AAA1": Object {
+      "Properties": Object {
+        "AvailabilityZone": "dummy1b",
+        "CidrBlock": "10.0.128.0/19",
+        "MapPublicIpOnLaunch": false,
+        "Tags": Array [
+          Object {
+            "Key": "aws-cdk:subnet-name",
+            "Value": "Private",
+          },
+          Object {
+            "Key": "aws-cdk:subnet-type",
+            "Value": "Private",
+          },
+          Object {
+            "Key": "Name",
+            "Value": "ServerlessWebappStarterKitStack/Vpc/PrivateSubnet2",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::Subnet",
+    },
+    "VpcPrivateSubnet3DefaultRoute94B74F0D": Object {
+      "Properties": Object {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "NatGatewayId": Object {
+          "Ref": "VpcPublicSubnet1NATGateway4D7517AA",
+        },
+        "RouteTableId": Object {
+          "Ref": "VpcPrivateSubnet3RouteTableD98824C7",
+        },
+      },
+      "Type": "AWS::EC2::Route",
+    },
+    "VpcPrivateSubnet3RouteTableAssociation16BDDC43": Object {
+      "Properties": Object {
+        "RouteTableId": Object {
+          "Ref": "VpcPrivateSubnet3RouteTableD98824C7",
+        },
+        "SubnetId": Object {
+          "Ref": "VpcPrivateSubnet3SubnetF258B56E",
+        },
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+    },
+    "VpcPrivateSubnet3RouteTableD98824C7": Object {
+      "Properties": Object {
+        "Tags": Array [
+          Object {
+            "Key": "Name",
+            "Value": "ServerlessWebappStarterKitStack/Vpc/PrivateSubnet3",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::RouteTable",
+    },
+    "VpcPrivateSubnet3SubnetF258B56E": Object {
+      "Properties": Object {
+        "AvailabilityZone": "dummy1c",
+        "CidrBlock": "10.0.160.0/19",
+        "MapPublicIpOnLaunch": false,
+        "Tags": Array [
+          Object {
+            "Key": "aws-cdk:subnet-name",
+            "Value": "Private",
+          },
+          Object {
+            "Key": "aws-cdk:subnet-type",
+            "Value": "Private",
+          },
+          Object {
+            "Key": "Name",
+            "Value": "ServerlessWebappStarterKitStack/Vpc/PrivateSubnet3",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::Subnet",
+    },
+    "VpcPublicSubnet1DefaultRoute3DA9E72A": Object {
+      "DependsOn": Array [
+        "VpcVPCGWBF912B6E",
+      ],
+      "Properties": Object {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": Object {
+          "Ref": "VpcIGWD7BA715C",
+        },
+        "RouteTableId": Object {
+          "Ref": "VpcPublicSubnet1RouteTable6C95E38E",
+        },
+      },
+      "Type": "AWS::EC2::Route",
+    },
+    "VpcPublicSubnet1EIPD7E02669": Object {
+      "Properties": Object {
+        "Domain": "vpc",
+        "Tags": Array [
+          Object {
+            "Key": "Name",
+            "Value": "ServerlessWebappStarterKitStack/Vpc/PublicSubnet1",
+          },
+        ],
+      },
+      "Type": "AWS::EC2::EIP",
+    },
+    "VpcPublicSubnet1NATGateway4D7517AA": Object {
+      "DependsOn": Array [
+        "VpcPublicSubnet1DefaultRoute3DA9E72A",
+        "VpcPublicSubnet1RouteTableAssociation97140677",
+      ],
+      "Properties": Object {
+        "AllocationId": Object {
+          "Fn::GetAtt": Array [
+            "VpcPublicSubnet1EIPD7E02669",
+            "AllocationId",
+          ],
+        },
+        "SubnetId": Object {
+          "Ref": "VpcPublicSubnet1Subnet5C2D37C4",
+        },
+        "Tags": Array [
+          Object {
+            "Key": "Name",
+            "Value": "ServerlessWebappStarterKitStack/Vpc/PublicSubnet1",
+          },
+        ],
+      },
+      "Type": "AWS::EC2::NatGateway",
+    },
+    "VpcPublicSubnet1RouteTable6C95E38E": Object {
+      "Properties": Object {
+        "Tags": Array [
+          Object {
+            "Key": "Name",
+            "Value": "ServerlessWebappStarterKitStack/Vpc/PublicSubnet1",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::RouteTable",
+    },
+    "VpcPublicSubnet1RouteTableAssociation97140677": Object {
+      "Properties": Object {
+        "RouteTableId": Object {
+          "Ref": "VpcPublicSubnet1RouteTable6C95E38E",
+        },
+        "SubnetId": Object {
+          "Ref": "VpcPublicSubnet1Subnet5C2D37C4",
+        },
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+    },
+    "VpcPublicSubnet1Subnet5C2D37C4": Object {
+      "Properties": Object {
+        "AvailabilityZone": "dummy1a",
+        "CidrBlock": "10.0.0.0/19",
+        "MapPublicIpOnLaunch": true,
+        "Tags": Array [
+          Object {
+            "Key": "aws-cdk:subnet-name",
+            "Value": "Public",
+          },
+          Object {
+            "Key": "aws-cdk:subnet-type",
+            "Value": "Public",
+          },
+          Object {
+            "Key": "Name",
+            "Value": "ServerlessWebappStarterKitStack/Vpc/PublicSubnet1",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::Subnet",
+    },
+    "VpcPublicSubnet2DefaultRoute97F91067": Object {
+      "DependsOn": Array [
+        "VpcVPCGWBF912B6E",
+      ],
+      "Properties": Object {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": Object {
+          "Ref": "VpcIGWD7BA715C",
+        },
+        "RouteTableId": Object {
+          "Ref": "VpcPublicSubnet2RouteTable94F7E489",
+        },
+      },
+      "Type": "AWS::EC2::Route",
+    },
+    "VpcPublicSubnet2RouteTable94F7E489": Object {
+      "Properties": Object {
+        "Tags": Array [
+          Object {
+            "Key": "Name",
+            "Value": "ServerlessWebappStarterKitStack/Vpc/PublicSubnet2",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::RouteTable",
+    },
+    "VpcPublicSubnet2RouteTableAssociationDD5762D8": Object {
+      "Properties": Object {
+        "RouteTableId": Object {
+          "Ref": "VpcPublicSubnet2RouteTable94F7E489",
+        },
+        "SubnetId": Object {
+          "Ref": "VpcPublicSubnet2Subnet691E08A3",
+        },
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+    },
+    "VpcPublicSubnet2Subnet691E08A3": Object {
+      "Properties": Object {
+        "AvailabilityZone": "dummy1b",
+        "CidrBlock": "10.0.32.0/19",
+        "MapPublicIpOnLaunch": true,
+        "Tags": Array [
+          Object {
+            "Key": "aws-cdk:subnet-name",
+            "Value": "Public",
+          },
+          Object {
+            "Key": "aws-cdk:subnet-type",
+            "Value": "Public",
+          },
+          Object {
+            "Key": "Name",
+            "Value": "ServerlessWebappStarterKitStack/Vpc/PublicSubnet2",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::Subnet",
+    },
+    "VpcPublicSubnet3DefaultRoute4697774F": Object {
+      "DependsOn": Array [
+        "VpcVPCGWBF912B6E",
+      ],
+      "Properties": Object {
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": Object {
+          "Ref": "VpcIGWD7BA715C",
+        },
+        "RouteTableId": Object {
+          "Ref": "VpcPublicSubnet3RouteTable93458DBB",
+        },
+      },
+      "Type": "AWS::EC2::Route",
+    },
+    "VpcPublicSubnet3RouteTable93458DBB": Object {
+      "Properties": Object {
+        "Tags": Array [
+          Object {
+            "Key": "Name",
+            "Value": "ServerlessWebappStarterKitStack/Vpc/PublicSubnet3",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::RouteTable",
+    },
+    "VpcPublicSubnet3RouteTableAssociation1F1EDF02": Object {
+      "Properties": Object {
+        "RouteTableId": Object {
+          "Ref": "VpcPublicSubnet3RouteTable93458DBB",
+        },
+        "SubnetId": Object {
+          "Ref": "VpcPublicSubnet3SubnetBE12F0B6",
+        },
+      },
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+    },
+    "VpcPublicSubnet3SubnetBE12F0B6": Object {
+      "Properties": Object {
+        "AvailabilityZone": "dummy1c",
+        "CidrBlock": "10.0.64.0/19",
+        "MapPublicIpOnLaunch": true,
+        "Tags": Array [
+          Object {
+            "Key": "aws-cdk:subnet-name",
+            "Value": "Public",
+          },
+          Object {
+            "Key": "aws-cdk:subnet-type",
+            "Value": "Public",
+          },
+          Object {
+            "Key": "Name",
+            "Value": "ServerlessWebappStarterKitStack/Vpc/PublicSubnet3",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::Subnet",
+    },
+    "VpcVPCGWBF912B6E": Object {
+      "Properties": Object {
+        "InternetGatewayId": Object {
+          "Ref": "VpcIGWD7BA715C",
+        },
+        "VpcId": Object {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+    },
+    "Webapp107041BD": Object {
+      "Properties": Object {
+        "DistributionConfig": Object {
+          "Aliases": Array [
+            "web.example.com",
+          ],
+          "CacheBehaviors": Array [
+            Object {
+              "AllowedMethods": Array [
+                "GET",
+                "HEAD",
+                "OPTIONS",
+                "PUT",
+                "PATCH",
+                "POST",
+                "DELETE",
+              ],
+              "CachePolicyId": Object {
+                "Ref": "WebappSharedCachePolicy14FEE4A0",
+              },
+              "Compress": true,
+              "LambdaFunctionAssociations": Array [
+                Object {
+                  "EventType": "origin-request",
+                  "IncludeBody": true,
+                  "LambdaFunctionARN": Object {
+                    "Fn::GetAtt": Array [
+                      "LookupVersionArnc8730278af02f875114ca902814c77b68f19b0087110E04D0A",
+                      "Parameter.Value",
+                    ],
+                  },
+                },
+              ],
+              "OriginRequestPolicyId": "b689b0a8-53d0-40ab-baf2-68738e2966ac",
+              "PathPattern": "/*",
+              "TargetOriginId": "ServerlessWebappStarterKitStackWebappOrigin1D7B867FF",
+              "ViewerProtocolPolicy": "allow-all",
+            },
+          ],
+          "Comment": "CloudFront for Webapp",
+          "DefaultCacheBehavior": Object {
+            "AllowedMethods": Array [
+              "GET",
+              "HEAD",
+              "OPTIONS",
+              "PUT",
+              "PATCH",
+              "POST",
+              "DELETE",
+            ],
+            "CachePolicyId": Object {
+              "Ref": "WebappSharedCachePolicy14FEE4A0",
+            },
+            "Compress": true,
+            "OriginRequestPolicyId": "b689b0a8-53d0-40ab-baf2-68738e2966ac",
+            "TargetOriginId": "ServerlessWebappStarterKitStackWebappOrigin1D7B867FF",
+            "ViewerProtocolPolicy": "allow-all",
+          },
+          "Enabled": true,
+          "HttpVersion": "http2",
+          "IPV6Enabled": true,
+          "Logging": Object {
+            "Bucket": Object {
+              "Fn::GetAtt": Array [
+                "AccessLogBucketDA470295",
+                "RegionalDomainName",
+              ],
+            },
+            "Prefix": "Webapp/",
+          },
+          "Origins": Array [
+            Object {
+              "ConnectionTimeout": 6,
+              "CustomOriginConfig": Object {
+                "OriginProtocolPolicy": "https-only",
+                "OriginReadTimeout": 60,
+                "OriginSSLProtocols": Array [
+                  "TLSv1.2",
+                ],
+              },
+              "DomainName": Object {
+                "Fn::Select": Array [
+                  2,
+                  Object {
+                    "Fn::Split": Array [
+                      "/",
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "WebappHandlerFunctionUrl7AEF8DEE",
+                          "FunctionUrl",
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+              "Id": "ServerlessWebappStarterKitStackWebappOrigin1D7B867FF",
+              "OriginAccessControlId": Object {
+                "Fn::GetAtt": Array [
+                  "WebappLambdaOac9F7226EC",
+                  "Id",
+                ],
+              },
+            },
+          ],
+          "ViewerCertificate": Object {
+            "AcmCertificateArn": Object {
+              "Fn::GetAtt": Array [
+                "ExportsReader8B249524",
+                "/cdk/exports/ServerlessWebappStarterKitStack/ServerlessWebappStarterKitUsEast1Stackuseast1RefCertificateV29EE77EAF5C85697F",
+              ],
+            },
+            "MinimumProtocolVersion": "TLSv1.2_2021",
+            "SslSupportMethod": "sni-only",
+          },
+        },
+      },
+      "Type": "AWS::CloudFront::Distribution",
+    },
+    "WebappBuild348806E3": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "DeployTimeBuildCustomResourceHandlerdb740fd554364a848a09e6dfcd01f4f306AEFF37",
+            "Arn",
+          ],
+        },
+        "buildCommand": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "docker buildx build --build-arg HOST_DOMAIN=web.example.com --build-arg SKIP_TS_BUILD=true --build-arg AMPLIFY_APP_ORIGIN=https://web.example.com --build-arg COGNITO_DOMAIN=auth.example.com --build-arg USER_POOL_ID=",
+              Object {
+                "Ref": "AuthUserPool8115E87F",
+              },
+              " --build-arg USER_POOL_CLIENT_ID=",
+              Object {
+                "Ref": "AuthUserPoolClientC635291F",
+              },
+              " --platform linux/arm64 --output type=image,name=",
+              Object {
+                "Fn::Select": Array [
+                  4,
+                  Object {
+                    "Fn::Split": Array [
+                      ":",
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "WebappBuildRepository4C93D48D",
+                          "Arn",
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+              ".dkr.ecr.",
+              Object {
+                "Fn::Select": Array [
+                  3,
+                  Object {
+                    "Fn::Split": Array [
+                      ":",
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "WebappBuildRepository4C93D48D",
+                          "Arn",
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+              ".",
+              Object {
+                "Ref": "AWS::URLSuffix",
+              },
+              "/",
+              Object {
+                "Ref": "WebappBuildRepository4C93D48D",
+              },
+              ":d0af23697f4827b2f69467e42ca2514a,push=true --provenance=false .",
+            ],
+          ],
+        },
+        "codeBuildProjectName": Object {
+          "Ref": "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64C13E3549",
+        },
+        "imageTag": "d0af23697f4827b2f69467e42ca2514a",
+        "repositoryUri": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              Object {
+                "Fn::Select": Array [
+                  4,
+                  Object {
+                    "Fn::Split": Array [
+                      ":",
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "WebappBuildRepository4C93D48D",
+                          "Arn",
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+              ".dkr.ecr.",
+              Object {
+                "Fn::Select": Array [
+                  3,
+                  Object {
+                    "Fn::Split": Array [
+                      ":",
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "WebappBuildRepository4C93D48D",
+                          "Arn",
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+              ".",
+              Object {
+                "Ref": "AWS::URLSuffix",
+              },
+              "/",
+              Object {
+                "Ref": "WebappBuildRepository4C93D48D",
+              },
+            ],
+          ],
+        },
+        "sourceS3Url": "s3://cdk-hnb659fds-assets-123456789012-us-west-2/e160badec0b62ca054fce476ea6211b985a41e24e63c1f4ea566cf4c211639ba.zip",
+        "type": "ContainerImageBuild",
+      },
+      "Type": "Custom::CDKContainerImageBuild",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "WebappBuildRepository4C93D48D": Object {
+      "DeletionPolicy": "Delete",
+      "Properties": Object {
+        "EmptyOnDelete": true,
+        "RepositoryPolicyText": Object {
+          "Statement": Array [
+            Object {
+              "Action": Array [
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:GetDownloadUrlForLayer",
+                "ecr:BatchGetImage",
+              ],
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::ECR::Repository",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "WebappHandler8DD158A3": Object {
+      "DependsOn": Array [
+        "VpcPrivateSubnet1DefaultRouteBE02A9ED",
+        "VpcPrivateSubnet1RouteTableAssociation70C59FA6",
+        "VpcPrivateSubnet2DefaultRoute060D2087",
+        "VpcPrivateSubnet2RouteTableAssociationA89CAD56",
+        "VpcPrivateSubnet3DefaultRoute94B74F0D",
+        "VpcPrivateSubnet3RouteTableAssociation16BDDC43",
+        "WebappHandlerServiceRole4F4D1ACD",
+      ],
+      "Properties": Object {
+        "Architectures": Array [
+          "arm64",
+        ],
+        "Code": Object {
+          "ImageUri": Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                Object {
+                  "Fn::Select": Array [
+                    4,
+                    Object {
+                      "Fn::Split": Array [
+                        ":",
+                        Object {
+                          "Fn::GetAtt": Array [
+                            "WebappBuildRepository4C93D48D",
+                            "Arn",
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                ".dkr.ecr.",
+                Object {
+                  "Fn::Select": Array [
+                    3,
+                    Object {
+                      "Fn::Split": Array [
+                        ":",
+                        Object {
+                          "Fn::GetAtt": Array [
+                            "WebappBuildRepository4C93D48D",
+                            "Arn",
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                ".",
+                Object {
+                  "Ref": "AWS::URLSuffix",
+                },
+                "/",
+                Object {
+                  "Ref": "WebappBuildRepository4C93D48D",
+                },
+                ":",
+                Object {
+                  "Fn::GetAtt": Array [
+                    "WebappBuild348806E3",
+                    "ImageTag",
+                  ],
+                },
+              ],
+            ],
+          },
+        },
+        "Environment": Object {
+          "Variables": Object {
+            "AMPLIFY_APP_ORIGIN": "https://web.example.com",
+            "COGNITO_DOMAIN": "auth.example.com",
+            "DATABASE_ENGINE": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "{{resolve:secretsmanager:",
+                  Object {
+                    "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                  },
+                  ":SecretString:engine::}}",
+                ],
+              ],
+            },
+            "DATABASE_HOST": Object {
+              "Fn::GetAtt": Array [
+                "DatabaseCluster5B53A178",
+                "Endpoint.Address",
+              ],
+            },
+            "DATABASE_NAME": "main",
+            "DATABASE_OPTION": "?pool_timeout=20&connect_timeout=20",
+            "DATABASE_PASSWORD": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "{{resolve:secretsmanager:",
+                  Object {
+                    "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                  },
+                  ":SecretString:password::}}",
+                ],
+              ],
+            },
+            "DATABASE_PORT": Object {
+              "Fn::GetAtt": Array [
+                "DatabaseCluster5B53A178",
+                "Endpoint.Port",
+              ],
+            },
+            "DATABASE_URL": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "{{resolve:secretsmanager:",
+                  Object {
+                    "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                  },
+                  ":SecretString:engine::}}://{{resolve:secretsmanager:",
+                  Object {
+                    "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                  },
+                  ":SecretString:username::}}:{{resolve:secretsmanager:",
+                  Object {
+                    "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                  },
+                  ":SecretString:password::}}@",
+                  Object {
+                    "Fn::GetAtt": Array [
+                      "DatabaseCluster5B53A178",
+                      "Endpoint.Address",
+                    ],
+                  },
+                  ":",
+                  Object {
+                    "Fn::GetAtt": Array [
+                      "DatabaseCluster5B53A178",
+                      "Endpoint.Port",
+                    ],
+                  },
+                  "/main?pool_timeout=20&connect_timeout=20",
+                ],
+              ],
+            },
+            "DATABASE_USER": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "{{resolve:secretsmanager:",
+                  Object {
+                    "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                  },
+                  ":SecretString:username::}}",
+                ],
+              ],
+            },
+            "HOST_DOMAIN": "web.example.com",
+            "USER_POOL_CLIENT_ID": Object {
+              "Ref": "AuthUserPoolClientC635291F",
+            },
+            "USER_POOL_ID": Object {
+              "Ref": "AuthUserPool8115E87F",
+            },
+          },
+        },
+        "MemorySize": 512,
+        "PackageType": "Image",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "WebappHandlerServiceRole4F4D1ACD",
+            "Arn",
+          ],
+        },
+        "Timeout": 180,
+        "VpcConfig": Object {
+          "SecurityGroupIds": Array [
+            Object {
+              "Fn::GetAtt": Array [
+                "WebappHandlerSecurityGroup5451B519",
+                "GroupId",
+              ],
+            },
+          ],
+          "SubnetIds": Array [
+            Object {
+              "Ref": "VpcPrivateSubnet1Subnet536B997A",
+            },
+            Object {
+              "Ref": "VpcPrivateSubnet2Subnet3788AAA1",
+            },
+            Object {
+              "Ref": "VpcPrivateSubnet3SubnetF258B56E",
+            },
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "WebappHandlerAllowCloudFrontServicePrincipal9DED5EB2": Object {
+      "DependsOn": Array [
+        "VpcPrivateSubnet1DefaultRouteBE02A9ED",
+        "VpcPrivateSubnet1RouteTableAssociation70C59FA6",
+        "VpcPrivateSubnet2DefaultRoute060D2087",
+        "VpcPrivateSubnet2RouteTableAssociationA89CAD56",
+        "VpcPrivateSubnet3DefaultRoute94B74F0D",
+        "VpcPrivateSubnet3RouteTableAssociation16BDDC43",
+      ],
+      "Properties": Object {
+        "Action": "lambda:InvokeFunctionUrl",
+        "FunctionName": Object {
+          "Fn::GetAtt": Array [
+            "WebappHandler8DD158A3",
+            "Arn",
+          ],
+        },
+        "Principal": "cloudfront.amazonaws.com",
+        "SourceArn": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "arn:aws:cloudfront::123456789012:distribution/",
+              Object {
+                "Ref": "Webapp107041BD",
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
+    "WebappHandlerFunctionUrl7AEF8DEE": Object {
+      "DependsOn": Array [
+        "VpcPrivateSubnet1DefaultRouteBE02A9ED",
+        "VpcPrivateSubnet1RouteTableAssociation70C59FA6",
+        "VpcPrivateSubnet2DefaultRoute060D2087",
+        "VpcPrivateSubnet2RouteTableAssociationA89CAD56",
+        "VpcPrivateSubnet3DefaultRoute94B74F0D",
+        "VpcPrivateSubnet3RouteTableAssociation16BDDC43",
+      ],
+      "Properties": Object {
+        "AuthType": "AWS_IAM",
+        "InvokeMode": "RESPONSE_STREAM",
+        "TargetFunctionArn": Object {
+          "Fn::GetAtt": Array [
+            "WebappHandler8DD158A3",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Url",
+    },
+    "WebappHandlerSecurityGroup5451B519": Object {
+      "DependsOn": Array [
+        "VpcPrivateSubnet1DefaultRouteBE02A9ED",
+        "VpcPrivateSubnet1RouteTableAssociation70C59FA6",
+        "VpcPrivateSubnet2DefaultRoute060D2087",
+        "VpcPrivateSubnet2RouteTableAssociationA89CAD56",
+        "VpcPrivateSubnet3DefaultRoute94B74F0D",
+        "VpcPrivateSubnet3RouteTableAssociation16BDDC43",
+      ],
+      "Properties": Object {
+        "GroupDescription": "Automatic security group for Lambda Function ServerlessWebappStarterKitStackWebappHandlerF1A4ACC9",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "WebappHandlerServiceRole4F4D1ACD": Object {
+      "DependsOn": Array [
+        "VpcPrivateSubnet1DefaultRouteBE02A9ED",
+        "VpcPrivateSubnet1RouteTableAssociation70C59FA6",
+        "VpcPrivateSubnet2DefaultRoute060D2087",
+        "VpcPrivateSubnet2RouteTableAssociationA89CAD56",
+        "VpcPrivateSubnet3DefaultRoute94B74F0D",
+        "VpcPrivateSubnet3RouteTableAssociation16BDDC43",
+      ],
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "WebappLambdaOac9F7226EC": Object {
+      "Properties": Object {
+        "OriginAccessControlConfig": Object {
+          "Name": "ServerlessWebappStarterKitStackWebapp0652CB95",
+          "OriginAccessControlOriginType": "lambda",
+          "SigningBehavior": "always",
+          "SigningProtocol": "sigv4",
+        },
+      },
+      "Type": "AWS::CloudFront::OriginAccessControl",
+    },
+    "WebappMigrationRunnerAC67C012": Object {
+      "DependsOn": Array [
+        "VpcPrivateSubnet1DefaultRouteBE02A9ED",
+        "VpcPrivateSubnet1RouteTableAssociation70C59FA6",
+        "VpcPrivateSubnet2DefaultRoute060D2087",
+        "VpcPrivateSubnet2RouteTableAssociationA89CAD56",
+        "VpcPrivateSubnet3DefaultRoute94B74F0D",
+        "VpcPrivateSubnet3RouteTableAssociation16BDDC43",
+        "WebappMigrationRunnerServiceRoleE27E1F7A",
+      ],
+      "Properties": Object {
+        "Architectures": Array [
+          "arm64",
+        ],
+        "Code": Object {
+          "ImageUri": Object {
+            "Fn::Sub": "123456789012.dkr.ecr.us-west-2.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-123456789012-us-west-2:8f64dd5dac8339cfc6a4d64e5a91a5abd95bbd2f9cd0ad092200fcf8bcfbe382",
+          },
+        },
+        "Environment": Object {
+          "Variables": Object {
+            "DATABASE_ENGINE": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "{{resolve:secretsmanager:",
+                  Object {
+                    "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                  },
+                  ":SecretString:engine::}}",
+                ],
+              ],
+            },
+            "DATABASE_HOST": Object {
+              "Fn::GetAtt": Array [
+                "DatabaseCluster5B53A178",
+                "Endpoint.Address",
+              ],
+            },
+            "DATABASE_NAME": "main",
+            "DATABASE_OPTION": "?pool_timeout=20&connect_timeout=20",
+            "DATABASE_PASSWORD": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "{{resolve:secretsmanager:",
+                  Object {
+                    "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                  },
+                  ":SecretString:password::}}",
+                ],
+              ],
+            },
+            "DATABASE_PORT": Object {
+              "Fn::GetAtt": Array [
+                "DatabaseCluster5B53A178",
+                "Endpoint.Port",
+              ],
+            },
+            "DATABASE_URL": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "{{resolve:secretsmanager:",
+                  Object {
+                    "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                  },
+                  ":SecretString:engine::}}://{{resolve:secretsmanager:",
+                  Object {
+                    "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                  },
+                  ":SecretString:username::}}:{{resolve:secretsmanager:",
+                  Object {
+                    "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                  },
+                  ":SecretString:password::}}@",
+                  Object {
+                    "Fn::GetAtt": Array [
+                      "DatabaseCluster5B53A178",
+                      "Endpoint.Address",
+                    ],
+                  },
+                  ":",
+                  Object {
+                    "Fn::GetAtt": Array [
+                      "DatabaseCluster5B53A178",
+                      "Endpoint.Port",
+                    ],
+                  },
+                  "/main?pool_timeout=20&connect_timeout=20",
+                ],
+              ],
+            },
+            "DATABASE_USER": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "{{resolve:secretsmanager:",
+                  Object {
+                    "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                  },
+                  ":SecretString:username::}}",
+                ],
+              ],
+            },
+          },
+        },
+        "ImageConfig": Object {
+          "Command": Array [
+            "migration-runner.handler",
+          ],
+        },
+        "MemorySize": 256,
+        "PackageType": "Image",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "WebappMigrationRunnerServiceRoleE27E1F7A",
+            "Arn",
+          ],
+        },
+        "Timeout": 300,
+        "VpcConfig": Object {
+          "SecurityGroupIds": Array [
+            Object {
+              "Fn::GetAtt": Array [
+                "WebappMigrationRunnerSecurityGroup7F0DF264",
+                "GroupId",
+              ],
+            },
+          ],
+          "SubnetIds": Array [
+            Object {
+              "Ref": "VpcPrivateSubnet1Subnet536B997A",
+            },
+            Object {
+              "Ref": "VpcPrivateSubnet2Subnet3788AAA1",
+            },
+            Object {
+              "Ref": "VpcPrivateSubnet3SubnetF258B56E",
+            },
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "WebappMigrationRunnerCurrentVersionD59FFB168311e59f89ccff929d7eb6fc364a7869": Object {
+      "DependsOn": Array [
+        "VpcPrivateSubnet1DefaultRouteBE02A9ED",
+        "VpcPrivateSubnet1RouteTableAssociation70C59FA6",
+        "VpcPrivateSubnet2DefaultRoute060D2087",
+        "VpcPrivateSubnet2RouteTableAssociationA89CAD56",
+        "VpcPrivateSubnet3DefaultRoute94B74F0D",
+        "VpcPrivateSubnet3RouteTableAssociation16BDDC43",
+      ],
+      "Properties": Object {
+        "FunctionName": Object {
+          "Ref": "WebappMigrationRunnerAC67C012",
+        },
+      },
+      "Type": "AWS::Lambda::Version",
+    },
+    "WebappMigrationRunnerSecurityGroup7F0DF264": Object {
+      "DependsOn": Array [
+        "VpcPrivateSubnet1DefaultRouteBE02A9ED",
+        "VpcPrivateSubnet1RouteTableAssociation70C59FA6",
+        "VpcPrivateSubnet2DefaultRoute060D2087",
+        "VpcPrivateSubnet2RouteTableAssociationA89CAD56",
+        "VpcPrivateSubnet3DefaultRoute94B74F0D",
+        "VpcPrivateSubnet3RouteTableAssociation16BDDC43",
+      ],
+      "Properties": Object {
+        "GroupDescription": "Automatic security group for Lambda Function ServerlessWebappStarterKitStackWebappMigrationRunner45EAC73E",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "WebappMigrationRunnerServiceRoleE27E1F7A": Object {
+      "DependsOn": Array [
+        "VpcPrivateSubnet1DefaultRouteBE02A9ED",
+        "VpcPrivateSubnet1RouteTableAssociation70C59FA6",
+        "VpcPrivateSubnet2DefaultRoute060D2087",
+        "VpcPrivateSubnet2RouteTableAssociationA89CAD56",
+        "VpcPrivateSubnet3DefaultRoute94B74F0D",
+        "VpcPrivateSubnet3RouteTableAssociation16BDDC43",
+      ],
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "WebappMigrationTrigger42AFC1D9": Object {
+      "DeletionPolicy": "Delete",
+      "DependsOn": Array [
+        "DatabaseCluster5B53A178",
+        "DatabaseClusterSecretAttachmentDC8466C0",
+        "DatabaseClusterSecretD1FB634F",
+        "DatabaseClusterSecurityGroupfromServerlessWebappStarterKitStackDatabaseBastionHostInstanceSecurityGroup4F0DD25BIndirectPort8AFD9922",
+        "DatabaseClusterSecurityGroupfromServerlessWebappStarterKitStackWebappHandlerSecurityGroupA009CF4AIndirectPort7311063E",
+        "DatabaseClusterSecurityGroupfromServerlessWebappStarterKitStackWebappMigrationRunnerSecurityGroupC0959349IndirectPortDCF4A356",
+        "DatabaseClusterSecurityGroupFEF1426A",
+        "DatabaseClusterSubnets5540150D",
+        "DatabaseClusterWriterD43085C6",
+      ],
+      "Properties": Object {
+        "ExecuteOnHandlerChange": true,
+        "HandlerArn": Object {
+          "Ref": "WebappMigrationRunnerCurrentVersionD59FFB168311e59f89ccff929d7eb6fc364a7869",
+        },
+        "InvocationType": "RequestResponse",
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "AWSCDKTriggerCustomResourceProviderCustomResourceProviderHandler97BECD91",
+            "Arn",
+          ],
+        },
+        "Timeout": "120000",
+      },
+      "Type": "Custom::Trigger",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "WebappRecord02DDD651": Object {
+      "Properties": Object {
+        "AliasTarget": Object {
+          "DNSName": Object {
+            "Fn::GetAtt": Array [
+              "Webapp107041BD",
+              "DomainName",
+            ],
+          },
+          "HostedZoneId": Object {
+            "Fn::FindInMap": Array [
+              "AWSCloudFrontPartitionHostedZoneIdMap",
+              Object {
+                "Ref": "AWS::Partition",
+              },
+              "zoneId",
+            ],
+          },
+        },
+        "HostedZoneId": "DUMMY",
+        "Name": "web.example.com.",
+        "Type": "A",
+      },
+      "Type": "AWS::Route53::RecordSet",
+    },
+    "WebappSharedCachePolicy14FEE4A0": Object {
+      "Properties": Object {
+        "CachePolicyConfig": Object {
+          "DefaultTTL": 0,
+          "MaxTTL": 31536000,
+          "MinTTL": 0,
+          "Name": "ServerlessWebappStarterKitStackWebappSharedCachePolicy211E133B-us-west-2",
+          "ParametersInCacheKeyAndForwardedToOrigin": Object {
+            "CookiesConfig": Object {
+              "CookieBehavior": "all",
+            },
+            "EnableAcceptEncodingBrotli": true,
+            "EnableAcceptEncodingGzip": true,
+            "HeadersConfig": Object {
+              "HeaderBehavior": "whitelist",
+              "Headers": Array [
+                "authorization",
+                "Origin",
+                "X-HTTP-Method-Override",
+                "X-HTTP-Method",
+                "X-Method-Override",
+              ],
+            },
+            "QueryStringsConfig": Object {
+              "QueryStringBehavior": "all",
+            },
+          },
+        },
+      },
+      "Type": "AWS::CloudFront::CachePolicy",
     },
   },
   "Rules": Object {

@@ -8,33 +8,21 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: "16.x"
+          node-version: "22.x"
       - run: |
           npm ci
           npm run build
           npm run test
         working-directory: ./cdk
-  Build-and-Test-Backend:
+  Build-and-Test-Webapp:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: "16.x"
+          node-version: "22.x"
       - run: |
           npm ci
           npm run build
-        working-directory: ./backend
-  Build-and-Test-Frontend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Use Node.js
-        uses: actions/setup-node@v1
-        with:
-          node-version: "16.x"
-      - run: |
-          npm ci
-          npm run build
-        working-directory: ./frontend
+        working-directory: ./webapp

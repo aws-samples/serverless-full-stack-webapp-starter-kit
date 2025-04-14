@@ -13,7 +13,7 @@ interface EnvironmentProps {
 
 const props: EnvironmentProps = {
   account: process.env.CDK_DEFAULT_ACCOUNT!,
-  domainName: 'example.com',
+  domainName: 'mtomooka.people.aws.dev',
 };
 
 const virginia = new UsEast1Stack(app, 'ServerlessWebappStarterKitUsEast1Stack', {
