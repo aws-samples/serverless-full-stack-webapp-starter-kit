@@ -24,5 +24,6 @@ jobs:
           node-version: "22.x"
       - run: |
           npm ci
+          cp .env.local.example .env.local
           npm run build
         working-directory: ./webapp
