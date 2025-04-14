@@ -165,7 +165,7 @@ Object {
       },
       "Type": "AWS::Lambda::Function",
     },
-    "SignPayloadHandlerCurrentVersionF9D1B5C2cb548e0bd5e980a726eee0f3426c8898": Object {
+    "SignPayloadHandlerCurrentVersionREDACTED": Object {
       "Properties": Object {
         "FunctionName": Object {
           "Ref": "SignPayloadHandlerCFEAA14C",
@@ -177,7 +177,7 @@ Object {
       "Properties": Object {
         "Type": "String",
         "Value": Object {
-          "Ref": "SignPayloadHandlerCurrentVersionF9D1B5C2cb548e0bd5e980a726eee0f3426c8898",
+          "Ref": "SignPayloadHandlerCurrentVersionREDACTED",
         },
       },
       "Type": "AWS::SSM::Parameter",
@@ -2381,14 +2381,14 @@ Object {
               Object {
                 "Ref": "WebappBuildRepository4C93D48D",
               },
-              ":fd9bf8d5010a14eaf6c31efb592fe5cf,push=true --provenance=false .",
+              ":REDACTED,push=true --provenance=false .",
             ],
           ],
         },
         "codeBuildProjectName": Object {
           "Ref": "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64C13E3549",
         },
-        "imageTag": "fd9bf8d5010a14eaf6c31efb592fe5cf",
+        "imageTag": "REDACTED",
         "repositoryUri": Object {
           "Fn::Join": Array [
             "",
@@ -2952,7 +2952,7 @@ Object {
       },
       "Type": "AWS::Lambda::Function",
     },
-    "WebappMigrationRunnerCurrentVersionD59FFB16f4f005b97162b6091abfc74c01d59cd2": Object {
+    "WebappMigrationRunnerCurrentVersionREDACTED": Object {
       "DependsOn": Array [
         "VpcPrivateSubnet1DefaultRouteBE02A9ED",
         "VpcPrivateSubnet1RouteTableAssociation70C59FA6",
@@ -3059,7 +3059,7 @@ Object {
       "Properties": Object {
         "ExecuteOnHandlerChange": true,
         "HandlerArn": Object {
-          "Ref": "WebappMigrationRunnerCurrentVersionD59FFB16f4f005b97162b6091abfc74c01d59cd2",
+          "Ref": "WebappMigrationRunnerCurrentVersionREDACTED",
         },
         "InvocationType": "RequestResponse",
         "ServiceToken": Object {

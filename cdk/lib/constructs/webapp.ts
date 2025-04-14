@@ -41,6 +41,7 @@ export class Webapp extends Construct {
       platform: Platform.LINUX_ARM64,
       ignoreMode: IgnoreMode.DOCKER,
       exclude: readFileSync(join('..', 'webapp', '.dockerignore')).toString().split('\n'),
+      tagPrefix: 'webapp-starter-',
       buildArgs: {
         HOST_DOMAIN: `${subDomain}.${hostedZone.zoneName}`,
         SKIP_TS_BUILD: 'true',
