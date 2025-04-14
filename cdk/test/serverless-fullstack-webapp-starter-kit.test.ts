@@ -4,6 +4,8 @@ import { MainStack } from '../lib/main-stack';
 import { UsEast1Stack } from '../lib/us-east-1-stack';
 
 test('Snapshot test', () => {
+  jest.useFakeTimers().setSystemTime(new Date('2020-01-01'));
+
   const app = new cdk.App();
   const props = {
     account: '123456789012',

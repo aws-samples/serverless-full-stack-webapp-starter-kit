@@ -39,7 +39,7 @@ Object {
       "Properties": Object {
         "Code": Object {
           "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
-          "S3Key": "8a17fb3ceee821f797100bf65fa3047c164a08c03aa5a07fbcff9a676fb73b97.zip",
+          "S3Key": "REDACTED",
         },
         "Handler": "__entrypoint__.handler",
         "MemorySize": 128,
@@ -152,7 +152,7 @@ Object {
       "Properties": Object {
         "Code": Object {
           "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-east-1",
-          "S3Key": "75826bacb6e32002567601abc1e4f7f7dddd5f721ad7d4a62b2ae425c3976381.zip",
+          "S3Key": "REDACTED",
         },
         "Handler": "index.handler",
         "Role": Object {
@@ -354,28 +354,28 @@ Object {
             Object {
               "Ref": "DatabaseBastionHost4C4FAD9C",
             },
-            " --document-name AWS-StartPortForwardingSessionToRemoteHost --parameters '{\\"portNumber\\":[\\"",
+            " --document-name AWS-StartPortForwardingSessionToRemoteHost --parameters '{"portNumber":["",
             Object {
               "Fn::GetAtt": Array [
                 "DatabaseCluster5B53A178",
                 "Endpoint.Port",
               ],
             },
-            "\\"], \\"localPortNumber\\":[\\"",
+            ""], "localPortNumber":["",
             Object {
               "Fn::GetAtt": Array [
                 "DatabaseCluster5B53A178",
                 "Endpoint.Port",
               ],
             },
-            "\\"], \\"host\\": [\\"",
+            ""], "host": ["",
             Object {
               "Fn::GetAtt": Array [
                 "DatabaseCluster5B53A178",
                 "Endpoint.Address",
               ],
             },
-            "\\"]}'",
+            ""]}'",
           ],
         ],
       },
@@ -392,7 +392,7 @@ Object {
             Object {
               "Ref": "WebappMigrationRunnerAC67C012",
             },
-            " --payload '{\\"command\\":\\"deploy\\"}' --cli-binary-format raw-in-base64-out /dev/stdout",
+            " --payload '{"command":"deploy"}' --cli-binary-format raw-in-base64-out /dev/stdout",
           ],
         ],
       },
@@ -425,7 +425,7 @@ Object {
       "Properties": Object {
         "Code": Object {
           "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-west-2",
-          "S3Key": "9d043014be736e8162bcc7ec5590cc6d2ff24fd0d9c73a5c5d595151c5fdad00.zip",
+          "S3Key": "REDACTED",
         },
         "Handler": "index.handler",
         "Role": Object {
@@ -477,7 +477,7 @@ Object {
       "Properties": Object {
         "Code": Object {
           "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-west-2",
-          "S3Key": "b585179dc46d9100f31367c1eb03e063c4e1a396f99a6a188ac4a05a16ae4fa5.zip",
+          "S3Key": "REDACTED",
         },
         "Handler": "__entrypoint__.handler",
         "MemorySize": 128,
@@ -841,28 +841,28 @@ Object {
         },
         "Source": Object {
           "BuildSpec": "{
-  \\"version\\": \\"0.2\\",
-  \\"phases\\": {
-    \\"build\\": {
-      \\"commands\\": [
-        \\"current_dir=$(pwd)\\",
-        \\"echo \\\\\\"$input\\\\\\"\\",
-        \\"mkdir workdir\\",
-        \\"cd workdir\\",
-        \\"aws s3 cp \\\\\\"$sourceS3Url\\\\\\" temp.zip\\",
-        \\"unzip temp.zip\\",
-        \\"ls -la\\",
-        \\"aws ecr get-login-password | docker login --username AWS --password-stdin $repositoryAuthUri\\",
-        \\"aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws\\",
-        \\"docker buildx create --use\\",
-        \\"docker buildx ls\\",
-        \\"eval \\\\\\"$buildCommand\\\\\\"\\"
+  "version": "0.2",
+  "phases": {
+    "build": {
+      "commands": [
+        "current_dir=$(pwd)",
+        "echo \\"$input\\"",
+        "mkdir workdir",
+        "cd workdir",
+        "aws s3 cp \\"$sourceS3Url\\" temp.zip",
+        "unzip temp.zip",
+        "ls -la",
+        "aws ecr get-login-password | docker login --username AWS --password-stdin $repositoryAuthUri",
+        "aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws",
+        "docker buildx create --use",
+        "docker buildx ls",
+        "eval \\"$buildCommand\\""
       ]
     },
-    \\"post_build\\": {
-      \\"commands\\": [
-        \\"echo Build completed on \`date\`\\",
-        \\"\\\\nSTATUS='SUCCESS'\\\\nif [ $CODEBUILD_BUILD_SUCCEEDING -ne 1 ] # Test if the build is failing\\\\nthen\\\\nSTATUS='FAILED'\\\\nREASON=\\\\\\"ContainerImageBuild failed. See CloudWatch Log stream for the detailed reason: \\\\nhttps://$AWS_REGION.console.aws.amazon.com/cloudwatch/home?region=$AWS_REGION#logsV2:log-groups/log-group/\\\\\\\\$252Faws\\\\\\\\$252Fcodebuild\\\\\\\\$252F$projectName/log-events/$CODEBUILD_LOG_PATH\\\\\\"\\\\nfi\\\\ncat <<EOF > payload.json\\\\n{\\\\n  \\\\\\"StackId\\\\\\": \\\\\\"$stackId\\\\\\",\\\\n  \\\\\\"RequestId\\\\\\": \\\\\\"$requestId\\\\\\",\\\\n  \\\\\\"LogicalResourceId\\\\\\":\\\\\\"$logicalResourceId\\\\\\",\\\\n  \\\\\\"PhysicalResourceId\\\\\\": \\\\\\"$imageTag\\\\\\",\\\\n  \\\\\\"Status\\\\\\": \\\\\\"$STATUS\\\\\\",\\\\n  \\\\\\"Reason\\\\\\": \\\\\\"$REASON\\\\\\",\\\\n  \\\\\\"Data\\\\\\": {\\\\n    \\\\\\"ImageTag\\\\\\": \\\\\\"$imageTag\\\\\\"\\\\n  }\\\\n}\\\\nEOF\\\\ncurl -v -i -X PUT -H 'Content-Type:' -d \\\\\\"@payload.json\\\\\\" \\\\\\"$responseURL\\\\\\"\\\\n              \\"
+    "post_build": {
+      "commands": [
+        "echo Build completed on \`date\`",
+        "\\nSTATUS='SUCCESS'\\nif [ $CODEBUILD_BUILD_SUCCEEDING -ne 1 ] # Test if the build is failing\\nthen\\nSTATUS='FAILED'\\nREASON=\\"ContainerImageBuild failed. See CloudWatch Log stream for the detailed reason: \\nhttps://$AWS_REGION.console.aws.amazon.com/cloudwatch/home?region=$AWS_REGION#logsV2:log-groups/log-group/\\\\$252Faws\\\\$252Fcodebuild\\\\$252F$projectName/log-events/$CODEBUILD_LOG_PATH\\"\\nfi\\ncat <<EOF > payload.json\\n{\\n  \\"StackId\\": \\"$stackId\\",\\n  \\"RequestId\\": \\"$requestId\\",\\n  \\"LogicalResourceId\\":\\"$logicalResourceId\\",\\n  \\"PhysicalResourceId\\": \\"$imageTag\\",\\n  \\"Status\\": \\"$STATUS\\",\\n  \\"Reason\\": \\"$REASON\\",\\n  \\"Data\\": {\\n    \\"ImageTag\\": \\"$imageTag\\"\\n  }\\n}\\nEOF\\ncurl -v -i -X PUT -H 'Content-Type:' -d \\"@payload.json\\" \\"$responseURL\\"\\n              "
       ]
     }
   }
@@ -1060,7 +1060,7 @@ Object {
       "Properties": Object {
         "Code": Object {
           "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-west-2",
-          "S3Key": "d41c8e6342cd078b5ea5aec11522bdb605eae00f4bb98a3fb0b44c827e9b5ca9.zip",
+          "S3Key": "REDACTED",
         },
         "Handler": "__entrypoint__.handler",
         "MemorySize": 128,
@@ -1134,7 +1134,7 @@ Object {
       "Properties": Object {
         "Code": Object {
           "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-west-2",
-          "S3Key": "faa95a81ae7d7373f3e1f242268f904eb748d8d0fdd306e8a6fe515a1905a7d6.zip",
+          "S3Key": "REDACTED",
         },
         "Description": Object {
           "Fn::Join": Array [
@@ -1390,10 +1390,10 @@ Object {
           ],
         },
         "GenerateSecretString": Object {
-          "ExcludeCharacters": " %+~\`#$&*()|[]{}:;<>?!'/@\\"\\\\,=^",
+          "ExcludeCharacters": " %+~\`#$&*()|[]{}:;<>?!'/@"\\,=^",
           "GenerateStringKey": "password",
           "PasswordLength": 30,
-          "SecretStringTemplate": "{\\"username\\":\\"postgres\\"}",
+          "SecretStringTemplate": "{"username":"postgres"}",
         },
       },
       "Type": "AWS::SecretsManager::Secret",
@@ -1568,7 +1568,7 @@ Object {
       "Properties": Object {
         "Code": Object {
           "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-west-2",
-          "S3Key": "aa47254059d94cff79a1f8a5a97c4e8a0e14a3f105d2b089464c0beeeb6cfe8d.zip",
+          "S3Key": "REDACTED",
         },
         "Handler": "index.handler",
         "Role": Object {
@@ -1670,14 +1670,14 @@ Object {
           "Fn::Join": Array [
             "",
             Array [
-              "{\\"service\\":\\"SSM\\",\\"action\\":\\"getParameter\\",\\"parameters\\":{\\"Name\\":\\"",
+              "{"service":"SSM","action":"getParameter","parameters":{"Name":"",
               Object {
                 "Fn::GetAtt": Array [
                   "ExportsReader8B249524",
                   "/cdk/exports/ServerlessWebappStarterKitStack/ServerlessWebappStarterKitUsEast1Stackuseast1RefSignPayloadHandlerFunctionVersionF9FE430A3006B9FA",
                 ],
               },
-              "\\"},\\"physicalResourceId\\":{\\"id\\":\\"1744612514828\\"},\\"region\\":\\"us-east-1\\"}",
+              ""},"physicalResourceId":{"id":"1577836800000"},"region":"us-east-1"}",
             ],
           ],
         },
@@ -1692,14 +1692,14 @@ Object {
           "Fn::Join": Array [
             "",
             Array [
-              "{\\"service\\":\\"SSM\\",\\"action\\":\\"getParameter\\",\\"parameters\\":{\\"Name\\":\\"",
+              "{"service":"SSM","action":"getParameter","parameters":{"Name":"",
               Object {
                 "Fn::GetAtt": Array [
                   "ExportsReader8B249524",
                   "/cdk/exports/ServerlessWebappStarterKitStack/ServerlessWebappStarterKitUsEast1Stackuseast1RefSignPayloadHandlerFunctionVersionF9FE430A3006B9FA",
                 ],
               },
-              "\\"},\\"physicalResourceId\\":{\\"id\\":\\"1744612514828\\"},\\"region\\":\\"us-east-1\\"}",
+              ""},"physicalResourceId":{"id":"1577836800000"},"region":"us-east-1"}",
             ],
           ],
         },
@@ -2381,14 +2381,14 @@ Object {
               Object {
                 "Ref": "WebappBuildRepository4C93D48D",
               },
-              ":d0af23697f4827b2f69467e42ca2514a,push=true --provenance=false .",
+              ":fd9bf8d5010a14eaf6c31efb592fe5cf,push=true --provenance=false .",
             ],
           ],
         },
         "codeBuildProjectName": Object {
           "Ref": "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64C13E3549",
         },
-        "imageTag": "d0af23697f4827b2f69467e42ca2514a",
+        "imageTag": "fd9bf8d5010a14eaf6c31efb592fe5cf",
         "repositoryUri": Object {
           "Fn::Join": Array [
             "",
@@ -2437,7 +2437,7 @@ Object {
             ],
           ],
         },
-        "sourceS3Url": "s3://cdk-hnb659fds-assets-123456789012-us-west-2/e160badec0b62ca054fce476ea6211b985a41e24e63c1f4ea566cf4c211639ba.zip",
+        "sourceS3Url": "s3://cdk-hnb659fds-assets-123456789012-us-west-2/REDACTED",
         "type": "ContainerImageBuild",
       },
       "Type": "Custom::CDKContainerImageBuild",
@@ -2823,7 +2823,7 @@ Object {
         ],
         "Code": Object {
           "ImageUri": Object {
-            "Fn::Sub": "123456789012.dkr.ecr.us-west-2.\${AWS::URLSuffix}/cdk-hnb659fds-container-assets-123456789012-us-west-2:8f64dd5dac8339cfc6a4d64e5a91a5abd95bbd2f9cd0ad092200fcf8bcfbe382",
+            "Fn::Sub": "REDACTED",
           },
         },
         "Environment": Object {
@@ -2952,7 +2952,7 @@ Object {
       },
       "Type": "AWS::Lambda::Function",
     },
-    "WebappMigrationRunnerCurrentVersionD59FFB168311e59f89ccff929d7eb6fc364a7869": Object {
+    "WebappMigrationRunnerCurrentVersionD59FFB16f4f005b97162b6091abfc74c01d59cd2": Object {
       "DependsOn": Array [
         "VpcPrivateSubnet1DefaultRouteBE02A9ED",
         "VpcPrivateSubnet1RouteTableAssociation70C59FA6",
@@ -3059,7 +3059,7 @@ Object {
       "Properties": Object {
         "ExecuteOnHandlerChange": true,
         "HandlerArn": Object {
-          "Ref": "WebappMigrationRunnerCurrentVersionD59FFB168311e59f89ccff929d7eb6fc364a7869",
+          "Ref": "WebappMigrationRunnerCurrentVersionD59FFB16f4f005b97162b6091abfc74c01d59cd2",
         },
         "InvocationType": "RequestResponse",
         "ServiceToken": Object {
