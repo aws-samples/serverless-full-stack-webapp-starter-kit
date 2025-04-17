@@ -1949,7 +1949,7 @@ Object {
             "ApiId",
           ],
         },
-        "CodeS3Location": "s3://cdk-hnb659fds-assets-123456789012-us-west-2/769e350dc3018f51251079aa9a57ccfac39c3d00bd86fc3d8c33c88216ce3178.mjs",
+        "CodeS3Location": "s3://cdk-hnb659fds-assets-123456789012-us-west-2/REDACTED",
         "Name": "event-bus",
       },
       "Type": "AWS::AppSync::ChannelNamespace",
