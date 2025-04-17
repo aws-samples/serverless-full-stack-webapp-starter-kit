@@ -50,6 +50,16 @@ You need the following tools to deploy this sample:
 * [Node.js](https://nodejs.org/en/download/) (>= v20)
 * [Docker](https://docs.docker.com/get-docker/)
 * [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) and a configured IAM profile
+* A public domain name configured as a Hosted Zone in Amazon Route53
+
+Before deployment, you need to update the domain name in [`bin/cdk.ts`](cdk/bin/cdk.ts) to use your own domain that is configured as a Hosted Zone in Route53:
+
+```typescript
+const props: EnvironmentProps = {
+  // ...
+  domainName: 'your-domain.example.com', // Replace with your domain name
+};
+```
 
 Then run the following commands:
 

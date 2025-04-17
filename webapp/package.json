@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "next dev --turbopack -p 3010",
     "build": "next build",
+    "format": "prettier --write './**/*.{ts,tsx,mjs,mts}' && npx prisma format",
+    "format:check": "prettier --check './**/*.{ts,tsx,mjs,mts}' && npx prisma format --check",
     "start": "next start",
     "lint": "next lint"
   },
@@ -36,6 +38,7 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.3.0",
+    "prettier": "^3.5.3",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

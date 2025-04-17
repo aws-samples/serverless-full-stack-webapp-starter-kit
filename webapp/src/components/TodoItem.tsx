@@ -24,11 +24,11 @@ export default function TodoItemComponent({ todo }: TodoItemProps) {
   } = useHookFormAction(updateTodo, zodResolver(updateTodoSchema), {
     actionProps: {
       onSuccess: () => {
-        toast.success("Todo updated successfully");
+        toast.success('Todo updated successfully');
         setIsEditing(false);
       },
       onError: ({ error }) => {
-        toast.error(typeof error === 'string' ? error : "Failed to update todo");
+        toast.error(typeof error === 'string' ? error : 'Failed to update todo');
       },
     },
     formProps: {
@@ -44,20 +44,20 @@ export default function TodoItemComponent({ todo }: TodoItemProps) {
   // Delete Todo Action - Simple action without form
   const { execute: executeDelete, status: deleteStatus } = useAction(deleteTodo, {
     onSuccess: () => {
-      toast.success("Todo deleted successfully");
+      toast.success('Todo deleted successfully');
     },
     onError: (error) => {
-      toast.error(typeof error === 'string' ? error : "Failed to delete todo");
+      toast.error(typeof error === 'string' ? error : 'Failed to delete todo');
     },
   });
 
   // Update Status Action - Simple action without form
   const { execute: executeStatusUpdate, status: statusStatus } = useAction(updateTodoStatus, {
     onSuccess: () => {
-      toast.success("Status updated successfully");
+      toast.success('Status updated successfully');
     },
     onError: (error) => {
-      toast.error(typeof error === 'string' ? error : "Failed to update status");
+      toast.error(typeof error === 'string' ? error : 'Failed to update status');
     },
   });
 
@@ -68,10 +68,8 @@ export default function TodoItemComponent({ todo }: TodoItemProps) {
   };
 
   const toggleStatus = () => {
-    const newStatus = todo.status === TodoItemStatus.PENDING 
-      ? TodoItemStatus.COMPLETED 
-      : TodoItemStatus.PENDING;
-    
+    const newStatus = todo.status === TodoItemStatus.PENDING ? TodoItemStatus.COMPLETED : TodoItemStatus.PENDING;
+
     executeStatusUpdate({
       id: todo.id,
       status: newStatus,
@@ -82,25 +80,25 @@ export default function TodoItemComponent({ todo }: TodoItemProps) {
     return (
       <div className="border p-4 rounded-md shadow-sm mb-4 bg-white">
         <form onSubmit={handleUpdate} className="space-y-4">
-          <input type="hidden" {...registerUpdate("id")} value={todo.id} />
-          <input type="hidden" {...registerUpdate("status")} value={todo.status} />
-          
+          <input type="hidden" {...registerUpdate('id')} value={todo.id} />
+          <input type="hidden" {...registerUpdate('status')} value={todo.status} />
+
           <div>
             <label className="block text-sm font-medium text-gray-700">Title</label>
             <input
               type="text"
-              {...registerUpdate("title")}
+              {...registerUpdate('title')}
               className="mt-1 p-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             />
             {updateFormState.errors.title && (
               <p className="mt-1 text-sm text-red-600">{updateFormState.errors.title.message}</p>
             )}
           </div>
-          
+
           <div>
             <label className="block text-sm font-medium text-gray-700">Description</label>
             <textarea
-              {...registerUpdate("description")}
+              {...registerUpdate('description')}
               rows={3}
               className="mt-1 p-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
             />
@@ -108,7 +106,7 @@ export default function TodoItemComponent({ todo }: TodoItemProps) {
               <p className="mt-1 text-sm text-red-600">{updateFormState.errors.description.message}</p>
             )}
           </div>
-          
+
           <div className="flex justify-end space-x-2">
             <button
               type="button"
@@ -131,7 +129,9 @@ export default function TodoItemComponent({ todo }: TodoItemProps) {
   }
 
   return (
-    <div className={`border p-4 rounded-md shadow-sm mb-4 ${todo.status === TodoItemStatus.COMPLETED ? 'bg-gray-50' : 'bg-white'}`}>
+    <div
+      className={`border p-4 rounded-md shadow-sm mb-4 ${todo.status === TodoItemStatus.COMPLETED ? 'bg-gray-50' : 'bg-white'}`}
+    >
       <div className="flex items-start justify-between">
         <div className="flex items-center">
           <input
@@ -142,15 +142,17 @@ export default function TodoItemComponent({ todo }: TodoItemProps) {
             className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
           />
           <div className="ml-3">
-            <h3 className={`text-lg font-medium ${todo.status === TodoItemStatus.COMPLETED ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+            <h3
+              className={`text-lg font-medium ${todo.status === TodoItemStatus.COMPLETED ? 'line-through text-gray-500' : 'text-gray-900'}`}
+            >
               {todo.title}
             </h3>
-            <p className={`text-sm ${todo.status === TodoItemStatus.COMPLETED ? 'line-through text-gray-400' : 'text-gray-600'}`}>
+            <p
+              className={`text-sm ${todo.status === TodoItemStatus.COMPLETED ? 'line-through text-gray-400' : 'text-gray-600'}`}
+            >
               {todo.description}
             </p>
-            <p className="text-xs text-gray-400 mt-1">
-              Created: {new Date(todo.createdAt).toLocaleDateString()}
-            </p>
+            <p className="text-xs text-gray-400 mt-1">Created: {new Date(todo.createdAt).toLocaleDateString()}</p>
           </div>
         </div>
         <div className="flex space-x-2">

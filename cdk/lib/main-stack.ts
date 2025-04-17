@@ -10,6 +10,7 @@ import { HostedZone } from 'aws-cdk-lib/aws-route53';
 import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { Webapp } from './constructs/webapp';
 import { EdgeFunction } from './constructs/cf-lambda-furl-service/edge-function';
+import { EventBus } from './constructs/event-bus/';
 
 interface MainStackProps extends StackProps {
   readonly sharedCertificate: ICertificate;
@@ -45,6 +46,9 @@ export class MainStack extends Stack {
       sharedCertificate: props.sharedCertificate,
     });
 
+    const eventBus = new EventBus(this, 'EventBus', {});
+    eventBus.addUserPoolProvider(auth.userPool);
+
     const webapp = new Webapp(this, 'Webapp', {
       database,
       hostedZone,
@@ -52,6 +56,7 @@ export class MainStack extends Stack {
       signPayloadHandler: props.signPayloadHandler,
       accessLogBucket,
       auth,
+      eventBus,
       subDomain: 'web',
     });
     // const asyncJob = new AsyncJob(this, 'AsyncJob', { database: database.table });

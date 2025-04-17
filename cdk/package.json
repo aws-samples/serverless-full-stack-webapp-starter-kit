@@ -2,9 +2,6 @@
   "name": "@aws-samples/serverless-fullstack-webapp-starter-kit",
   "version": "0.1.0",
   "private": true,
-  "bin": {
-    "serverless-fullstack-webapp-starter-kit": "bin/serverless-fullstack-webapp-starter-kit.js"
-  },
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
@@ -22,6 +19,7 @@
     "typescript": "~4.8.0"
   },
   "dependencies": {
+    "@aws-appsync/utils": "^1.12.0",
     "@types/aws-lambda": "^8.10.149",
     "aws-cdk-lib": "^2.189.1",
     "cdk-nag": "^2.14.29",
