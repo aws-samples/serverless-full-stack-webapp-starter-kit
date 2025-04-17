@@ -1,4 +1,4 @@
-import { util } from '@aws-appsync/utils'
+import { util } from '@aws-appsync/utils';
 
 export function onSubscribe(ctx) {
   if (ctx.info.channel.path.startsWith(`/event-bus/public`)) {
