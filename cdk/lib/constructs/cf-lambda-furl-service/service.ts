@@ -168,6 +168,5 @@ export class CloudFrontLambdaFunctionUrlService extends Construct {
     });
 
     this.url = `https://${domainName}`;
-    new CfnOutput(this, 'CloudFrontUrl', { value: this.url });
   }
 }
