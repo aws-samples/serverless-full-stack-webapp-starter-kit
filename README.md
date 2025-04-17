@@ -24,7 +24,7 @@ Here is the architecture of this kit. We use:
 * [Amazon CloudWatch](https://aws.amazon.com/cloudwatch/) + S3 for access logging.
 * [AWS CDK](https://aws.amazon.com/cdk/) for Infrastructure as Code. It enables you to deploy the entire application with the simplest commands.
 
-![architecture](imgs/architecture.svg)
+![architecture](imgs/architecture.png)
 
 Since it fully leverages AWS serverless services, you can use it with high cost efficiency, scalability, and almost no heavy lifting of managing servers! In terms of cost, we further discuss how much it costs in the below [#Cost](#cost) section.
 
