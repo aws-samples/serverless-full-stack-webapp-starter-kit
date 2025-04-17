@@ -9,7 +9,7 @@ import { TodoItemStatus } from '@prisma/client';
 export const createTodo = authActionClient.schema(createTodoSchema).action(async ({ parsedInput, ctx }) => {
   const { title, description } = parsedInput;
   const { userId } = ctx;
-  
+
   const todo = await prisma.todoItem.create({
     data: {
       title,
@@ -26,7 +26,7 @@ export const createTodo = authActionClient.schema(createTodoSchema).action(async
 export const updateTodo = authActionClient.schema(updateTodoSchema).action(async ({ parsedInput, ctx }) => {
   const { id, title, description, status } = parsedInput;
   const { userId } = ctx;
-  
+
   const todo = await prisma.todoItem.update({
     where: {
       id,
@@ -46,7 +46,7 @@ export const updateTodo = authActionClient.schema(updateTodoSchema).action(async
 export const deleteTodo = authActionClient.schema(deleteTodoSchema).action(async ({ parsedInput, ctx }) => {
   const { id } = parsedInput;
   const { userId } = ctx;
-  
+
   await prisma.todoItem.delete({
     where: {
       id,
@@ -61,7 +61,7 @@ export const deleteTodo = authActionClient.schema(deleteTodoSchema).action(async
 export const updateTodoStatus = authActionClient.schema(updateTodoStatusSchema).action(async ({ parsedInput, ctx }) => {
   const { id, status } = parsedInput;
   const { userId } = ctx;
-  
+
   const todo = await prisma.todoItem.update({
     where: {
       id,

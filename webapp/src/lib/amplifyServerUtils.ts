@@ -1,4 +1,4 @@
-import { createServerRunner } from "@aws-amplify/adapter-nextjs"
+import { createServerRunner } from '@aws-amplify/adapter-nextjs';
 
 export const { runWithAmplifyServerContext, createAuthRouteHandlers } = createServerRunner({
   config: {
@@ -10,9 +10,9 @@ export const { runWithAmplifyServerContext, createAuthRouteHandlers } = createSe
           oauth: {
             redirectSignIn: [`${process.env.AMPLIFY_APP_ORIGIN!}/api/auth/sign-in-callback`],
             redirectSignOut: [`${process.env.AMPLIFY_APP_ORIGIN!}/api/auth/sign-out-callback`],
-            responseType: "code",
+            responseType: 'code',
             domain: process.env.COGNITO_DOMAIN!,
-            scopes: ["profile", "openid", "aws.cognito.signin.user.admin"],
+            scopes: ['profile', 'openid', 'aws.cognito.signin.user.admin'],
           },
         },
       },
@@ -21,8 +21,8 @@ export const { runWithAmplifyServerContext, createAuthRouteHandlers } = createSe
   runtimeOptions: {
     cookies: {
       domain: process.env.HOST_DOMAIN!, // making cookies available to all subdomains
-      sameSite: "lax",
+      sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7, // 7 days
     },
   },
-})
+});

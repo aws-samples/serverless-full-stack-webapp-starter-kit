@@ -13,6 +13,8 @@ import { Auth } from './auth';
 import { ContainerImageBuild } from 'deploy-time-build';
 import { join } from 'path';
 import { Trigger } from 'aws-cdk-lib/triggers';
+import { EventBus } from './event-bus/';
+import { AsyncJob } from './async-job';
 
 export interface WebappProps {
   database: Database;
@@ -21,6 +23,8 @@ export interface WebappProps {
   signPayloadHandler: EdgeFunction;
   accessLogBucket: Bucket;
   auth: Auth;
+  eventBus: EventBus;
+  asyncJob: AsyncJob;
   /**
    * Use root domain
    */
@@ -33,14 +37,16 @@ export class Webapp extends Construct {
   constructor(scope: Construct, id: string, props: WebappProps) {
     super(scope, id);
 
-    const { database, hostedZone, auth, subDomain } = props;
+    const { database, hostedZone, auth, subDomain, eventBus, asyncJob } = props;
 
     // Use ContainerImageBuild to inject deploy-time values in the build environment
     const image = new ContainerImageBuild(this, 'Build', {
       directory: join('..', 'webapp'),
       platform: Platform.LINUX_ARM64,
       ignoreMode: IgnoreMode.DOCKER,
-      exclude: readFileSync(join('..', 'webapp', '.dockerignore')).toString().split('\n'),
+      exclude: readFileSync(join('..', 'webapp', '.dockerignore'))
+        .toString()
+        .split('\n'),
       tagPrefix: 'webapp-starter-',
       buildArgs: {
         HOST_DOMAIN: `${subDomain}.${hostedZone.zoneName}`,
@@ -49,6 +55,7 @@ export class Webapp extends Construct {
         COGNITO_DOMAIN: auth.domainName,
         USER_POOL_ID: auth.userPool.userPoolId,
         USER_POOL_CLIENT_ID: auth.client.userPoolClientId,
+        NEXT_PUBLIC_EVENT_HTTP_ENDPOINT: eventBus.httpEndpoint,
       },
     });
 
@@ -62,12 +69,14 @@ export class Webapp extends Construct {
         COGNITO_DOMAIN: auth.domainName,
         USER_POOL_ID: auth.userPool.userPoolId,
         USER_POOL_CLIENT_ID: auth.client.userPoolClientId,
+        ASYNC_JOB_HANDLER_ARN: asyncJob.handler.functionArn,
       },
       vpc: database.cluster.vpc,
       memorySize: 512,
       architecture: Architecture.ARM_64,
     });
     handler.connections.allowToDefaultPort(database);
+    asyncJob.handler.grantInvoke(handler);
 
     const service = new CloudFrontLambdaFunctionUrlService(this, 'Resource', {
       subDomain,
@@ -93,7 +102,7 @@ export class Webapp extends Construct {
       code: DockerImageCode.fromImageAsset(join('..', 'webapp'), {
         platform: Platform.LINUX_ARM64,
         cmd: ['migration-runner.handler'],
-        file: 'jobs.Dockerfile',
+        file: 'job.Dockerfile',
       }),
       architecture: Architecture.ARM_64,
       timeout: Duration.minutes(5),
@@ -106,11 +115,11 @@ export class Webapp extends Construct {
     migrationRunner.connections.allowToDefaultPort(database);
 
     // run database migration during CDK deployment
-    const trigger = new Trigger(this, 'MigrationTrigger', {
-      handler: migrationRunner,
-    });
-    // make sure migration is executed after the database cluster is available.
-    trigger.node.addDependency(database.cluster);
+    // const trigger = new Trigger(this, 'MigrationTrigger', {
+    //   handler: migrationRunner,
+    // });
+    // // make sure migration is executed after the database cluster is available.
+    // trigger.node.addDependency(database.cluster);
 
     new CfnOutput(Stack.of(this), 'MigrationFunctionName', { value: migrationRunner.functionName });
     new CfnOutput(Stack.of(this), 'MigrationCommand', {

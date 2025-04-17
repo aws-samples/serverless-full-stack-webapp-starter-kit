@@ -12,6 +12,8 @@ ARG AMPLIFY_APP_ORIGIN=""
 ARG COGNITO_DOMAIN=""
 ARG USER_POOL_CLIENT_ID=""
 ARG USER_POOL_ID=""
+ARG NEXT_PUBLIC_EVENT_HTTP_ENDPOINT=""
+ARG NEXT_PUBLIC_AWS_REGION=""
 RUN --mount=type=cache,target=/build/.next/cache npm run build
 
 FROM public.ecr.aws/lambda/nodejs:22 AS runner
