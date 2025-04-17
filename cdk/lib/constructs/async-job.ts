@@ -1,45 +1,44 @@
 import { Construct } from 'constructs';
-import { Duration } from 'aws-cdk-lib';
-import { ITable } from 'aws-cdk-lib/aws-dynamodb';
-import { DockerImageCode, DockerImageFunction } from 'aws-cdk-lib/aws-lambda';
-import { Queue, QueueEncryption } from 'aws-cdk-lib/aws-sqs';
-import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
+import { CfnOutput, Duration } from 'aws-cdk-lib';
+import { Architecture, DockerImageCode, DockerImageFunction, IFunction } from 'aws-cdk-lib/aws-lambda';
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
+import { Database } from './database';
+import { EventBus } from './event-bus';
 
 export interface AsyncJobProps {
-  readonly database: ITable;
+  readonly database: Database;
+  readonly eventBus: EventBus;
 }
 
 export class AsyncJob extends Construct {
-  readonly queue: Queue;
+  readonly handler: IFunction;
+
   constructor(scope: Construct, id: string, props: AsyncJobProps) {
     super(scope, id);
-    const { database } = props;
-
-    const visibilityTimeout = Duration.minutes(10);
-
-    const queue = new Queue(this, 'Queue', {
-      visibilityTimeout,
-      encryption: QueueEncryption.KMS_MANAGED,
-    });
+    const { database, eventBus } = props;
 
     const handler = new DockerImageFunction(this, 'Handler', {
-      code: DockerImageCode.fromImageAsset('../backend', {
-        cmd: ['handler-job.handler'],
-        platform: Platform.LINUX_AMD64,
+      code: DockerImageCode.fromImageAsset('../webapp', {
+        cmd: ['async-job-runner.handler'],
+        platform: Platform.LINUX_ARM64,
+        file: 'job.Dockerfile',
       }),
       memorySize: 256,
-      timeout: visibilityTimeout,
+      timeout: Duration.minutes(10),
+      architecture: Architecture.ARM_64,
       environment: {
-        TABLE_NAME: database.tableName,
+        ...database.getLambdaEnvironment('main'),
+        EVENT_HTTP_ENDPOINT: eventBus.httpEndpoint,
       },
-      // limit concurrency to mitigate any possible EDoS attacks 
+      vpc: database.cluster.vpc,
+      // limit concurrency to mitigate any possible EDoS attacks
       reservedConcurrentExecutions: 1,
     });
 
-    database.grantReadWriteData(handler);
-    handler.addEventSource(new SqsEventSource(queue, { maxBatchingWindow: Duration.seconds(5) }));
+    handler.connections.allowToDefaultPort(database);
+    eventBus.api.grantPublish(handler);
 
-    this.queue = queue;
+    new CfnOutput(this, 'HandlerArn', { value: handler.functionArn });
+    this.handler = handler;
   }
 }

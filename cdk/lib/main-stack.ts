@@ -49,6 +49,8 @@ export class MainStack extends Stack {
     const eventBus = new EventBus(this, 'EventBus', {});
     eventBus.addUserPoolProvider(auth.userPool);
 
+    const asyncJob = new AsyncJob(this, 'AsyncJob', { database: database, eventBus });
+
     const webapp = new Webapp(this, 'Webapp', {
       database,
       hostedZone,
@@ -57,10 +59,9 @@ export class MainStack extends Stack {
       accessLogBucket,
       auth,
       eventBus,
+      asyncJob,
       subDomain: 'web',
     });
-    // const asyncJob = new AsyncJob(this, 'AsyncJob', { database: database.table });
-    // const cronJobs = new CronJobs(this, 'CronJobs', { database: database.table, jobQueue: asyncJob.queue });
 
     new CfnOutput(this, 'FrontendDomainName', {
       value: webapp.baseUrl,
