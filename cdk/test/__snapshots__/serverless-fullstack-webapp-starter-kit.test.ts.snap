@@ -265,6 +265,14 @@ Object {
     },
   },
   "Outputs": Object {
+    "AsyncJobHandlerArnCA46B385": Object {
+      "Value": Object {
+        "Fn::GetAtt": Array [
+          "AsyncJobHandler438266BD",
+          "Arn",
+        ],
+      },
+    },
     "AuthUserPoolClientId8216BF9A": Object {
       "Value": Object {
         "Ref": "AuthUserPoolClientC635291F",
@@ -380,6 +388,22 @@ Object {
         ],
       },
     },
+    "EventBusHttpEndpoint1C68A807": Object {
+      "Value": Object {
+        "Fn::Join": Array [
+          "",
+          Array [
+            "https://",
+            Object {
+              "Fn::GetAtt": Array [
+                "EventBusApi6E8C7C94",
+                "Dns.Http",
+              ],
+            },
+          ],
+        ],
+      },
+    },
     "FrontendDomainName": Object {
       "Value": "https://web.example.com",
     },
@@ -401,9 +425,6 @@ Object {
       "Value": Object {
         "Ref": "WebappMigrationRunnerAC67C012",
       },
-    },
-    "WebappCloudFrontUrl0A14F88B": Object {
-      "Value": "https://web.example.com",
     },
   },
   "Parameters": Object {
@@ -465,82 +486,6 @@ Object {
                 ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
               ],
             ],
-          },
-        ],
-      },
-      "Type": "AWS::IAM::Role",
-    },
-    "AWSCDKTriggerCustomResourceProviderCustomResourceProviderHandler97BECD91": Object {
-      "DependsOn": Array [
-        "AWSCDKTriggerCustomResourceProviderCustomResourceProviderRoleE18FAF0A",
-      ],
-      "Properties": Object {
-        "Code": Object {
-          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-west-2",
-          "S3Key": "REDACTED",
-        },
-        "Handler": "__entrypoint__.handler",
-        "MemorySize": 128,
-        "Role": Object {
-          "Fn::GetAtt": Array [
-            "AWSCDKTriggerCustomResourceProviderCustomResourceProviderRoleE18FAF0A",
-            "Arn",
-          ],
-        },
-        "Runtime": "nodejs20.x",
-        "Timeout": 900,
-      },
-      "Type": "AWS::Lambda::Function",
-    },
-    "AWSCDKTriggerCustomResourceProviderCustomResourceProviderRoleE18FAF0A": Object {
-      "Properties": Object {
-        "AssumeRolePolicyDocument": Object {
-          "Statement": Array [
-            Object {
-              "Action": "sts:AssumeRole",
-              "Effect": "Allow",
-              "Principal": Object {
-                "Service": "lambda.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-        "ManagedPolicyArns": Array [
-          Object {
-            "Fn::Sub": "arn:\${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
-          },
-        ],
-        "Policies": Array [
-          Object {
-            "PolicyDocument": Object {
-              "Statement": Array [
-                Object {
-                  "Action": Array [
-                    "lambda:InvokeFunction",
-                  ],
-                  "Effect": "Allow",
-                  "Resource": Array [
-                    Object {
-                      "Fn::Join": Array [
-                        "",
-                        Array [
-                          Object {
-                            "Fn::GetAtt": Array [
-                              "WebappMigrationRunnerAC67C012",
-                              "Arn",
-                            ],
-                          },
-                          ":*",
-                        ],
-                      ],
-                    },
-                  ],
-                },
-              ],
-              "Version": "2012-10-17",
-            },
-            "PolicyName": "Inline",
           },
         ],
       },
@@ -685,6 +630,289 @@ Object {
         },
       },
       "Type": "AWS::S3::BucketPolicy",
+    },
+    "AsyncJobHandler438266BD": Object {
+      "DependsOn": Array [
+        "AsyncJobHandlerServiceRoleDefaultPolicy0B2DEDB5",
+        "AsyncJobHandlerServiceRoleFE9F530F",
+        "VpcPrivateSubnet1DefaultRouteBE02A9ED",
+        "VpcPrivateSubnet1RouteTableAssociation70C59FA6",
+        "VpcPrivateSubnet2DefaultRoute060D2087",
+        "VpcPrivateSubnet2RouteTableAssociationA89CAD56",
+        "VpcPrivateSubnet3DefaultRoute94B74F0D",
+        "VpcPrivateSubnet3RouteTableAssociation16BDDC43",
+      ],
+      "Properties": Object {
+        "Architectures": Array [
+          "arm64",
+        ],
+        "Code": Object {
+          "ImageUri": Object {
+            "Fn::Sub": "REDACTED",
+          },
+        },
+        "Environment": Object {
+          "Variables": Object {
+            "DATABASE_ENGINE": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "{{resolve:secretsmanager:",
+                  Object {
+                    "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                  },
+                  ":SecretString:engine::}}",
+                ],
+              ],
+            },
+            "DATABASE_HOST": Object {
+              "Fn::GetAtt": Array [
+                "DatabaseCluster5B53A178",
+                "Endpoint.Address",
+              ],
+            },
+            "DATABASE_NAME": "main",
+            "DATABASE_OPTION": "?pool_timeout=20&connect_timeout=20",
+            "DATABASE_PASSWORD": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "{{resolve:secretsmanager:",
+                  Object {
+                    "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                  },
+                  ":SecretString:password::}}",
+                ],
+              ],
+            },
+            "DATABASE_PORT": Object {
+              "Fn::GetAtt": Array [
+                "DatabaseCluster5B53A178",
+                "Endpoint.Port",
+              ],
+            },
+            "DATABASE_URL": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "{{resolve:secretsmanager:",
+                  Object {
+                    "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                  },
+                  ":SecretString:engine::}}://{{resolve:secretsmanager:",
+                  Object {
+                    "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                  },
+                  ":SecretString:username::}}:{{resolve:secretsmanager:",
+                  Object {
+                    "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                  },
+                  ":SecretString:password::}}@",
+                  Object {
+                    "Fn::GetAtt": Array [
+                      "DatabaseCluster5B53A178",
+                      "Endpoint.Address",
+                    ],
+                  },
+                  ":",
+                  Object {
+                    "Fn::GetAtt": Array [
+                      "DatabaseCluster5B53A178",
+                      "Endpoint.Port",
+                    ],
+                  },
+                  "/main?pool_timeout=20&connect_timeout=20",
+                ],
+              ],
+            },
+            "DATABASE_USER": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "{{resolve:secretsmanager:",
+                  Object {
+                    "Ref": "DatabaseClusterSecretAttachmentDC8466C0",
+                  },
+                  ":SecretString:username::}}",
+                ],
+              ],
+            },
+            "EVENT_HTTP_ENDPOINT": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  "https://",
+                  Object {
+                    "Fn::GetAtt": Array [
+                      "EventBusApi6E8C7C94",
+                      "Dns.Http",
+                    ],
+                  },
+                ],
+              ],
+            },
+          },
+        },
+        "ImageConfig": Object {
+          "Command": Array [
+            "async-job-runner.handler",
+          ],
+        },
+        "MemorySize": 256,
+        "PackageType": "Image",
+        "ReservedConcurrentExecutions": 1,
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "AsyncJobHandlerServiceRoleFE9F530F",
+            "Arn",
+          ],
+        },
+        "Timeout": 600,
+        "VpcConfig": Object {
+          "SecurityGroupIds": Array [
+            Object {
+              "Fn::GetAtt": Array [
+                "AsyncJobHandlerSecurityGroupF59812E6",
+                "GroupId",
+              ],
+            },
+          ],
+          "SubnetIds": Array [
+            Object {
+              "Ref": "VpcPrivateSubnet1Subnet536B997A",
+            },
+            Object {
+              "Ref": "VpcPrivateSubnet2Subnet3788AAA1",
+            },
+            Object {
+              "Ref": "VpcPrivateSubnet3SubnetF258B56E",
+            },
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "AsyncJobHandlerSecurityGroupF59812E6": Object {
+      "DependsOn": Array [
+        "VpcPrivateSubnet1DefaultRouteBE02A9ED",
+        "VpcPrivateSubnet1RouteTableAssociation70C59FA6",
+        "VpcPrivateSubnet2DefaultRoute060D2087",
+        "VpcPrivateSubnet2RouteTableAssociationA89CAD56",
+        "VpcPrivateSubnet3DefaultRoute94B74F0D",
+        "VpcPrivateSubnet3RouteTableAssociation16BDDC43",
+      ],
+      "Properties": Object {
+        "GroupDescription": "Automatic security group for Lambda Function ServerlessWebappStarterKitStackAsyncJobHandlerF20B94EA",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
+    "AsyncJobHandlerServiceRoleDefaultPolicy0B2DEDB5": Object {
+      "DependsOn": Array [
+        "VpcPrivateSubnet1DefaultRouteBE02A9ED",
+        "VpcPrivateSubnet1RouteTableAssociation70C59FA6",
+        "VpcPrivateSubnet2DefaultRoute060D2087",
+        "VpcPrivateSubnet2RouteTableAssociationA89CAD56",
+        "VpcPrivateSubnet3DefaultRoute94B74F0D",
+        "VpcPrivateSubnet3RouteTableAssociation16BDDC43",
+      ],
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "appsync:EventPublish",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":appsync:us-west-2:123456789012:apis/",
+                    Object {
+                      "Fn::GetAtt": Array [
+                        "EventBusApi6E8C7C94",
+                        "ApiId",
+                      ],
+                    },
+                    "/channelNamespace/*",
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "AsyncJobHandlerServiceRoleDefaultPolicy0B2DEDB5",
+        "Roles": Array [
+          Object {
+            "Ref": "AsyncJobHandlerServiceRoleFE9F530F",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "AsyncJobHandlerServiceRoleFE9F530F": Object {
+      "DependsOn": Array [
+        "VpcPrivateSubnet1DefaultRouteBE02A9ED",
+        "VpcPrivateSubnet1RouteTableAssociation70C59FA6",
+        "VpcPrivateSubnet2DefaultRoute060D2087",
+        "VpcPrivateSubnet2RouteTableAssociationA89CAD56",
+        "VpcPrivateSubnet3DefaultRoute94B74F0D",
+        "VpcPrivateSubnet3RouteTableAssociation16BDDC43",
+      ],
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
     },
     "AuthBranding34BB87FD": Object {
       "Properties": Object {
@@ -1415,6 +1643,37 @@ Object {
       },
       "Type": "AWS::EC2::SecurityGroup",
     },
+    "DatabaseClusterSecurityGroupfromServerlessWebappStarterKitStackAsyncJobHandlerSecurityGroup5220DFB3IndirectPort9323962E": Object {
+      "Properties": Object {
+        "Description": "from ServerlessWebappStarterKitStackAsyncJobHandlerSecurityGroup5220DFB3:{IndirectPort}",
+        "FromPort": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseCluster5B53A178",
+            "Endpoint.Port",
+          ],
+        },
+        "GroupId": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseClusterSecurityGroupFEF1426A",
+            "GroupId",
+          ],
+        },
+        "IpProtocol": "tcp",
+        "SourceSecurityGroupId": Object {
+          "Fn::GetAtt": Array [
+            "AsyncJobHandlerSecurityGroupF59812E6",
+            "GroupId",
+          ],
+        },
+        "ToPort": Object {
+          "Fn::GetAtt": Array [
+            "DatabaseCluster5B53A178",
+            "Endpoint.Port",
+          ],
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroupIngress",
+    },
     "DatabaseClusterSecurityGroupfromServerlessWebappStarterKitStackDatabaseBastionHostInstanceSecurityGroup4F0DD25BIndirectPort8AFD9922": Object {
       "Properties": Object {
         "Description": "from ServerlessWebappStarterKitStackDatabaseBastionHostInstanceSecurityGroup4F0DD25B:{IndirectPort}",
@@ -1638,6 +1897,62 @@ Object {
         ],
       },
       "Type": "AWS::IAM::Policy",
+    },
+    "EventBusApi6E8C7C94": Object {
+      "Properties": Object {
+        "EventConfig": Object {
+          "AuthProviders": Array [
+            Object {
+              "AuthType": "AWS_IAM",
+            },
+            Object {
+              "AuthType": "AMAZON_COGNITO_USER_POOLS",
+              "CognitoConfig": Object {
+                "AwsRegion": "us-west-2",
+                "UserPoolId": Object {
+                  "Ref": "AuthUserPool8115E87F",
+                },
+              },
+            },
+          ],
+          "ConnectionAuthModes": Array [
+            Object {
+              "AuthType": "AWS_IAM",
+            },
+            Object {
+              "AuthType": "AMAZON_COGNITO_USER_POOLS",
+            },
+          ],
+          "DefaultPublishAuthModes": Array [
+            Object {
+              "AuthType": "AWS_IAM",
+            },
+          ],
+          "DefaultSubscribeAuthModes": Array [
+            Object {
+              "AuthType": "AWS_IAM",
+            },
+            Object {
+              "AuthType": "AMAZON_COGNITO_USER_POOLS",
+            },
+          ],
+        },
+        "Name": "ServerlessWackEventBus8815362F",
+      },
+      "Type": "AWS::AppSync::Api",
+    },
+    "EventBusNamespaceA69F015E": Object {
+      "Properties": Object {
+        "ApiId": Object {
+          "Fn::GetAtt": Array [
+            "EventBusApi6E8C7C94",
+            "ApiId",
+          ],
+        },
+        "CodeS3Location": "s3://cdk-hnb659fds-assets-123456789012-us-west-2/769e350dc3018f51251079aa9a57ccfac39c3d00bd86fc3d8c33c88216ce3178.mjs",
+        "Name": "event-bus",
+      },
+      "Type": "AWS::AppSync::ChannelNamespace",
     },
     "ExportsReader8B249524": Object {
       "DeletionPolicy": "Delete",
@@ -2339,6 +2654,13 @@ Object {
               Object {
                 "Ref": "AuthUserPoolClientC635291F",
               },
+              " --build-arg NEXT_PUBLIC_EVENT_HTTP_ENDPOINT=https://",
+              Object {
+                "Fn::GetAtt": Array [
+                  "EventBusApi6E8C7C94",
+                  "Dns.Http",
+                ],
+              },
               " --platform linux/arm64 --output type=image,name=",
               Object {
                 "Fn::Select": Array [
@@ -2475,6 +2797,7 @@ Object {
         "VpcPrivateSubnet2RouteTableAssociationA89CAD56",
         "VpcPrivateSubnet3DefaultRoute94B74F0D",
         "VpcPrivateSubnet3RouteTableAssociation16BDDC43",
+        "WebappHandlerServiceRoleDefaultPolicy7D06F4EA",
         "WebappHandlerServiceRole4F4D1ACD",
       ],
       "Properties": Object {
@@ -2541,6 +2864,12 @@ Object {
         "Environment": Object {
           "Variables": Object {
             "AMPLIFY_APP_ORIGIN": "https://web.example.com",
+            "ASYNC_JOB_HANDLER_ARN": Object {
+              "Fn::GetAtt": Array [
+                "AsyncJobHandler438266BD",
+                "Arn",
+              ],
+            },
             "COGNITO_DOMAIN": "auth.example.com",
             "DATABASE_ENGINE": Object {
               "Fn::Join": Array [
@@ -2796,6 +3125,56 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
+    "WebappHandlerServiceRoleDefaultPolicy7D06F4EA": Object {
+      "DependsOn": Array [
+        "VpcPrivateSubnet1DefaultRouteBE02A9ED",
+        "VpcPrivateSubnet1RouteTableAssociation70C59FA6",
+        "VpcPrivateSubnet2DefaultRoute060D2087",
+        "VpcPrivateSubnet2RouteTableAssociationA89CAD56",
+        "VpcPrivateSubnet3DefaultRoute94B74F0D",
+        "VpcPrivateSubnet3RouteTableAssociation16BDDC43",
+      ],
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "AsyncJobHandler438266BD",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "AsyncJobHandler438266BD",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "WebappHandlerServiceRoleDefaultPolicy7D06F4EA",
+        "Roles": Array [
+          Object {
+            "Ref": "WebappHandlerServiceRole4F4D1ACD",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
     "WebappLambdaOac9F7226EC": Object {
       "Properties": Object {
         "OriginAccessControlConfig": Object {
@@ -2952,22 +3331,6 @@ Object {
       },
       "Type": "AWS::Lambda::Function",
     },
-    "WebappMigrationRunnerCurrentVersionREDACTED": Object {
-      "DependsOn": Array [
-        "VpcPrivateSubnet1DefaultRouteBE02A9ED",
-        "VpcPrivateSubnet1RouteTableAssociation70C59FA6",
-        "VpcPrivateSubnet2DefaultRoute060D2087",
-        "VpcPrivateSubnet2RouteTableAssociationA89CAD56",
-        "VpcPrivateSubnet3DefaultRoute94B74F0D",
-        "VpcPrivateSubnet3RouteTableAssociation16BDDC43",
-      ],
-      "Properties": Object {
-        "FunctionName": Object {
-          "Ref": "WebappMigrationRunnerAC67C012",
-        },
-      },
-      "Type": "AWS::Lambda::Version",
-    },
     "WebappMigrationRunnerSecurityGroup7F0DF264": Object {
       "DependsOn": Array [
         "VpcPrivateSubnet1DefaultRouteBE02A9ED",
@@ -3042,36 +3405,6 @@ Object {
         ],
       },
       "Type": "AWS::IAM::Role",
-    },
-    "WebappMigrationTrigger42AFC1D9": Object {
-      "DeletionPolicy": "Delete",
-      "DependsOn": Array [
-        "DatabaseCluster5B53A178",
-        "DatabaseClusterSecretAttachmentDC8466C0",
-        "DatabaseClusterSecretD1FB634F",
-        "DatabaseClusterSecurityGroupfromServerlessWebappStarterKitStackDatabaseBastionHostInstanceSecurityGroup4F0DD25BIndirectPort8AFD9922",
-        "DatabaseClusterSecurityGroupfromServerlessWebappStarterKitStackWebappHandlerSecurityGroupA009CF4AIndirectPort7311063E",
-        "DatabaseClusterSecurityGroupfromServerlessWebappStarterKitStackWebappMigrationRunnerSecurityGroupC0959349IndirectPortDCF4A356",
-        "DatabaseClusterSecurityGroupFEF1426A",
-        "DatabaseClusterSubnets5540150D",
-        "DatabaseClusterWriterD43085C6",
-      ],
-      "Properties": Object {
-        "ExecuteOnHandlerChange": true,
-        "HandlerArn": Object {
-          "Ref": "WebappMigrationRunnerCurrentVersionREDACTED",
-        },
-        "InvocationType": "RequestResponse",
-        "ServiceToken": Object {
-          "Fn::GetAtt": Array [
-            "AWSCDKTriggerCustomResourceProviderCustomResourceProviderHandler97BECD91",
-            "Arn",
-          ],
-        },
-        "Timeout": "120000",
-      },
-      "Type": "Custom::Trigger",
-      "UpdateReplacePolicy": "Delete",
     },
     "WebappRecord02DDD651": Object {
       "Properties": Object {
