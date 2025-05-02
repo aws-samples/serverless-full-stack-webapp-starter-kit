@@ -55,5 +55,5 @@ export const useEventBus = ({ channelName, onReceived }: UseEventBusProps) => {
         channel.close();
       });
     };
-  }, []);
+  }, [channelName, onReceived]);
 };

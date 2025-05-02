@@ -1,10 +1,17 @@
 'use server';
 
 import { authActionClient } from '@/lib/safe-action';
-import { createTodoSchema, deleteTodoSchema, updateTodoSchema, updateTodoStatusSchema } from './schemas/todo';
+import {
+  createTodoSchema,
+  deleteTodoSchema,
+  runTranslateJobSchema,
+  updateTodoSchema,
+  updateTodoStatusSchema,
+} from './schemas/todo';
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { TodoItemStatus } from '@prisma/client';
+import { runJob } from '@/lib/jobs';
 
 export const createTodo = authActionClient.schema(createTodoSchema).action(async ({ parsedInput, ctx }) => {
   const { title, description } = parsedInput;
@@ -74,4 +81,14 @@ export const updateTodoStatus = authActionClient.schema(updateTodoStatusSchema).
 
   revalidatePath('/');
   return { todo };
+});
+
+export const runTranslateJob = authActionClient.schema(runTranslateJobSchema).action(async ({ parsedInput, ctx }) => {
+  const { id } = parsedInput;
+  const { userId } = ctx;
+  await runJob({
+    type: 'translate',
+    todoItemId: id,
+    userId: userId,
+  });
 });
