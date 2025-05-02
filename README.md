@@ -33,12 +33,12 @@ To show how this kit works, we include a sample web app to manage your todo list
 With this sample, you can easily understand how each component works with other ones, and what the overall experience will be like.
 
 <img align="right" width="300" src="./imgs/signin.png">
-Here is a sign in/up page. Note that you can still get data from public API endpoints since it requires no authentication.
+Here is a sign in/up page. This will redirect you to Cognito Managed login page.
 <br clear="right"/>
 
-<img align="left" width="300" src="./imgs/signedin.png">
-After a successful login, you can now freely add, delete, and view your own memos.
-To demonstrate an asynchronous job feature, we also placed a button to run a asynchronous job. Currently, it does not have any actual effect, but when you push a button it sends a request to enqueue the job and a job will be invoked.
+<img align="left" width="300" src="./imgs/top.png">
+After a successful login, you can now freely add, delete, and view your todo items.
+To demonstrate an asynchronous job feature, we also placed a button to run a asynchronous translation job. After the invocation, the task sends an event to the event bus and your frontend automatically refreshes to fetch the translated items.
 
 <br clear="left"/>
 

@@ -26,8 +26,6 @@ export default async function Home() {
 
       <main className="flex-grow">
         <div className="max-w-4xl mx-auto px-4 py-8">
-          <h1 className="text-3xl font-bold mb-8 text-center">My Todo List</h1>
-
           <CreateTodoForm userId={userId} />
 
           <div className="mb-8">
