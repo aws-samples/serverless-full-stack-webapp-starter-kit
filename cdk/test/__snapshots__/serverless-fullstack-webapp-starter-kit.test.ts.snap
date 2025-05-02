@@ -851,6 +851,14 @@ Object {
                 ],
               },
             },
+            Object {
+              "Action": Array [
+                "translate:TranslateText",
+                "comprehend:DetectDominantLanguage",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
           ],
           "Version": "2012-10-17",
         },
@@ -1836,7 +1844,7 @@ Object {
             "Arn",
           ],
         },
-        "Runtime": "nodejs18.x",
+        "Runtime": "nodejs20.x",
         "Timeout": 300,
       },
       "Type": "AWS::Lambda::Function",
