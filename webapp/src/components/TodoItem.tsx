@@ -4,7 +4,7 @@ import { TodoItem, TodoItemStatus } from '@prisma/client';
 import { useState } from 'react';
 import { useHookFormAction } from '@next-safe-action/adapter-react-hook-form/hooks';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { updateTodo, deleteTodo, updateTodoStatus } from '@/actions/todo';
+import { updateTodo, deleteTodo, updateTodoStatus, runTranslateJob } from '@/actions/todo';
 import { updateTodoSchema } from '@/actions/schemas/todo';
 import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
@@ -15,6 +15,14 @@ interface TodoItemProps {
 
 export default function TodoItemComponent({ todo }: TodoItemProps) {
   const [isEditing, setIsEditing] = useState(false);
+  const { execute, status: translateStatus } = useAction(runTranslateJob, {
+    onSuccess: () => {
+      toast.success('Translation job started successfully');
+    },
+    onError: (error) => {
+      toast.error(typeof error === 'string' ? error : 'Failed to start translation job');
+    },
+  });
 
   // Update Todo Form Action with React Hook Form
   const {
@@ -158,17 +166,24 @@ export default function TodoItemComponent({ todo }: TodoItemProps) {
         <div className="flex space-x-2">
           <button
             onClick={() => setIsEditing(true)}
-            disabled={deleteStatus === 'executing' || statusStatus === 'executing'}
+            disabled={deleteStatus === 'executing' || statusStatus === 'executing' || translateStatus === 'executing'}
             className="text-indigo-600 hover:text-indigo-900 disabled:opacity-50"
           >
             Edit
           </button>
           <button
             onClick={handleDelete}
-            disabled={deleteStatus === 'executing' || statusStatus === 'executing'}
+            disabled={deleteStatus === 'executing' || statusStatus === 'executing' || translateStatus === 'executing'}
             className="text-red-600 hover:text-red-900 disabled:opacity-50"
           >
             {deleteStatus === 'executing' ? 'Deleting...' : 'Delete'}
+          </button>
+          <button
+            onClick={() => execute({ id: todo.id })}
+            disabled={deleteStatus === 'executing' || statusStatus === 'executing' || translateStatus === 'executing'}
+            className="text-green-600 hover:text-green-900 disabled:opacity-50"
+          >
+            {translateStatus === 'executing' ? 'Translating...' : 'Translate'}
           </button>
         </div>
       </div>

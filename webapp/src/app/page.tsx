@@ -1,17 +1,16 @@
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
-import { redirect } from 'next/navigation';
 import TodoItemComponent from '@/components/TodoItem';
 import CreateTodoForm from '@/components/CreateTodoForm';
 import { TodoItemStatus } from '@prisma/client';
 import Header from '@/components/Header';
 
 export default async function Home() {
-  const session = await getSession();
+  const { userId } = await getSession();
 
   const todos = await prisma.todoItem.findMany({
     where: {
-      userId: session.user.id,
+      userId,
     },
     orderBy: {
       createdAt: 'desc',
@@ -27,9 +26,7 @@ export default async function Home() {
 
       <main className="flex-grow">
         <div className="max-w-4xl mx-auto px-4 py-8">
-          <h1 className="text-3xl font-bold mb-8 text-center">My Todo List</h1>
-
-          <CreateTodoForm />
+          <CreateTodoForm userId={userId} />
 
           <div className="mb-8">
             <h2 className="text-xl font-semibold mb-4">Pending Tasks ({pendingTodos.length})</h2>

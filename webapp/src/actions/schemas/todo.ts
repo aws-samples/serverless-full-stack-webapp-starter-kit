@@ -21,3 +21,7 @@ export const updateTodoStatusSchema = z.object({
   id: z.string().uuid(),
   status: z.nativeEnum(TodoItemStatus),
 });
+
+export const runTranslateJobSchema = z.object({
+  id: z.string().uuid(),
+});

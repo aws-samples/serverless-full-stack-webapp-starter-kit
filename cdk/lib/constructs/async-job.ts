@@ -4,6 +4,8 @@ import { Architecture, DockerImageCode, DockerImageFunction, IFunction } from 'a
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import { Database } from './database';
 import { EventBus } from './event-bus';
+import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
+import { join } from 'path';
 
 export interface AsyncJobProps {
   readonly database: Database;
@@ -18,7 +20,7 @@ export class AsyncJob extends Construct {
     const { database, eventBus } = props;
 
     const handler = new DockerImageFunction(this, 'Handler', {
-      code: DockerImageCode.fromImageAsset('../webapp', {
+      code: DockerImageCode.fromImageAsset(join('..', 'webapp'), {
         cmd: ['async-job-runner.handler'],
         platform: Platform.LINUX_ARM64,
         file: 'job.Dockerfile',
@@ -37,6 +39,13 @@ export class AsyncJob extends Construct {
 
     handler.connections.allowToDefaultPort(database);
     eventBus.api.grantPublish(handler);
+
+    handler.addToRolePolicy(
+      new PolicyStatement({
+        actions: ['translate:TranslateText', 'comprehend:DetectDominantLanguage'],
+        resources: ['*'],
+      }),
+    );
 
     new CfnOutput(this, 'HandlerArn', { value: handler.functionArn });
     this.handler = handler;
