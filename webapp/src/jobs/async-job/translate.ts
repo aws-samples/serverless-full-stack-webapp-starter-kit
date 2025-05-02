@@ -21,22 +21,21 @@ export const translateJobHandler = async (params: z.infer<typeof translateJobSch
     region: process.env.AWS_REGION || 'ap-northeast-1',
   });
 
-  // Translate the title from English to Japanese
-  const translateParams: TranslateTextCommandInput = {
-    Text: todoItem.title,
-    SourceLanguageCode: 'auto',
-    TargetLanguageCode: 'ja',
-  };
-
-  const translateCommand = new TranslateTextCommand(translateParams);
-  const translateResult = await translateClient.send(translateCommand);
+  const targetLanguage = 'ja';
+  const translateResult = await translateClient.send(
+    new TranslateTextCommand({
+      Text: todoItem.title,
+      SourceLanguageCode: 'auto',
+      TargetLanguageCode: targetLanguage,
+    }),
+  );
 
   if (translateResult.TranslatedText) {
     // Create a new todo item with the translated title
     const translatedTodoItem = await prisma.todoItem.create({
       data: {
         title: translateResult.TranslatedText,
-        description: `Translated from: ${todoItem.title} (detected language: ${translateResult.SourceLanguageCode})`,
+        description: `Translated from: ${todoItem.title} (from ${translateResult.SourceLanguageCode} to ${targetLanguage})`,
         userId: params.userId,
         status: todoItem.status,
       },
@@ -45,5 +44,5 @@ export const translateJobHandler = async (params: z.infer<typeof translateJobSch
     console.log(`Created translated todo item: ${translatedTodoItem.id}`);
   }
 
-  await sendEvent(`${params.userId}/jobs`, { type: 'completed' });
+  await sendEvent(`user/${params.userId}/jobs`, { type: 'completed' });
 };

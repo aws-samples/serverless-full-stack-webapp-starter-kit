@@ -7,14 +7,17 @@ import { createTodo } from '@/actions/todo';
 import { createTodoSchema } from '@/actions/schemas/todo';
 import { toast } from 'sonner';
 import { useEventBus } from '@/hooks/use-event-bus';
+import { useRouter } from 'next/navigation';
 
-export default function CreateTodoForm() {
+export default function CreateTodoForm(props: { userId: string }) {
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const router = useRouter();
 
   useEventBus({
-    channelName: 'test',
+    channelName: `user/${props.userId}/jobs`,
     onReceived: (data) => {
       console.log('received', data);
+      router.refresh();
     },
   });
 
