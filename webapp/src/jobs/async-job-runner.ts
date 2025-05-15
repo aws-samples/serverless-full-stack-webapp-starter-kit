@@ -7,7 +7,7 @@ const jobPayloadPropsSchema = z.discriminatedUnion('type', [
   z.object({
     type: z.literal('example'),
   }),
-])
+]);
 
 export type JobPayloadProps = z.infer<typeof jobPayloadPropsSchema>;
 
