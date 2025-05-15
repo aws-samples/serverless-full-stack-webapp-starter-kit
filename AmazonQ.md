@@ -107,7 +107,7 @@ cd cdk && npm run cdk diff
 1. Create a branch for a new feature or bug fix
 2. Implement changes and test locally
 3. Run format and lint checks
-4. Create a PR and ensure CI passes
+4. Create a PR with title and description in English and ensure CI passes
 5. Request review when the PR is ready
 
 ## Best Practices
