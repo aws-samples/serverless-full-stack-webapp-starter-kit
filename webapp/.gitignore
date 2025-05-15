@@ -44,3 +44,4 @@ dist
 
 !prisma/.env
 !.env.local.example
+src/lib/generated

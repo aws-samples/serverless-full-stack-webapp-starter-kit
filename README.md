@@ -9,6 +9,7 @@ Features include:
 * CloudFront + Lambda function URL with response stream support
 * End to end type safety from client to server
 * Cognito authentication
+* Real-time notification from server to client
 * Asynchronous job queue
 * Instant deployment of the entire app with a single command
 
@@ -19,7 +20,7 @@ Here is the architecture of this kit. We use:
 * [Next.js App Router](https://nextjs.org/docs/app) on [AWS Lambda](https://aws.amazon.com/lambda/) for a unified frontend and backend solution
 * [Amazon CloudFront](https://aws.amazon.com/cloudfront/) + Lambda Function URL with response streaming support for efficient content delivery
 * [Amazon Cognito](https://aws.amazon.com/cognito/) for authentication. By default, you can sign in/up by email, but you can federate with other OIDC providers such as Google, Facebook, and more with a little modification.
-* [AWS AppSync Events](https://docs.aws.amazon.com/appsync/latest/eventapi/event-api-welcome.html) + AWS Lambda for asynchronous job and realtime notification.
+* [AWS AppSync Events](https://docs.aws.amazon.com/appsync/latest/eventapi/event-api-welcome.html) + AWS Lambda for asynchronous job and real-time notification.
 * [Amazon EventBridge](https://aws.amazon.com/eventbridge/) to run scheduled jobs.
 * [Amazon CloudWatch](https://aws.amazon.com/cloudwatch/) + S3 for access logging.
 * [AWS CDK](https://aws.amazon.com/cdk/) for Infrastructure as Code. It enables you to deploy the entire application with the simplest commands.
@@ -50,7 +51,7 @@ You need the following tools to deploy this sample:
 * [Node.js](https://nodejs.org/en/download/) (>= v20)
 * [Docker](https://docs.docker.com/get-docker/)
 * [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) and a configured IAM profile
-* A public domain name configured as a Hosted Zone in Amazon Route53
+* A public domain name configured as a Hosted Zone in Amazon Route53 (If you do not like this requirement, please [upvote the issue #47](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/issues/47).)
 
 Before deployment, you need to update the domain name in [`bin/cdk.ts`](cdk/bin/cdk.ts) to use your own domain that is configured as a Hosted Zone in Route53:
 

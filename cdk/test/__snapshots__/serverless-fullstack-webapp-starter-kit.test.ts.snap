@@ -922,6 +922,36 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
+    "AsyncJobSampleJob3C1EBA2C": Object {
+      "Properties": Object {
+        "FlexibleTimeWindow": Object {
+          "Mode": "OFF",
+        },
+        "ScheduleExpression": "cron(0 0 1 * ? *)",
+        "ScheduleExpressionTimezone": "Etc/UTC",
+        "State": "ENABLED",
+        "Target": Object {
+          "Arn": Object {
+            "Fn::GetAtt": Array [
+              "AsyncJobHandler438266BD",
+              "Arn",
+            ],
+          },
+          "Input": "{"jobType":"SampleJob"}",
+          "RetryPolicy": Object {
+            "MaximumEventAgeInSeconds": 86400,
+            "MaximumRetryAttempts": 5,
+          },
+          "RoleArn": Object {
+            "Fn::GetAtt": Array [
+              "SchedulerRoleForTarget44ece2CFC6840F",
+              "Arn",
+            ],
+          },
+        },
+      },
+      "Type": "AWS::Scheduler::Schedule",
+    },
     "AuthBranding34BB87FD": Object {
       "Properties": Object {
         "ClientId": Object {
@@ -2063,6 +2093,82 @@ Object {
         "Roles": Array [
           Object {
             "Ref": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
+    },
+    "SchedulerRoleForTarget44ece2CFC6840F": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Condition": Object {
+                "StringEquals": Object {
+                  "aws:SourceAccount": "123456789012",
+                  "aws:SourceArn": Object {
+                    "Fn::Join": Array [
+                      "",
+                      Array [
+                        "arn:",
+                        Object {
+                          "Ref": "AWS::Partition",
+                        },
+                        ":scheduler:us-west-2:123456789012:schedule-group/default",
+                      ],
+                    ],
+                  },
+                },
+              },
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "scheduler.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "SchedulerRoleForTarget44ece2DefaultPolicyFDF3E159": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "lambda:InvokeFunction",
+              "Effect": "Allow",
+              "Resource": Array [
+                Object {
+                  "Fn::GetAtt": Array [
+                    "AsyncJobHandler438266BD",
+                    "Arn",
+                  ],
+                },
+                Object {
+                  "Fn::Join": Array [
+                    "",
+                    Array [
+                      Object {
+                        "Fn::GetAtt": Array [
+                          "AsyncJobHandler438266BD",
+                          "Arn",
+                        ],
+                      },
+                      ":*",
+                    ],
+                  ],
+                },
+              ],
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "SchedulerRoleForTarget44ece2DefaultPolicyFDF3E159",
+        "Roles": Array [
+          Object {
+            "Ref": "SchedulerRoleForTarget44ece2CFC6840F",
           },
         ],
       },

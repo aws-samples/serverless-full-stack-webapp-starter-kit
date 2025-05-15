@@ -3,7 +3,6 @@ import { BlockPublicAccess, Bucket, BucketEncryption, ObjectOwnership } from 'aw
 import { Construct } from 'constructs';
 import { AsyncJob } from './constructs/async-job';
 import { Auth } from './constructs/auth';
-import { CronJobs } from './constructs/cron-jobs';
 import { Database } from './constructs/database';
 import { Vpc } from 'aws-cdk-lib/aws-ec2';
 import { HostedZone } from 'aws-cdk-lib/aws-route53';

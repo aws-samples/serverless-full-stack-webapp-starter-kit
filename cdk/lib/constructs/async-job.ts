@@ -1,11 +1,13 @@
 import { Construct } from 'constructs';
-import { CfnOutput, Duration } from 'aws-cdk-lib';
+import { CfnOutput, Duration, TimeZone } from 'aws-cdk-lib';
 import { Architecture, DockerImageCode, DockerImageFunction, IFunction } from 'aws-cdk-lib/aws-lambda';
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import { Database } from './database';
 import { EventBus } from './event-bus';
 import { PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { join } from 'path';
+import { Schedule, ScheduleExpression, ScheduleTargetInput } from 'aws-cdk-lib/aws-scheduler';
+import { LambdaInvoke } from 'aws-cdk-lib/aws-scheduler-targets';
 
 export interface AsyncJobProps {
   readonly database: Database;
@@ -49,5 +51,21 @@ export class AsyncJob extends Construct {
 
     new CfnOutput(this, 'HandlerArn', { value: handler.functionArn });
     this.handler = handler;
+
+    // you can add scheduled jobs here.
+    this.addSchedule(
+      'SampleJob',
+      ScheduleExpression.cron({ minute: '0', hour: '0', day: '1', timeZone: TimeZone.ETC_UTC }),
+    );
+  }
+
+  public addSchedule(jobType: string, schedule: ScheduleExpression, payload?: any) {
+    return new Schedule(this, jobType, {
+      schedule,
+      target: new LambdaInvoke(this.handler, {
+        input: ScheduleTargetInput.fromObject({ jobType, payload }),
+        retryAttempts: 5,
+      }),
+    });
   }
 }

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { TodoItemStatus } from '@prisma/client';
+import TodoItemStatusSchema from '@/lib/generated/prisma/zod/inputTypeSchemas/TodoItemStatusSchema';
 
 export const createTodoSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -10,7 +10,7 @@ export const updateTodoSchema = z.object({
   id: z.string().uuid(),
   title: z.string().min(1, 'Title is required'),
   description: z.string().min(1, 'Description is required'),
-  status: z.nativeEnum(TodoItemStatus),
+  status: TodoItemStatusSchema,
 });
 
 export const deleteTodoSchema = z.object({
@@ -19,7 +19,7 @@ export const deleteTodoSchema = z.object({
 
 export const updateTodoStatusSchema = z.object({
   id: z.string().uuid(),
-  status: z.nativeEnum(TodoItemStatus),
+  status: TodoItemStatusSchema,
 });
 
 export const runTranslateJobSchema = z.object({
