@@ -4,8 +4,8 @@ import { TodoItem, TodoItemStatus } from '@prisma/client';
 import { useState } from 'react';
 import { useHookFormAction } from '@next-safe-action/adapter-react-hook-form/hooks';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { updateTodo, deleteTodo, updateTodoStatus, runTranslateJob } from '@/actions/todo';
-import { updateTodoSchema } from '@/actions/schemas/todo';
+import { updateTodo, deleteTodo, updateTodoStatus, runTranslateJob } from '../actions';
+import { updateTodoSchema } from '../schemas';
 import { useAction } from 'next-safe-action/hooks';
 import { toast } from 'sonner';
 

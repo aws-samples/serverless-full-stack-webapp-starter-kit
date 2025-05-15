@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useHookFormAction } from '@next-safe-action/adapter-react-hook-form/hooks';
-import { createTodo } from '@/actions/todo';
-import { createTodoSchema } from '@/actions/schemas/todo';
+import { createTodo } from '../actions';
+import { createTodoSchema } from '../schemas';
 import { toast } from 'sonner';
 import { useEventBus } from '@/hooks/use-event-bus';
 import { useRouter } from 'next/navigation';

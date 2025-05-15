@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
-import TodoItemComponent from '@/components/TodoItem';
-import CreateTodoForm from '@/components/CreateTodoForm';
+import TodoItemComponent from './components/TodoItem';
+import CreateTodoForm from './components/CreateTodoForm';
 import { TodoItemStatus } from '@prisma/client';
 import Header from '@/components/Header';
 

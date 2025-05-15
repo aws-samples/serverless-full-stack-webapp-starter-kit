@@ -7,7 +7,7 @@ import {
   runTranslateJobSchema,
   updateTodoSchema,
   updateTodoStatusSchema,
-} from './schemas/todo';
+} from './schemas';
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 import { TodoItemStatus } from '@prisma/client';
