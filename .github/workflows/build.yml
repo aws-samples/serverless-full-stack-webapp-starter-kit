@@ -1,8 +1,8 @@
 name: Build
-on: 
+on:
   push:
     branches:
-    - main
+      - main
   workflow_dispatch:
   pull_request:
 jobs:
@@ -13,12 +13,17 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: "22.x"
+          node-version: '22.x'
       - run: |
           npm ci
+          npm run format:check
+        working-directory: ./cdk
+        name: Install dependencies and run static analysis
+      - run: |
           npm run build
           npm run test
         working-directory: ./cdk
+        name: build and test
   Build-and-Test-Webapp:
     runs-on: ubuntu-latest
     steps:
@@ -26,9 +31,14 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: "22.x"
+          node-version: '22.x'
       - run: |
           npm ci
+          npm run format:check
+        working-directory: ./webapp
+        name: Install dependencies and run static analysis
+      - run: |
           cp .env.local.example .env.local
           npm run build
         working-directory: ./webapp
+        name: build
