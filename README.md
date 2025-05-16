@@ -85,7 +85,7 @@ ServerlessWebappStarterKitStack.AuthUserPoolClientId8216BF9A = xxxxxxxxxxxxxxxxx
 ServerlessWebappStarterKitStack.AuthUserPoolIdC0605E59 = us-west-2_xxxxxx
 ServerlessWebappStarterKitStack.DatabaseDatabaseSecretsCommandF4A622EB = aws secretsmanager get-secret-value --secret-id DatabaseClusterSecretD1FB63-xxxxxxx --region us-west-2
 ServerlessWebappStarterKitStack.DatabasePortForwardCommandC3718B89 = aws ssm start-session --region us-west-2 --target i-xxxxxxxxxx --document-name AWS-StartPortForwardingSessionToRemoteHost --parameters '{"portNumber":["5432"], "localPortNumber":["5432"], "host": ["foo.cluster-bar.us-west-2.rds.amazonaws.com"]}'
-ServerlessWebappStarterKitStack.FrontendDomainName = https://web.mtomooka.people.aws.dev
+ServerlessWebappStarterKitStack.FrontendDomainName = https://web.exmaple.com
 ```
 
 Opening the URL in `FrontendDomainName` output, you can now try the sample app on your browser.
