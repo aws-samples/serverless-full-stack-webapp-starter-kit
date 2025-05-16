@@ -106,12 +106,27 @@ cp .env.local.example .env.local
 ```
 
 ## Cost
-Lambda, SQS, CloudWatch, CloudFront, and S3 offer free tier plans, which allows you to use those services almost freely for small businesses.
-Up to one million requests per month, most of the costs related to those services are free. See [this page for more details](https://aws.amazon.com/free/).
 
-Aurora PostgreSQL Serverless v2 is billed based on compute and storage usage. The database automatically scales up and down based on workload, and you only pay for the resources you use. See [this page for the current prices](https://aws.amazon.com/rds/aurora/pricing/). Aurora Serverless v2 can scale down to almost zero during periods of inactivity, helping to minimize costs (see [database.ts](cdk/lib/constructs/database.ts) for configuration details).
+The following table provides a sample cost breakdown for deploying this system in the us-east-1 (N. Virginia) region for one month (when deployed using less expensive configuration).
 
-Other costs will be derived from data transfer and Elastic Container Repository (used for Docker Lambda). Although it usually does not cost much compared to other services, you may want to continuously monitor the billing metrics. Please refer to [the document to set CloudWatch alarm for AWS charges](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/monitor_estimated_charges_with_cloudwatch.html).
+| Service | Usage Details | Monthly Cost [USD] |
+|---------|--------------|-------------------|
+| Aurora Serverless v2 | 0.5 ACU × 2 hour/day, 1GB storage | 3.6 |
+| Cognito | 100 MAU (Monthly Active Users) | 1.5 |
+| AppSync Events | 100 events/month, 10 hours connection/user | 0.02 |
+| Lambda | 1000 requests/month, 512MB×200ms/request | 0.15 |
+| Lambda@Edge | 100 requests/month, 128MB×50ms/request | 0.09 |
+| VPC | NAT Instance (t4g.nano) x1 | 3.02 |
+| EventBridge | Scheduler 100 jobs/month | 0.0001 |
+| CloudFront | Data transfer 1kB/request | 0.01 |
+| Total | | 8.49 |
+
+Notes:
+- Assumes 100 users per month and 1000 requests per user
+- Aurora usage assumed at 1 hour per day
+- Actual costs may vary depending on usage patterns
+
+Costs could be further reduced by leveraging Free Tier benefits where applicable. Lambda, SQS, CloudWatch, CloudFront, EC2, and Cognito offer free tier plans, which allows you to use those services almost freely for small businesses. See [this page for more details](https://aws.amazon.com/free/).
 
 ## Clean up
 To avoid incurring future charges, clean up the resources you created.

@@ -2200,11 +2200,40 @@ Object {
       },
       "Type": "AWS::EC2::InternetGateway",
     },
+    "VpcNatSecurityGroup8DA26EDC": Object {
+      "Properties": Object {
+        "GroupDescription": "Security Group for NAT instances",
+        "SecurityGroupEgress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "Allow all outbound traffic by default",
+            "IpProtocol": "-1",
+          },
+        ],
+        "SecurityGroupIngress": Array [
+          Object {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "from 0.0.0.0/0:ALL TRAFFIC",
+            "IpProtocol": "-1",
+          },
+        ],
+        "Tags": Array [
+          Object {
+            "Key": "Name",
+            "Value": "ServerlessWebappStarterKitStack/Vpc",
+          },
+        ],
+        "VpcId": Object {
+          "Ref": "Vpc8378EB38",
+        },
+      },
+      "Type": "AWS::EC2::SecurityGroup",
+    },
     "VpcPrivateSubnet1DefaultRouteBE02A9ED": Object {
       "Properties": Object {
         "DestinationCidrBlock": "0.0.0.0/0",
-        "NatGatewayId": Object {
-          "Ref": "VpcPublicSubnet1NATGateway4D7517AA",
+        "InstanceId": Object {
+          "Ref": "VpcPublicSubnet1NatInstance57B636B8",
         },
         "RouteTableId": Object {
           "Ref": "VpcPrivateSubnet1RouteTableB2C5B500",
@@ -2265,8 +2294,8 @@ Object {
     "VpcPrivateSubnet2DefaultRoute060D2087": Object {
       "Properties": Object {
         "DestinationCidrBlock": "0.0.0.0/0",
-        "NatGatewayId": Object {
-          "Ref": "VpcPublicSubnet1NATGateway4D7517AA",
+        "InstanceId": Object {
+          "Ref": "VpcPublicSubnet1NatInstance57B636B8",
         },
         "RouteTableId": Object {
           "Ref": "VpcPrivateSubnet2RouteTableA678073B",
@@ -2327,8 +2356,8 @@ Object {
     "VpcPrivateSubnet3DefaultRoute94B74F0D": Object {
       "Properties": Object {
         "DestinationCidrBlock": "0.0.0.0/0",
-        "NatGatewayId": Object {
-          "Ref": "VpcPublicSubnet1NATGateway4D7517AA",
+        "InstanceId": Object {
+          "Ref": "VpcPublicSubnet1NatInstance57B636B8",
         },
         "RouteTableId": Object {
           "Ref": "VpcPrivateSubnet3RouteTableD98824C7",
@@ -2401,41 +2430,91 @@ Object {
       },
       "Type": "AWS::EC2::Route",
     },
-    "VpcPublicSubnet1EIPD7E02669": Object {
-      "Properties": Object {
-        "Domain": "vpc",
-        "Tags": Array [
-          Object {
-            "Key": "Name",
-            "Value": "ServerlessWebappStarterKitStack/Vpc/PublicSubnet1",
-          },
-        ],
-      },
-      "Type": "AWS::EC2::EIP",
-    },
-    "VpcPublicSubnet1NATGateway4D7517AA": Object {
+    "VpcPublicSubnet1NatInstance57B636B8": Object {
       "DependsOn": Array [
         "VpcPublicSubnet1DefaultRoute3DA9E72A",
+        "VpcPublicSubnet1NatInstanceInstanceRole9D835E32",
         "VpcPublicSubnet1RouteTableAssociation97140677",
       ],
       "Properties": Object {
-        "AllocationId": Object {
-          "Fn::GetAtt": Array [
-            "VpcPublicSubnet1EIPD7E02669",
-            "AllocationId",
-          ],
+        "AvailabilityZone": "dummy1a",
+        "IamInstanceProfile": Object {
+          "Ref": "VpcPublicSubnet1NatInstanceInstanceProfileEE10C485",
         },
-        "SubnetId": Object {
-          "Ref": "VpcPublicSubnet1Subnet5C2D37C4",
+        "ImageId": Object {
+          "Ref": "SsmParameterValueawsserviceamiamazonlinuxlatestal2023amikernel61arm64C96584B6F00A464EAD1953AFF4B05118Parameter",
+        },
+        "InstanceType": "t4g.nano",
+        "NetworkInterfaces": Array [
+          Object {
+            "AssociatePublicIpAddress": true,
+            "DeviceIndex": "0",
+            "GroupSet": Array [
+              Object {
+                "Fn::GetAtt": Array [
+                  "VpcNatSecurityGroup8DA26EDC",
+                  "GroupId",
+                ],
+              },
+            ],
+            "SubnetId": Object {
+              "Ref": "VpcPublicSubnet1Subnet5C2D37C4",
+            },
+          },
+        ],
+        "SourceDestCheck": false,
+        "Tags": Array [
+          Object {
+            "Key": "Name",
+            "Value": "ServerlessWebappStarterKitStack/Vpc/PublicSubnet1/NatInstance",
+          },
+        ],
+        "UserData": Object {
+          "Fn::Base64": "#!/bin/bash
+yum install iptables-services -y
+systemctl enable iptables
+systemctl start iptables
+echo "net.ipv4.ip_forward=1" > /etc/sysctl.d/custom-ip-forwarding.conf
+sudo sysctl -p /etc/sysctl.d/custom-ip-forwarding.conf
+sudo /sbin/iptables -t nat -A POSTROUTING -o $(route | awk '/^default/{print $NF}') -j MASQUERADE
+sudo /sbin/iptables -F FORWARD
+sudo service iptables save",
+        },
+      },
+      "Type": "AWS::EC2::Instance",
+    },
+    "VpcPublicSubnet1NatInstanceInstanceProfileEE10C485": Object {
+      "Properties": Object {
+        "Roles": Array [
+          Object {
+            "Ref": "VpcPublicSubnet1NatInstanceInstanceRole9D835E32",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::InstanceProfile",
+    },
+    "VpcPublicSubnet1NatInstanceInstanceRole9D835E32": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "ec2.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
         },
         "Tags": Array [
           Object {
             "Key": "Name",
-            "Value": "ServerlessWebappStarterKitStack/Vpc/PublicSubnet1",
+            "Value": "ServerlessWebappStarterKitStack/Vpc/PublicSubnet1/NatInstance",
           },
         ],
       },
-      "Type": "AWS::EC2::NatGateway",
+      "Type": "AWS::IAM::Role",
     },
     "VpcPublicSubnet1RouteTable6C95E38E": Object {
       "Properties": Object {

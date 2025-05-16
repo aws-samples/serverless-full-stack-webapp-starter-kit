@@ -9,11 +9,13 @@ const app = new cdk.App();
 interface EnvironmentProps {
   account: string;
   domainName: string;
+  useNatInstance?: boolean;
 }
 
 const props: EnvironmentProps = {
   account: process.env.CDK_DEFAULT_ACCOUNT!,
-  domainName: 'mtomooka.people.aws.dev',
+  domainName: 'FIXME.example.com',
+  useNatInstance: true,
 };
 
 const virginia = new UsEast1Stack(app, 'ServerlessWebappStarterKitUsEast1Stack', {

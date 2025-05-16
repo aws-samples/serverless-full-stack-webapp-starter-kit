@@ -4,7 +4,7 @@ import { Construct } from 'constructs';
 import { AsyncJob } from './constructs/async-job';
 import { Auth } from './constructs/auth';
 import { Database } from './constructs/database';
-import { Vpc } from 'aws-cdk-lib/aws-ec2';
+import { InstanceClass, InstanceSize, InstanceType, NatProvider, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { HostedZone } from 'aws-cdk-lib/aws-route53';
 import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { Webapp } from './constructs/webapp';
@@ -15,11 +15,18 @@ interface MainStackProps extends StackProps {
   readonly sharedCertificate: ICertificate;
   readonly signPayloadHandler: EdgeFunction;
   readonly domainName: string;
+
+  /**
+   * @default true
+   */
+  readonly useNatInstance?: boolean;
 }
 
 export class MainStack extends Stack {
   constructor(scope: Construct, id: string, props: MainStackProps) {
     super(scope, id, { description: 'Serverless fullstack webapp stack (uksb-1tupboc47)', ...props });
+
+    const { useNatInstance = true } = props;
 
     const hostedZone = HostedZone.fromLookup(this, 'HostedZone', {
       domainName: props.domainName,
@@ -35,7 +42,15 @@ export class MainStack extends Stack {
     });
 
     const vpc = new Vpc(this, `Vpc`, {
-      natGateways: 1,
+      ...(useNatInstance
+        ? {
+            natGatewayProvider: NatProvider.instanceV2({
+              instanceType: InstanceType.of(InstanceClass.T4G, InstanceSize.NANO),
+              associatePublicIpAddress: true,
+            }),
+            natGateways: 1,
+          }
+        : {}),
     });
 
     const database = new Database(this, 'Database', { vpc });
