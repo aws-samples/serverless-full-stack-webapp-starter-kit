@@ -123,7 +123,6 @@ The following table provides a sample cost breakdown for deploying this system i
 
 Notes:
 - Assumes 100 users per month and 1000 requests per user
-- Aurora usage assumed at 1 hour per day
 - Actual costs may vary depending on usage patterns
 
 Costs could be further reduced by leveraging Free Tier benefits where applicable. Lambda, SQS, CloudWatch, CloudFront, EC2, and Cognito offer free tier plans, which allows you to use those services almost freely for small businesses. See [this page for more details](https://aws.amazon.com/free/).
