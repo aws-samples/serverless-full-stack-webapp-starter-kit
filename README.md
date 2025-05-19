@@ -13,6 +13,8 @@ Features include:
 * Asynchronous job queue
 * Instant deployment of the entire app with a single command
 
+You can refer to [the blog article](https://tmokmss.github.io/blog/posts/serverless-fullstack-webapp-architecture-2025/) for more details (Also [Japanese version](https://tmokmss.hatenablog.com/entry/serverless-fullstack-webapp-architecture-2025).)
+
 ## Overview
 Here is the architecture of this kit. We use:
 
