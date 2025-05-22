@@ -1,6 +1,6 @@
 import { CfnOutput, CfnResource, Duration, RemovalPolicy } from 'aws-cdk-lib';
 import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
-import { CfnManagedLoginBranding, UserPool, UserPoolClient } from 'aws-cdk-lib/aws-cognito';
+import { CfnManagedLoginBranding, ManagedLoginVersion, UserPool, UserPoolClient } from 'aws-cdk-lib/aws-cognito';
 import { CnameRecord, IHostedZone } from 'aws-cdk-lib/aws-route53';
 import { Construct } from 'constructs';
 
@@ -60,6 +60,7 @@ export class Auth extends Construct {
         domainName: this.domainName,
         certificate: props.sharedCertificate,
       },
+      managedLoginVersion: ManagedLoginVersion.NEWER_MANAGED_LOGIN,
     });
 
     new CnameRecord(this, 'CognitoDomainRecord', {
@@ -67,8 +68,6 @@ export class Auth extends Construct {
       recordName: subDomain,
       domainName: domain.cloudFrontEndpoint,
     });
-
-    (domain.node.defaultChild as CfnResource).addPropertyOverride('ManagedLoginVersion', 2);
 
     new CfnManagedLoginBranding(this, 'Branding', {
       userPoolId: this.userPool.userPoolId,
