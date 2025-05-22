@@ -2,7 +2,7 @@ import { CfnOutput, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
 import { BlockPublicAccess, Bucket, BucketEncryption, ObjectOwnership } from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 import { AsyncJob } from './constructs/async-job';
-import { Auth } from './constructs/auth';
+import { Auth } from './constructs/auth/';
 import { Database } from './constructs/database';
 import { InstanceClass, InstanceSize, InstanceType, NatProvider, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { HostedZone } from 'aws-cdk-lib/aws-route53';
@@ -12,9 +12,10 @@ import { EdgeFunction } from './constructs/cf-lambda-furl-service/edge-function'
 import { EventBus } from './constructs/event-bus/';
 
 interface MainStackProps extends StackProps {
-  readonly sharedCertificate: ICertificate;
   readonly signPayloadHandler: EdgeFunction;
-  readonly domainName: string;
+  
+  readonly domainName?: string;
+  readonly sharedCertificate?: ICertificate;
 
   /**
    * @default true
@@ -28,9 +29,11 @@ export class MainStack extends Stack {
 
     const { useNatInstance = true } = props;
 
-    const hostedZone = HostedZone.fromLookup(this, 'HostedZone', {
-      domainName: props.domainName,
-    });
+    const hostedZone = props.domainName
+      ? HostedZone.fromLookup(this, 'HostedZone', {
+          domainName: props.domainName,
+        })
+      : undefined;
 
     const accessLogBucket = new Bucket(this, 'AccessLogBucket', {
       encryption: BucketEncryption.S3_MANAGED,

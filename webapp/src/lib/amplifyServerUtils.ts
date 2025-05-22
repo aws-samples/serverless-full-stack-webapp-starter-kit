@@ -1,4 +1,15 @@
 import { createServerRunner } from '@aws-amplify/adapter-nextjs';
+import { GetParameterCommand, SSMClient } from '@aws-sdk/client-ssm';
+
+if (process.env.AMPLIFY_APP_ORIGIN_SOURCE_PARAMETER) {
+  const ssm = new SSMClient({});
+  try {
+    const res = await ssm.send(new GetParameterCommand({ Name: process.env.AMPLIFY_APP_ORIGIN_SOURCE_PARAMETER }));
+    process.env.AMPLIFY_APP_ORIGIN = res.Parameter?.Value;
+  } catch (e) {
+    console.log(e);
+  }
+}
 
 export const { runWithAmplifyServerContext, createAuthRouteHandlers } = createServerRunner({
   config: {
@@ -20,7 +31,6 @@ export const { runWithAmplifyServerContext, createAuthRouteHandlers } = createSe
   },
   runtimeOptions: {
     cookies: {
-      domain: process.env.HOST_DOMAIN!, // making cookies available to all subdomains
       sameSite: 'lax',
       maxAge: 60 * 60 * 24 * 7, // 7 days
     },

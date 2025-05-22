@@ -8,13 +8,25 @@ const app = new cdk.App();
 
 interface EnvironmentProps {
   account: string;
-  domainName: string;
+
+  /**
+   * Custom domain name for the webapp and Cognito.
+   * You need to have a public Route53 hosted zone for the domain name in your AWS account.
+   * 
+   * @default No custom domain name.
+   */
+  domainName?: string;
+
+  /**
+   * Use a NAT instance instead of NAT Gateways.
+   * @default true
+   */
   useNatInstance?: boolean;
 }
 
 const props: EnvironmentProps = {
   account: process.env.CDK_DEFAULT_ACCOUNT!,
-  domainName: 'FIXME.example.com',
+  // domainName: 'FIXME.example.com',
   useNatInstance: true,
 };
 

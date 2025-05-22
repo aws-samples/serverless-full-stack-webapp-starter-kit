@@ -10,28 +10,6 @@ Object {
     },
   },
   "Resources": Object {
-    "CertificateV29EE77EAF": Object {
-      "Properties": Object {
-        "DomainName": "*.example.com",
-        "DomainValidationOptions": Array [
-          Object {
-            "DomainName": "example.com",
-            "HostedZoneId": "DUMMY",
-          },
-        ],
-        "SubjectAlternativeNames": Array [
-          "example.com",
-        ],
-        "Tags": Array [
-          Object {
-            "Key": "Name",
-            "Value": "ServerlessWebappStarterKitUsEast1Stack/CertificateV2",
-          },
-        ],
-        "ValidationMethod": "DNS",
-      },
-      "Type": "AWS::CertificateManager::Certificate",
-    },
     "CustomCrossRegionExportWriterCustomResourceProviderHandlerD8786E8A": Object {
       "DependsOn": Array [
         "CustomCrossRegionExportWriterCustomResourceProviderRoleC951B1E1",
@@ -120,9 +98,6 @@ Object {
         },
         "WriterProps": Object {
           "exports": Object {
-            "/cdk/exports/ServerlessWebappStarterKitStack/ServerlessWebappStarterKitUsEast1Stackuseast1RefCertificateV29EE77EAF5C85697F": Object {
-              "Ref": "CertificateV29EE77EAF",
-            },
             "/cdk/exports/ServerlessWebappStarterKitStack/ServerlessWebappStarterKitUsEast1Stackuseast1RefSignPayloadHandlerFunctionVersionF9FE430A3006B9FA": Object {
               "Ref": "SignPayloadHandlerFunctionVersionF9FE430A",
             },
@@ -132,18 +107,6 @@ Object {
       },
       "Type": "Custom::CrossRegionExportWriter",
       "UpdateReplacePolicy": "Delete",
-    },
-    "Record83264F3E": Object {
-      "Properties": Object {
-        "HostedZoneId": "DUMMY",
-        "Name": "example.com.",
-        "ResourceRecords": Array [
-          "8.8.8.8",
-        ],
-        "TTL": "1800",
-        "Type": "A",
-      },
-      "Type": "AWS::Route53::RecordSet",
     },
     "SignPayloadHandlerCFEAA14C": Object {
       "DependsOn": Array [
@@ -254,16 +217,6 @@ Object {
 exports[`Snapshot test 2`] = `
 Object {
   "Description": "Serverless fullstack webapp stack (uksb-1tupboc47)",
-  "Mappings": Object {
-    "AWSCloudFrontPartitionHostedZoneIdMap": Object {
-      "aws": Object {
-        "zoneId": "Z2FDTNDATAQYW2",
-      },
-      "aws-cn": Object {
-        "zoneId": "Z3RFFRIM2A3IF5",
-      },
-    },
-  },
   "Outputs": Object {
     "AsyncJobHandlerArnCA46B385": Object {
       "Value": Object {
@@ -405,7 +358,20 @@ Object {
       },
     },
     "FrontendDomainName": Object {
-      "Value": "https://web.example.com",
+      "Value": Object {
+        "Fn::Join": Array [
+          "",
+          Array [
+            "https://",
+            Object {
+              "Fn::GetAtt": Array [
+                "Webapp107041BD",
+                "DomainName",
+              ],
+            },
+          ],
+        ],
+      },
     },
     "MigrationCommand": Object {
       "Value": Object {
@@ -964,22 +930,132 @@ Object {
       },
       "Type": "AWS::Cognito::ManagedLoginBranding",
     },
-    "AuthCognitoDomainRecordBA8AA168": Object {
+    "AuthDomainPrefixE1742B23": Object {
+      "DeletionPolicy": "Delete",
       "Properties": Object {
-        "HostedZoneId": "DUMMY",
-        "Name": "auth.example.com.",
-        "ResourceRecords": Array [
-          Object {
-            "Fn::GetAtt": Array [
-              "AuthUserPoolCognitoDomainAD9D79E1",
-              "CloudFrontDistribution",
+        "ServiceTimeout": "10",
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "RandomStringGenerator11e9c903f11a4989833c985dddef5eb28C5103D0",
+            "Arn",
+          ],
+        },
+        "length": 10,
+        "prefix": "webapp-",
+      },
+      "Type": "Custom::RandomString",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "AuthUpdateCallbackUrlsA55622E9": Object {
+      "DeletionPolicy": "Delete",
+      "DependsOn": Array [
+        "AuthUpdateCallbackUrlsCustomResourcePolicy14EEB23D",
+      ],
+      "Properties": Object {
+        "Create": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "{"service":"@aws-sdk/client-cognito-identity-provider","action":"updateUserPoolClient","parameters":{"ClientId":"",
+              Object {
+                "Ref": "AuthUserPoolClientC635291F",
+              },
+              "","UserPoolId":"",
+              Object {
+                "Ref": "AuthUserPool8115E87F",
+              },
+              "","AllowedOAuthFlows":["code"],"AllowedOAuthFlowsUserPoolClient":true,"AllowedOAuthScopes":["profile","phone","email","openid","aws.cognito.signin.user.admin"],"ExplicitAuthFlows":["ALLOW_USER_PASSWORD_AUTH","ALLOW_USER_SRP_AUTH","ALLOW_REFRESH_TOKEN_AUTH"],"CallbackURLs":["https://",
+              Object {
+                "Fn::GetAtt": Array [
+                  "Webapp107041BD",
+                  "DomainName",
+                ],
+              },
+              "/api/auth/sign-in-callback","http://localhost:3010/api/auth/sign-in-callback"],"LogoutURLs":["https://",
+              Object {
+                "Fn::GetAtt": Array [
+                  "Webapp107041BD",
+                  "DomainName",
+                ],
+              },
+              "/api/auth/sign-out-callback","http://localhost:3010/api/auth/sign-out-callback"],"SupportedIdentityProviders":["COGNITO"],"TokenValidityUnits":{"IdToken":"minutes"},"IdTokenValidity":1440},"physicalResourceId":{"id":"",
+              Object {
+                "Ref": "AuthUserPool8115E87F",
+              },
+              ""}}",
             ],
+          ],
+        },
+        "InstallLatestAwsSdk": true,
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "AWS679f53fac002430cb0da5b7982bd22872D164C4C",
+            "Arn",
+          ],
+        },
+        "Update": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "{"service":"@aws-sdk/client-cognito-identity-provider","action":"updateUserPoolClient","parameters":{"ClientId":"",
+              Object {
+                "Ref": "AuthUserPoolClientC635291F",
+              },
+              "","UserPoolId":"",
+              Object {
+                "Ref": "AuthUserPool8115E87F",
+              },
+              "","AllowedOAuthFlows":["code"],"AllowedOAuthFlowsUserPoolClient":true,"AllowedOAuthScopes":["profile","phone","email","openid","aws.cognito.signin.user.admin"],"ExplicitAuthFlows":["ALLOW_USER_PASSWORD_AUTH","ALLOW_USER_SRP_AUTH","ALLOW_REFRESH_TOKEN_AUTH"],"CallbackURLs":["https://",
+              Object {
+                "Fn::GetAtt": Array [
+                  "Webapp107041BD",
+                  "DomainName",
+                ],
+              },
+              "/api/auth/sign-in-callback","http://localhost:3010/api/auth/sign-in-callback"],"LogoutURLs":["https://",
+              Object {
+                "Fn::GetAtt": Array [
+                  "Webapp107041BD",
+                  "DomainName",
+                ],
+              },
+              "/api/auth/sign-out-callback","http://localhost:3010/api/auth/sign-out-callback"],"SupportedIdentityProviders":["COGNITO"],"TokenValidityUnits":{"IdToken":"minutes"},"IdTokenValidity":1440},"physicalResourceId":{"id":"",
+              Object {
+                "Ref": "AuthUserPool8115E87F",
+              },
+              ""}}",
+            ],
+          ],
+        },
+      },
+      "Type": "Custom::AWS",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "AuthUpdateCallbackUrlsCustomResourcePolicy14EEB23D": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "cognito-idp:UpdateUserPoolClient",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::GetAtt": Array [
+                  "AuthUserPool8115E87F",
+                  "Arn",
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "AuthUpdateCallbackUrlsCustomResourcePolicy14EEB23D",
+        "Roles": Array [
+          Object {
+            "Ref": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
           },
         ],
-        "TTL": "1800",
-        "Type": "CNAME",
       },
-      "Type": "AWS::Route53::RecordSet",
+      "Type": "AWS::IAM::Policy",
     },
     "AuthUserPool8115E87F": Object {
       "DeletionPolicy": "Delete",
@@ -1040,8 +1116,7 @@ Object {
           "aws.cognito.signin.user.admin",
         ],
         "CallbackURLs": Array [
-          "http://localhost:3010/api/auth/sign-in-callback",
-          "https://web.example.com/api/auth/sign-in-callback",
+          "http://localhost/dummy",
         ],
         "ExplicitAuthFlows": Array [
           "ALLOW_USER_PASSWORD_AUTH",
@@ -1050,8 +1125,7 @@ Object {
         ],
         "IdTokenValidity": 1440,
         "LogoutURLs": Array [
-          "http://localhost:3010/api/auth/sign-out-callback",
-          "https://web.example.com/api/auth/sign-out-callback",
+          "http://localhost/dummy",
         ],
         "SupportedIdentityProviders": Array [
           "COGNITO",
@@ -1067,15 +1141,12 @@ Object {
     },
     "AuthUserPoolCognitoDomainAD9D79E1": Object {
       "Properties": Object {
-        "CustomDomainConfig": Object {
-          "CertificateArn": Object {
-            "Fn::GetAtt": Array [
-              "ExportsReader8B249524",
-              "/cdk/exports/ServerlessWebappStarterKitStack/ServerlessWebappStarterKitUsEast1Stackuseast1RefCertificateV29EE77EAF5C85697F",
-            ],
-          },
+        "Domain": Object {
+          "Fn::GetAtt": Array [
+            "AuthDomainPrefixE1742B23",
+            "generated",
+          ],
         },
-        "Domain": "auth.example.com",
         "ManagedLoginVersion": 2,
         "UserPoolId": Object {
           "Ref": "AuthUserPool8115E87F",
@@ -1998,7 +2069,6 @@ Object {
       "Properties": Object {
         "ReaderProps": Object {
           "imports": Object {
-            "/cdk/exports/ServerlessWebappStarterKitStack/ServerlessWebappStarterKitUsEast1Stackuseast1RefCertificateV29EE77EAF5C85697F": "{{resolve:ssm:/cdk/exports/ServerlessWebappStarterKitStack/ServerlessWebappStarterKitUsEast1Stackuseast1RefCertificateV29EE77EAF5C85697F}}",
             "/cdk/exports/ServerlessWebappStarterKitStack/ServerlessWebappStarterKitUsEast1Stackuseast1RefSignPayloadHandlerFunctionVersionF9FE430A3006B9FA": "{{resolve:ssm:/cdk/exports/ServerlessWebappStarterKitStack/ServerlessWebappStarterKitUsEast1Stackuseast1RefSignPayloadHandlerFunctionVersionF9FE430A3006B9FA}}",
           },
           "prefix": "ServerlessWebappStarterKitStack",
@@ -2098,6 +2168,91 @@ Object {
         ],
       },
       "Type": "AWS::IAM::Policy",
+    },
+    "RandomStringGenerator11e9c903f11a4989833c985dddef5eb28C5103D0": Object {
+      "DependsOn": Array [
+        "RandomStringGenerator11e9c903f11a4989833c985dddef5eb2ServiceRoleAB6B57A9",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "ZipFile": "const response = require('cfn-response');
+const crypto = require('crypto');
+
+exports.handler = async function (event, context) {
+  try {
+    console.log(event);
+    if (event.RequestType == 'Delete') {
+      return await response.send(event, context, response.SUCCESS);
+    }
+
+    const prefix = event.ResourceProperties.prefix ?? '';
+    const length = event.ResourceProperties.length ?? '8';
+    const generate = () => {
+      const random = crypto.randomBytes(parseInt(length)).toString('hex');
+      return \`\${prefix}\${random.slice(0, length)}\`;
+    };
+
+    if (event.RequestType == 'Create') {
+      const generated = generate();
+      return await response.send(event, context, response.SUCCESS, { generated }, generated);
+    }
+    if (event.RequestType == 'Update') {
+      const current = event.PhysicalResourceId;
+      if (current.startsWith(prefix)) {
+        return await response.send(event, context, response.SUCCESS, { generated: current }, current);
+      }
+      const generated = generate();
+      return await response.send(event, context, response.SUCCESS, { generated }, generated);
+    }
+  } catch (e) {
+    console.log(e);
+    await response.send(event, context, response.FAILED);
+  }
+};
+",
+        },
+        "Handler": "index.handler",
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "RandomStringGenerator11e9c903f11a4989833c985dddef5eb2ServiceRoleAB6B57A9",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 5,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "RandomStringGenerator11e9c903f11a4989833c985dddef5eb2ServiceRoleAB6B57A9": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Join": Array [
+              "",
+              Array [
+                "arn:",
+                Object {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
     },
     "SchedulerRoleForTarget44ece2CFC6840F": Object {
       "Properties": Object {
@@ -2711,9 +2866,6 @@ sudo service iptables save",
     "Webapp107041BD": Object {
       "Properties": Object {
         "DistributionConfig": Object {
-          "Aliases": Array [
-            "web.example.com",
-          ],
           "Comment": "CloudFront for Webapp",
           "DefaultCacheBehavior": Object {
             "AllowedMethods": Array [
@@ -2792,16 +2944,6 @@ sudo service iptables save",
               },
             },
           ],
-          "ViewerCertificate": Object {
-            "AcmCertificateArn": Object {
-              "Fn::GetAtt": Array [
-                "ExportsReader8B249524",
-                "/cdk/exports/ServerlessWebappStarterKitStack/ServerlessWebappStarterKitUsEast1Stackuseast1RefCertificateV29EE77EAF5C85697F",
-              ],
-            },
-            "MinimumProtocolVersion": "TLSv1.2_2021",
-            "SslSupportMethod": "sni-only",
-          },
         },
       },
       "Type": "AWS::CloudFront::Distribution",
@@ -2824,7 +2966,7 @@ sudo service iptables save",
           "Fn::Join": Array [
             "",
             Array [
-              "docker buildx build --build-arg ALLOWED_ORIGIN_HOST=*.example.com --build-arg SKIP_TS_BUILD=true --build-arg NEXT_PUBLIC_EVENT_HTTP_ENDPOINT=https://",
+              "docker buildx build --build-arg ALLOWED_ORIGIN_HOST=*.cloudfront.net --build-arg SKIP_TS_BUILD=true --build-arg NEXT_PUBLIC_EVENT_HTTP_ENDPOINT=https://",
               Object {
                 "Fn::GetAtt": Array [
                   "EventBusApi6E8C7C94",
@@ -3033,14 +3175,29 @@ sudo service iptables save",
         },
         "Environment": Object {
           "Variables": Object {
-            "AMPLIFY_APP_ORIGIN": "https://web.example.com",
+            "AMPLIFY_APP_ORIGIN_SOURCE_PARAMETER": Object {
+              "Ref": "WebappOriginSourceParameterD87E143B",
+            },
             "ASYNC_JOB_HANDLER_ARN": Object {
               "Fn::GetAtt": Array [
                 "AsyncJobHandler438266BD",
                 "Arn",
               ],
             },
-            "COGNITO_DOMAIN": "auth.example.com",
+            "COGNITO_DOMAIN": Object {
+              "Fn::Join": Array [
+                "",
+                Array [
+                  Object {
+                    "Fn::GetAtt": Array [
+                      "AuthDomainPrefixE1742B23",
+                      "generated",
+                    ],
+                  },
+                  ".auth.us-west-2.amazoncognito.com",
+                ],
+              ],
+            },
             "DATABASE_ENGINE": Object {
               "Fn::Join": Array [
                 "",
@@ -3299,6 +3456,30 @@ sudo service iptables save",
                   ],
                 },
               ],
+            },
+            Object {
+              "Action": Array [
+                "ssm:DescribeParameters",
+                "ssm:GetParameters",
+                "ssm:GetParameter",
+                "ssm:GetParameterHistory",
+              ],
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":ssm:us-west-2:123456789012:parameter/",
+                    Object {
+                      "Ref": "WebappOriginSourceParameterD87E143B",
+                    },
+                  ],
+                ],
+              },
             },
           ],
           "Version": "2012-10-17",
@@ -3575,30 +3756,12 @@ sudo service iptables save",
       },
       "Type": "AWS::Lambda::Permission",
     },
-    "WebappRecord02DDD651": Object {
+    "WebappOriginSourceParameterD87E143B": Object {
       "Properties": Object {
-        "AliasTarget": Object {
-          "DNSName": Object {
-            "Fn::GetAtt": Array [
-              "Webapp107041BD",
-              "DomainName",
-            ],
-          },
-          "HostedZoneId": Object {
-            "Fn::FindInMap": Array [
-              "AWSCloudFrontPartitionHostedZoneIdMap",
-              Object {
-                "Ref": "AWS::Partition",
-              },
-              "zoneId",
-            ],
-          },
-        },
-        "HostedZoneId": "DUMMY",
-        "Name": "web.example.com.",
-        "Type": "A",
+        "Type": "String",
+        "Value": "dummy",
       },
-      "Type": "AWS::Route53::RecordSet",
+      "Type": "AWS::SSM::Parameter",
     },
     "WebappSharedCachePolicy14FEE4A0": Object {
       "Properties": Object {
@@ -3630,6 +3793,104 @@ sudo service iptables save",
         },
       },
       "Type": "AWS::CloudFront::CachePolicy",
+    },
+    "WebappUpdateAmplifyOriginSourceParameter3F609A08": Object {
+      "DeletionPolicy": "Delete",
+      "DependsOn": Array [
+        "WebappUpdateAmplifyOriginSourceParameterCustomResourcePolicy5D80E122",
+      ],
+      "Properties": Object {
+        "Create": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "{"service":"ssm","action":"putParameter","parameters":{"Name":"",
+              Object {
+                "Ref": "WebappOriginSourceParameterD87E143B",
+              },
+              "","Value":"https://",
+              Object {
+                "Fn::GetAtt": Array [
+                  "Webapp107041BD",
+                  "DomainName",
+                ],
+              },
+              "","Overwrite":true},"physicalResourceId":{"id":"",
+              Object {
+                "Ref": "WebappOriginSourceParameterD87E143B",
+              },
+              ""}}",
+            ],
+          ],
+        },
+        "InstallLatestAwsSdk": true,
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "AWS679f53fac002430cb0da5b7982bd22872D164C4C",
+            "Arn",
+          ],
+        },
+        "Update": Object {
+          "Fn::Join": Array [
+            "",
+            Array [
+              "{"service":"ssm","action":"putParameter","parameters":{"Name":"",
+              Object {
+                "Ref": "WebappOriginSourceParameterD87E143B",
+              },
+              "","Value":"https://",
+              Object {
+                "Fn::GetAtt": Array [
+                  "Webapp107041BD",
+                  "DomainName",
+                ],
+              },
+              "","Overwrite":true},"physicalResourceId":{"id":"",
+              Object {
+                "Ref": "WebappOriginSourceParameterD87E143B",
+              },
+              ""}}",
+            ],
+          ],
+        },
+      },
+      "Type": "Custom::AWS",
+      "UpdateReplacePolicy": "Delete",
+    },
+    "WebappUpdateAmplifyOriginSourceParameterCustomResourcePolicy5D80E122": Object {
+      "Properties": Object {
+        "PolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "ssm:PutParameter",
+              "Effect": "Allow",
+              "Resource": Object {
+                "Fn::Join": Array [
+                  "",
+                  Array [
+                    "arn:",
+                    Object {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":ssm:us-west-2:123456789012:parameter/",
+                    Object {
+                      "Ref": "WebappOriginSourceParameterD87E143B",
+                    },
+                  ],
+                ],
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "WebappUpdateAmplifyOriginSourceParameterCustomResourcePolicy5D80E122",
+        "Roles": Array [
+          Object {
+            "Ref": "AWS679f53fac002430cb0da5b7982bd2287ServiceRoleC1EA0FF2",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
     },
   },
   "Rules": Object {
