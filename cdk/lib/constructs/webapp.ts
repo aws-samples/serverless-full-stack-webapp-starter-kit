@@ -5,26 +5,29 @@ import { Construct } from 'constructs';
 import { readFileSync } from 'fs';
 import { CloudFrontLambdaFunctionUrlService } from './cf-lambda-furl-service/service';
 import { IHostedZone } from 'aws-cdk-lib/aws-route53';
-import { Bucket, IBucket } from 'aws-cdk-lib/aws-s3';
+import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Database } from './database';
 import { EdgeFunction } from './cf-lambda-furl-service/edge-function';
 import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
-import { Auth } from './auth';
+import { Auth } from './auth/';
 import { ContainerImageBuild } from 'deploy-time-build';
 import { join } from 'path';
-import { Trigger } from 'aws-cdk-lib/triggers';
 import { EventBus } from './event-bus/';
 import { AsyncJob } from './async-job';
+import { Trigger } from 'aws-cdk-lib/triggers';
+import { StringParameter } from 'aws-cdk-lib/aws-ssm';
+import { AwsCustomResource, AwsCustomResourcePolicy, PhysicalResourceId } from 'aws-cdk-lib/custom-resources';
 
 export interface WebappProps {
   database: Database;
-  hostedZone: IHostedZone;
-  certificate: ICertificate;
   signPayloadHandler: EdgeFunction;
   accessLogBucket: Bucket;
   auth: Auth;
   eventBus: EventBus;
   asyncJob: AsyncJob;
+
+  hostedZone?: IHostedZone;
+  certificate?: ICertificate;
   /**
    * Use root domain
    */
@@ -49,13 +52,10 @@ export class Webapp extends Construct {
         .split('\n'),
       tagPrefix: 'webapp-starter-',
       buildArgs: {
-        HOST_DOMAIN: `${subDomain}.${hostedZone.zoneName}`,
+        ALLOWED_ORIGIN_HOST: hostedZone ? `*.${hostedZone.zoneName}` : '*.cloudfront.net',
         SKIP_TS_BUILD: 'true',
-        AMPLIFY_APP_ORIGIN: `https://${subDomain}.${hostedZone.zoneName}`,
-        COGNITO_DOMAIN: auth.domainName,
-        USER_POOL_ID: auth.userPool.userPoolId,
-        USER_POOL_CLIENT_ID: auth.client.userPoolClientId,
         NEXT_PUBLIC_EVENT_HTTP_ENDPOINT: eventBus.httpEndpoint,
+        NEXT_PUBLIC_AWS_REGION: Stack.of(this).region,
       },
     });
 
@@ -64,8 +64,6 @@ export class Webapp extends Construct {
       timeout: Duration.minutes(3),
       environment: {
         ...database.getLambdaEnvironment('main'),
-        AMPLIFY_APP_ORIGIN: `https://${subDomain}.${hostedZone.zoneName}`,
-        HOST_DOMAIN: `${subDomain}.${hostedZone.zoneName}`,
         COGNITO_DOMAIN: auth.domainName,
         USER_POOL_ID: auth.userPool.userPoolId,
         USER_POOL_CLIENT_ID: auth.client.userPoolClientId,
@@ -89,14 +87,47 @@ export class Webapp extends Construct {
     });
     this.baseUrl = service.url;
 
-    auth.addAllowedCallbackUrls(
-      `http://localhost:3010/api/auth/sign-in-callback`,
-      `http://localhost:3010/api/auth/sign-out-callback`,
-    );
-    auth.addAllowedCallbackUrls(
-      `${this.baseUrl}/api/auth/sign-in-callback`,
-      `${this.baseUrl}/api/auth/sign-out-callback`,
-    );
+    if (hostedZone) {
+      auth.addAllowedCallbackUrls(
+        `http://localhost:3010/api/auth/sign-in-callback`,
+        `http://localhost:3010/api/auth/sign-out-callback`,
+      );
+      auth.addAllowedCallbackUrls(
+        `${this.baseUrl}/api/auth/sign-in-callback`,
+        `${this.baseUrl}/api/auth/sign-out-callback`,
+      );
+      handler.addEnvironment('AMPLIFY_APP_ORIGIN', service.url);
+    } else {
+      auth.updateAllowedCallbackUrls(
+        [`${this.baseUrl}/api/auth/sign-in-callback`, `http://localhost:3010/api/auth/sign-in-callback`],
+        [`${this.baseUrl}/api/auth/sign-out-callback`, `http://localhost:3010/api/auth/sign-out-callback`],
+      );
+
+      const originSourceParameter = new StringParameter(this, 'OriginSourceParameter', {
+        stringValue: 'dummy',
+      });
+      originSourceParameter.grantRead(handler);
+      handler.addEnvironment('AMPLIFY_APP_ORIGIN_SOURCE_PARAMETER', originSourceParameter.parameterName);
+
+      // We need to pass AMPLIFY_APP_ORIGIN environment variable for callback URL,
+      // but we cannot know CloudFront domain before deploying Lambda function.
+      // To avoid the circular dependency, we fetch the domain name on runtime.
+      new AwsCustomResource(this, 'UpdateAmplifyOriginSourceParameter', {
+        onUpdate: {
+          service: 'ssm',
+          action: 'putParameter',
+          parameters: {
+            Name: originSourceParameter.parameterName,
+            Value: service.url,
+            Overwrite: true,
+          },
+          physicalResourceId: PhysicalResourceId.of(originSourceParameter.parameterName),
+        },
+        policy: AwsCustomResourcePolicy.fromSdkCalls({
+          resources: [originSourceParameter.parameterArn],
+        }),
+      });
+    }
 
     const migrationRunner = new DockerImageFunction(this, 'MigrationRunner', {
       code: DockerImageCode.fromImageAsset(join('..', 'webapp'), {
@@ -114,7 +145,7 @@ export class Webapp extends Construct {
     });
     migrationRunner.connections.allowToDefaultPort(database);
 
-    // run database migration during CDK deployment
+    // // run database migration during CDK deployment
     // const trigger = new Trigger(this, 'MigrationTrigger', {
     //   handler: migrationRunner,
     // });
