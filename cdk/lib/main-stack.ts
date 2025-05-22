@@ -13,7 +13,7 @@ import { EventBus } from './constructs/event-bus/';
 
 interface MainStackProps extends StackProps {
   readonly signPayloadHandler: EdgeFunction;
-  
+
   readonly domainName?: string;
   readonly sharedCertificate?: ICertificate;
 

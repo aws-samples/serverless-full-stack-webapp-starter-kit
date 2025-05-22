@@ -12,7 +12,7 @@ interface EnvironmentProps {
   /**
    * Custom domain name for the webapp and Cognito.
    * You need to have a public Route53 hosted zone for the domain name in your AWS account.
-   * 
+   *
    * @default No custom domain name.
    */
   domainName?: string;
