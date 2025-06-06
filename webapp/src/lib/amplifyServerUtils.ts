@@ -1,7 +1,8 @@
 import { createServerRunner } from '@aws-amplify/adapter-nextjs';
 import { GetParameterCommand, SSMClient } from '@aws-sdk/client-ssm';
 
-if (process.env.AMPLIFY_APP_ORIGIN_SOURCE_PARAMETER) {
+// to avoid cloudformation circular dependency, we fetch the origin name dynamically.
+if (process.env.AMPLIFY_APP_ORIGIN_SOURCE_PARAMETER && !process.env.AMPLIFY_APP_ORIGIN) {
   const ssm = new SSMClient({});
   try {
     const res = await ssm.send(new GetParameterCommand({ Name: process.env.AMPLIFY_APP_ORIGIN_SOURCE_PARAMETER }));
