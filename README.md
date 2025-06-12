@@ -62,7 +62,7 @@ Then run the following commands:
 cd cdk
 npm ci
 npx cdk bootstrap
-npx cdk deploy
+npx cdk deploy --all
 ```
 
 Initial deployment usually takes about 20 minutes. You can also use `npx cdk deploy` command to deploy when you modified your CDK templates in the future.
