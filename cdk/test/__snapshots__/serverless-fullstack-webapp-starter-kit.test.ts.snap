@@ -491,6 +491,82 @@ Object {
       },
       "Type": "AWS::IAM::Role",
     },
+    "AWSCDKTriggerCustomResourceProviderCustomResourceProviderHandler97BECD91": Object {
+      "DependsOn": Array [
+        "AWSCDKTriggerCustomResourceProviderCustomResourceProviderRoleE18FAF0A",
+      ],
+      "Properties": Object {
+        "Code": Object {
+          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-west-2",
+          "S3Key": "REDACTED",
+        },
+        "Handler": "__entrypoint__.handler",
+        "MemorySize": 128,
+        "Role": Object {
+          "Fn::GetAtt": Array [
+            "AWSCDKTriggerCustomResourceProviderCustomResourceProviderRoleE18FAF0A",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "AWSCDKTriggerCustomResourceProviderCustomResourceProviderRoleE18FAF0A": Object {
+      "Properties": Object {
+        "AssumeRolePolicyDocument": Object {
+          "Statement": Array [
+            Object {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": Object {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": Array [
+          Object {
+            "Fn::Sub": "arn:\${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+          },
+        ],
+        "Policies": Array [
+          Object {
+            "PolicyDocument": Object {
+              "Statement": Array [
+                Object {
+                  "Action": Array [
+                    "lambda:InvokeFunction",
+                  ],
+                  "Effect": "Allow",
+                  "Resource": Array [
+                    Object {
+                      "Fn::Join": Array [
+                        "",
+                        Array [
+                          Object {
+                            "Fn::GetAtt": Array [
+                              "WebappMigrationRunnerAC67C012",
+                              "Arn",
+                            ],
+                          },
+                          ":*",
+                        ],
+                      ],
+                    },
+                  ],
+                },
+              ],
+              "Version": "2012-10-17",
+            },
+            "PolicyName": "Inline",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
     "AccessLogBucketAutoDeleteObjectsCustomResource01AB31E8": Object {
       "DeletionPolicy": "Delete",
       "DependsOn": Array [
@@ -3457,6 +3533,22 @@ sudo service iptables save",
       },
       "Type": "AWS::Lambda::Function",
     },
+    "WebappMigrationRunnerCurrentVersionREDACTED": Object {
+      "DependsOn": Array [
+        "VpcPrivateSubnet1DefaultRouteBE02A9ED",
+        "VpcPrivateSubnet1RouteTableAssociation70C59FA6",
+        "VpcPrivateSubnet2DefaultRoute060D2087",
+        "VpcPrivateSubnet2RouteTableAssociationA89CAD56",
+        "VpcPrivateSubnet3DefaultRoute94B74F0D",
+        "VpcPrivateSubnet3RouteTableAssociation16BDDC43",
+      ],
+      "Properties": Object {
+        "FunctionName": Object {
+          "Ref": "WebappMigrationRunnerAC67C012",
+        },
+      },
+      "Type": "AWS::Lambda::Version",
+    },
     "WebappMigrationRunnerSecurityGroup7F0DF264": Object {
       "DependsOn": Array [
         "VpcPrivateSubnet1DefaultRouteBE02A9ED",
@@ -3531,6 +3623,37 @@ sudo service iptables save",
         ],
       },
       "Type": "AWS::IAM::Role",
+    },
+    "WebappMigrationTrigger42AFC1D9": Object {
+      "DeletionPolicy": "Delete",
+      "DependsOn": Array [
+        "DatabaseCluster5B53A178",
+        "DatabaseClusterSecretAttachmentDC8466C0",
+        "DatabaseClusterSecretD1FB634F",
+        "DatabaseClusterSecurityGroupfromServerlessWebappStarterKitStackAsyncJobHandlerSecurityGroup5220DFB3IndirectPort9323962E",
+        "DatabaseClusterSecurityGroupfromServerlessWebappStarterKitStackDatabaseBastionHostInstanceSecurityGroup4F0DD25BIndirectPort8AFD9922",
+        "DatabaseClusterSecurityGroupfromServerlessWebappStarterKitStackWebappHandlerSecurityGroupA009CF4AIndirectPort7311063E",
+        "DatabaseClusterSecurityGroupfromServerlessWebappStarterKitStackWebappMigrationRunnerSecurityGroupC0959349IndirectPortDCF4A356",
+        "DatabaseClusterSecurityGroupFEF1426A",
+        "DatabaseClusterSubnets5540150D",
+        "DatabaseClusterWriterD43085C6",
+      ],
+      "Properties": Object {
+        "ExecuteOnHandlerChange": true,
+        "HandlerArn": Object {
+          "Ref": "WebappMigrationRunnerCurrentVersionREDACTED",
+        },
+        "InvocationType": "RequestResponse",
+        "ServiceToken": Object {
+          "Fn::GetAtt": Array [
+            "AWSCDKTriggerCustomResourceProviderCustomResourceProviderHandler97BECD91",
+            "Arn",
+          ],
+        },
+        "Timeout": "120000",
+      },
+      "Type": "Custom::Trigger",
+      "UpdateReplacePolicy": "Delete",
     },
     "WebappOrigin1FunctionUrlOriginAccessControlEA98B600": Object {
       "Properties": Object {

@@ -145,12 +145,12 @@ export class Webapp extends Construct {
     });
     migrationRunner.connections.allowToDefaultPort(database);
 
-    // // run database migration during CDK deployment
-    // const trigger = new Trigger(this, 'MigrationTrigger', {
-    //   handler: migrationRunner,
-    // });
-    // // make sure migration is executed after the database cluster is available.
-    // trigger.node.addDependency(database.cluster);
+    // run database migration during CDK deployment
+    const trigger = new Trigger(this, 'MigrationTrigger', {
+      handler: migrationRunner,
+    });
+    // make sure migration is executed after the database cluster is available.
+    trigger.node.addDependency(database.cluster);
 
     new CfnOutput(Stack.of(this), 'MigrationFunctionName', { value: migrationRunner.functionName });
     new CfnOutput(Stack.of(this), 'MigrationCommand', {
