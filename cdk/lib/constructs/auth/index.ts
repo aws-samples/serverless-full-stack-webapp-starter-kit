@@ -115,6 +115,7 @@ export class Auth extends Construct {
 
     new CfnOutput(this, 'UserPoolId', { value: userPool.userPoolId });
     new CfnOutput(this, 'UserPoolClientId', { value: client.userPoolClientId });
+    new CfnOutput(this, 'UserPoolDomainName', { value: this.domainName });
   }
 
   public addAllowedCallbackUrls(callbackUrl: string, logoutUrl: string) {

@@ -1,10 +1,21 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Getting Started
+## Run locally
 
 First, run the development server:
 
 ```bash
+# Run this command in the repository root
+docker compose up -d
+cd webapp
+
+# Run this command in the webapp directory
+npx prisma db push
+cp .env.local.example .env.local
+code .env.local
+# Then populate values in .env.local
+
+# run the next.js server
 npm run dev
 ```
 

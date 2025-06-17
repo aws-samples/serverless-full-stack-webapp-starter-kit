@@ -278,6 +278,9 @@ Object {
         "Ref": "AuthUserPoolClientC635291F",
       },
     },
+    "AuthUserPoolDomainName8D4A2606": Object {
+      "Value": "auth.example.com",
+    },
     "AuthUserPoolIdC0605E59": Object {
       "Value": Object {
         "Ref": "AuthUserPool8115E87F",

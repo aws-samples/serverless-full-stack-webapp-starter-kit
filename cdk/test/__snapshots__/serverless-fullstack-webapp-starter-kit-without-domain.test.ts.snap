@@ -231,6 +231,22 @@ Object {
         "Ref": "AuthUserPoolClientC635291F",
       },
     },
+    "AuthUserPoolDomainName8D4A2606": Object {
+      "Value": Object {
+        "Fn::Join": Array [
+          "",
+          Array [
+            Object {
+              "Fn::GetAtt": Array [
+                "AuthDomainPrefixE1742B23",
+                "generated",
+              ],
+            },
+            ".auth.us-west-2.amazoncognito.com",
+          ],
+        ],
+      },
+    },
     "AuthUserPoolIdC0605E59": Object {
       "Value": Object {
         "Ref": "AuthUserPool8115E87F",
