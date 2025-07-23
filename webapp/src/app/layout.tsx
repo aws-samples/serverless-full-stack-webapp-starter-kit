@@ -6,6 +6,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html>
       <head>
         <title>AWS Serverless TODO</title>
+        {/* Comment out this meta tag if you want to enable search engine crawling */}
         <meta name="robots" content="noindex, nofollow" />
       </head>
       <body>
