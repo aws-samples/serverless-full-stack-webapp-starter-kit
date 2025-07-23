@@ -6,6 +6,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html>
       <head>
         <title>AWS Serverless TODO</title>
+        <meta name="robots" content="noindex, nofollow" />
       </head>
       <body>
         {children}
