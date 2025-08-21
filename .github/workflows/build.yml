@@ -5,6 +5,8 @@ on:
       - main
   workflow_dispatch:
   pull_request:
+permissions:
+  contents: read
 jobs:
   Build-and-Test-CDK:
     runs-on: ubuntu-latest
