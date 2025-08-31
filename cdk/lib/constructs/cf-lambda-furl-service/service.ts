@@ -1,6 +1,6 @@
 import { Construct } from 'constructs';
 import { Duration } from 'aws-cdk-lib';
-import { FunctionUrlAuthType, IFunction, InvokeMode } from 'aws-cdk-lib/aws-lambda';
+import { FunctionUrlAuthType, Function, InvokeMode } from 'aws-cdk-lib/aws-lambda';
 import {
   AllowedMethods,
   CacheCookieBehavior,
@@ -19,13 +19,14 @@ import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
 import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { EdgeFunction } from './edge-function';
+import { AwsCustomResource, PhysicalResourceId, AwsCustomResourcePolicy } from 'aws-cdk-lib/custom-resources';
 
 export interface CloudFrontLambdaFunctionUrlServiceProps {
   /**
    * @default use root domain
    */
   subDomain?: string;
-  handler: IFunction;
+  handler: Function;
 
   /**
    * This should be unique across the app
@@ -116,6 +117,28 @@ export class CloudFrontLambdaFunctionUrlService extends Construct {
     } else {
       domainName = distribution.domainName;
     }
+
+    // Invalidate CloudFront when Lambda function version changes
+    new AwsCustomResource(this, 'CloudFrontInvalidation', {
+      onUpdate: {
+        service: 'cloudfront',
+        action: 'createInvalidation',
+        parameters: {
+          DistributionId: distribution.distributionId,
+          InvalidationBatch: {
+            CallerReference: `${handler.currentVersion.version}`,
+            Paths: {
+              Quantity: 1,
+              Items: ['/*'],
+            },
+          },
+        },
+        physicalResourceId: PhysicalResourceId.of('invalidation'),
+      },
+      policy: AwsCustomResourcePolicy.fromSdkCalls({
+        resources: [distribution.distributionArn],
+      }),
+    });
 
     this.url = `https://${domainName}`;
     this.domainName = domainName;
