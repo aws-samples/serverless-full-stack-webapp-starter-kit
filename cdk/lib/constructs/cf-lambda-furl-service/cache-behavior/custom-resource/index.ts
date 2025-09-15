@@ -77,8 +77,8 @@ const updateBehaviors = async (
   );
   const updatedBehaviors = [...uncontrolledBehaviors, ...newBehaviors];
   distributionConfig.DistributionConfig.CacheBehaviors = {
-    Quantity: newBehaviors.length,
-    Items: newBehaviors,
+    Quantity: updatedBehaviors.length,
+    Items: updatedBehaviors,
   };
 
   await client.send(
