@@ -101,7 +101,7 @@ export class CacheBehaviors extends Construct {
         Compress: options.compress,
         LambdaFunctionAssociations: translateLambdaFunctionAssociation(options.edgeLambdas ?? []),
         ViewerProtocolPolicy: options.viewerProtocolPolicy,
-        TargetOriginId: options.origin,
+        TargetOriginId: options.origin, // actually origin is also coupled with distribution, so we must also create a custom resource for origins...
         // DefaultTTL: options.edgeLambdas,
       })),
       distributionId: distribution.distributionId,
