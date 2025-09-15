@@ -1,5 +1,6 @@
 {
   "app": "npx ts-node --prefer-ts-exts bin/cdk.ts",
+  "build": "npx esbuild lib/constructs/cf-lambda-furl-service/cache-behavior/custom-resource/index.ts --outdir=lib/constructs/cf-lambda-furl-service/cache-behavior/custom-resource --platform=node --external:@aws-sdk/* --bundle",
   "watch": {
     "include": [
       "**"
