@@ -1,3 +1,4 @@
+import { UpdateUserPoolClientCommandInput } from '@aws-sdk/client-cognito-identity-provider';
 import { CfnOutput, CfnResource, CustomResource, Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
 import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { CfnManagedLoginBranding, ManagedLoginVersion, UserPool, UserPoolClient } from 'aws-cdk-lib/aws-cognito';
@@ -150,7 +151,7 @@ export class Auth extends Construct {
             IdToken: 'minutes',
           },
           IdTokenValidity: 1440,
-        },
+        } satisfies UpdateUserPoolClientCommandInput,
         physicalResourceId: PhysicalResourceId.of(this.userPool.userPoolId),
       },
       policy: AwsCustomResourcePolicy.fromSdkCalls({

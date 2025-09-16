@@ -24,6 +24,7 @@
   },
   "dependencies": {
     "@aws-appsync/utils": "^1.12.0",
+    "@aws-sdk/client-cognito-identity-provider": "^3.888.0",
     "@types/aws-lambda": "^8.10.149",
     "aws-cdk-lib": "^2.189.1",
     "cdk-nag": "^2.14.29",
