@@ -38,11 +38,45 @@ export interface CloudFrontLambdaFunctionUrlServiceProps {
    */
   basicAuthUsername?: string;
   basicAuthPassword?: string;
+}
 
+export interface CloudFrontLambdaFunctionUrlServiceContext {
   hostedZone?: IHostedZone;
   certificate?: ICertificate;
   signPayloadHandler: EdgeFunction;
   accessLogBucket: Bucket;
+}
+
+export class CloudFrontLambdaFunctionUrlServiceContextProvider extends Construct {
+  private static contextKey = `contextProvider:CloudFrontLambdaFunctionUrlService`;
+
+  constructor(
+    scope: Construct,
+    id: string,
+    props: {
+      hostedZone?: IHostedZone;
+      certificate?: ICertificate;
+      signPayloadHandler: EdgeFunction;
+      accessLogBucket: Bucket;
+    },
+  ) {
+    super(scope, id);
+    CloudFrontLambdaFunctionUrlServiceContextProvider.setContext(this, props);
+  }
+
+  private static setContext(scope: Construct, props: CloudFrontLambdaFunctionUrlServiceContext) {
+    scope.node.setContext(this.contextKey, { ...props });
+  }
+
+  static getContext(scope: Construct) {
+    const context = scope.node.tryGetContext(this.contextKey);
+    if (context == null) {
+      throw new Error(
+        `Context not set for CloudFrontLambdaFunctionUrlService. Make sure to add CloudFrontLambdaFunctionUrlServiceContextProvider to the app.`,
+      );
+    }
+    return context as CloudFrontLambdaFunctionUrlServiceContext;
+  }
 }
 
 export class CloudFrontLambdaFunctionUrlService extends Construct {
@@ -52,7 +86,9 @@ export class CloudFrontLambdaFunctionUrlService extends Construct {
 
   constructor(scope: Construct, id: string, props: CloudFrontLambdaFunctionUrlServiceProps) {
     super(scope, id);
-    const { handler, serviceName, subDomain, hostedZone, certificate, accessLogBucket, signPayloadHandler } = props;
+    const { handler, serviceName, subDomain } = props;
+    const { hostedZone, certificate, accessLogBucket, signPayloadHandler } =
+      CloudFrontLambdaFunctionUrlServiceContextProvider.getContext(this);
     let domainName = '';
     if (hostedZone) {
       domainName = subDomain ? `${subDomain}.${hostedZone.zoneName}` : hostedZone.zoneName;

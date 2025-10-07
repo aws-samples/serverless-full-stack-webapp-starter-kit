@@ -3130,14 +3130,14 @@ sudo service iptables save",
     },
     "WebappHandler8DD158A3": {
       "DependsOn": [
+        "WebappHandlerServiceRoleDefaultPolicy7D06F4EA",
+        "WebappHandlerServiceRole4F4D1ACD",
         "VpcPrivateSubnet1DefaultRouteBE02A9ED",
         "VpcPrivateSubnet1RouteTableAssociation70C59FA6",
         "VpcPrivateSubnet2DefaultRoute060D2087",
         "VpcPrivateSubnet2RouteTableAssociationA89CAD56",
         "VpcPrivateSubnet3DefaultRoute94B74F0D",
         "VpcPrivateSubnet3RouteTableAssociation16BDDC43",
-        "WebappHandlerServiceRoleDefaultPolicy7D06F4EA",
-        "WebappHandlerServiceRole4F4D1ACD",
       ],
       "Properties": {
         "Architectures": [
@@ -3499,13 +3499,13 @@ sudo service iptables save",
     },
     "WebappMigrationRunnerAC67C012": {
       "DependsOn": [
+        "WebappMigrationRunnerServiceRoleE27E1F7A",
         "VpcPrivateSubnet1DefaultRouteBE02A9ED",
         "VpcPrivateSubnet1RouteTableAssociation70C59FA6",
         "VpcPrivateSubnet2DefaultRoute060D2087",
         "VpcPrivateSubnet2RouteTableAssociationA89CAD56",
         "VpcPrivateSubnet3DefaultRoute94B74F0D",
         "VpcPrivateSubnet3RouteTableAssociation16BDDC43",
-        "WebappMigrationRunnerServiceRoleE27E1F7A",
       ],
       "Properties": {
         "Architectures": [

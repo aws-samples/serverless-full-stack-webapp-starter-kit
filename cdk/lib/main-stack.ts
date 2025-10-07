@@ -10,6 +10,7 @@ import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { Webapp } from './constructs/webapp';
 import { EdgeFunction } from './constructs/cf-lambda-furl-service/edge-function';
 import { EventBus } from './constructs/event-bus/';
+import { CloudFrontLambdaFunctionUrlServiceContextProvider } from './constructs/cf-lambda-furl-service/service';
 
 interface MainStackProps extends StackProps {
   readonly signPayloadHandler: EdgeFunction;
@@ -68,12 +69,16 @@ export class MainStack extends Stack {
 
     const asyncJob = new AsyncJob(this, 'AsyncJob', { database: database, eventBus });
 
-    const webapp = new Webapp(this, 'Webapp', {
-      database,
+    const context = new CloudFrontLambdaFunctionUrlServiceContextProvider(this, 'Default', {
       hostedZone,
       certificate: props.sharedCertificate,
       signPayloadHandler: props.signPayloadHandler,
       accessLogBucket,
+    });
+
+    const webapp = new Webapp(context, 'Webapp', {
+      database,
+      hostedZone,
       auth,
       eventBus,
       asyncJob,

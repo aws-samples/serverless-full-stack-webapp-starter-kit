@@ -20,14 +20,10 @@ import { AwsCustomResource, AwsCustomResourcePolicy, PhysicalResourceId } from '
 
 export interface WebappProps {
   database: Database;
-  signPayloadHandler: EdgeFunction;
-  accessLogBucket: Bucket;
+  hostedZone?: IHostedZone;
   auth: Auth;
   eventBus: EventBus;
   asyncJob: AsyncJob;
-
-  hostedZone?: IHostedZone;
-  certificate?: ICertificate;
   /**
    * Use root domain
    */
@@ -80,10 +76,6 @@ export class Webapp extends Construct {
       subDomain,
       handler,
       serviceName: 'Webapp',
-      hostedZone,
-      certificate: props.certificate,
-      accessLogBucket: props.accessLogBucket,
-      signPayloadHandler: props.signPayloadHandler,
     });
     this.baseUrl = service.url;
 
