@@ -157,13 +157,18 @@ export class Webapp extends Construct {
     });
     migrationRunner.connections.allowToDefaultPort(database);
 
-    // run database migration during CDK deployment
+    // Run database migration during CDK deployment
+    // The Trigger construct automatically invokes the migration runner with default payload (command: 'deploy')
+    // To manually run migrations with different commands (e.g., 'force'), use the AWS CLI command shown in the CDK output below
     const trigger = new Trigger(this, 'MigrationTrigger', {
       handler: migrationRunner,
     });
     // make sure migration is executed after the database cluster is available.
     trigger.node.addDependency(database.cluster);
 
+    // Output migration-related information for manual invocation
+    // Available commands: "deploy" (default), "force" (with --accept-data-loss)
+    // Example: aws lambda invoke --function-name <FUNCTION_NAME> --payload '{"command":"force"}' --cli-binary-format raw-in-base64-out /dev/stdout
     new CfnOutput(Stack.of(this), 'MigrationFunctionName', { value: migrationRunner.functionName });
     new CfnOutput(Stack.of(this), 'MigrationCommand', {
       value: `aws lambda invoke --function-name ${migrationRunner.functionName} --payload '{"command":"deploy"}' --cli-binary-format raw-in-base64-out /dev/stdout`,

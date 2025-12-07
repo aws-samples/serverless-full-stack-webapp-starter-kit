@@ -84,6 +84,26 @@ ServerlessWebappStarterKitStack.FrontendDomainName = https://web.exmaple.com
 
 Opening the URL in `FrontendDomainName` output, you can now try the sample app on your browser.
 
+### WebApp Deployment
+
+The Next.js webapp is built and deployed during the CDK deployment process using [deploy-time-build](https://github.com/tmokmss/deploy-time-build). This approach ensures your application is containerized and deployed to AWS Lambda as part of the infrastructure deployment. See the [implementation](./cdk/lib/constructs/webapp.ts) for details.
+
+### Database Migration
+
+Database migrations are automatically executed during CDK deployment using a [CDK Trigger](https://docs.aws.amazon.com/cdk/api/v2/docs/aws-cdk-lib.triggers-readme.html). The migration runs with the default `deploy` command. See the [implementation](./cdk/lib/constructs/webapp.ts) and [migration runner](./webapp/src/jobs/migration-runner.ts) for details.
+
+To manually run migrations with different commands:
+
+```sh
+aws lambda invoke \
+  --function-name <MigrationFunctionName from CDK output> \
+  --payload '{"command":"deploy"}' \
+  --cli-binary-format raw-in-base64-out \
+  /dev/stdout
+```
+
+Available commands: `deploy` (default), `force` (with --accept-data-loss).
+
 ## Add your own features
 To implement your own features, you may want to add frontend pages, API routes, or async jobs. The project uses Next.js App Router, which provides a unified approach for both frontend and backend development. You can follow the conventional Next.js patterns to add pages and API routes. For more details, please refer to the [`webapp/README.md`](./webapp/README.md) guide.
 
