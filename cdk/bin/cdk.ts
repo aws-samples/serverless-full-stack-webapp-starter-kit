@@ -46,6 +46,7 @@ new MainStack(app, 'ServerlessWebappStarterKitStack', {
   crossRegionReferences: true,
   sharedCertificate: virginia.certificate,
   domainName: props.domainName,
+  useNatInstance: props.useNatInstance,
   signPayloadHandler: virginia.signPayloadHandler,
 });
 
