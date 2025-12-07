@@ -14,10 +14,22 @@ import { EventBus } from './constructs/event-bus/';
 interface MainStackProps extends StackProps {
   readonly signPayloadHandler: EdgeFunction;
 
+  /**
+   * Custom domain name for the webapp and Cognito.
+   *
+   * @default No custom domain. CloudFront and Cognito will use their default domains.
+   */
   readonly domainName?: string;
+  /**
+   * ACM certificate for custom domain (must be in us-east-1).
+   *
+   * @default No custom domain.
+   */
   readonly sharedCertificate?: ICertificate;
 
   /**
+   * Use a NAT instance instead of NAT Gateways for cost optimization.
+   *
    * @default true
    */
   readonly useNatInstance?: boolean;

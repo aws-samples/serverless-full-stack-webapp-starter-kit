@@ -13,7 +13,9 @@ interface EnvironmentProps {
    * Custom domain name for the webapp and Cognito.
    * You need to have a public Route53 hosted zone for the domain name in your AWS account.
    *
-   * @default No custom domain name.
+   * @default No custom domain name. When not specified, the stack automatically generates
+   * a random prefix for the Cognito domain (e.g., webapp-abc123def4.auth.us-west-2.amazoncognito.com)
+   * and uses the CloudFront default domain (e.g., d1234567890.cloudfront.net) for the webapp.
    */
   domainName?: string;
 
