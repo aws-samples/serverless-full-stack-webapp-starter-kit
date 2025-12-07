@@ -23,6 +23,8 @@ import { AwsCustomResource, PhysicalResourceId, AwsCustomResourcePolicy } from '
 
 export interface CloudFrontLambdaFunctionUrlServiceProps {
   /**
+   * Subdomain name for the service. If not specified, the root domain will be used.
+   *
    * @default use root domain
    */
   subDomain?: string;
@@ -39,7 +41,17 @@ export interface CloudFrontLambdaFunctionUrlServiceProps {
   basicAuthUsername?: string;
   basicAuthPassword?: string;
 
+  /**
+   * Route 53 hosted zone for custom domain.
+   *
+   * @default No custom domain. CloudFront's default domain will be used.
+   */
   hostedZone?: IHostedZone;
+  /**
+   * ACM certificate for custom domain (must be in us-east-1 for CloudFront).
+   *
+   * @default No custom domain.
+   */
   certificate?: ICertificate;
   signPayloadHandler: EdgeFunction;
   accessLogBucket: Bucket;

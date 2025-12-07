@@ -10,7 +10,17 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 
 export interface AuthProps {
+  /**
+   * Route 53 hosted zone for custom domain.
+   *
+   * @default No custom domain. A random prefix will be automatically generated for the Cognito domain.
+   */
   readonly hostedZone?: IHostedZone;
+  /**
+   * ACM certificate for custom domain (must be in us-east-1 for Cognito).
+   *
+   * @default No custom domain.
+   */
   readonly sharedCertificate?: ICertificate;
 }
 
@@ -29,6 +39,7 @@ export class Auth extends Construct {
     if (!hostedZone) {
       // When we do not use a custom domain, we must make domainPrefix unique in the AWS region.
       // To avoid a collision, we generate a random string with CFn custom resource.
+      // This allows the stack to work without requiring a custom domain setup.
       const generator = new SingletonFunction(this, 'RandomStringGenerator', {
         runtime: Runtime.NODEJS_22_X,
         handler: 'index.handler',

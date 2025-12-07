@@ -6,6 +6,11 @@ import { EdgeFunction } from './constructs/cf-lambda-furl-service/edge-function'
 import { join } from 'path';
 
 interface UsEast1StackProps extends cdk.StackProps {
+  /**
+   * Custom domain name for the webapp and Cognito.
+   *
+   * @default No custom domain. CloudFront and Cognito will use their default domains.
+   */
   domainName?: string;
 }
 

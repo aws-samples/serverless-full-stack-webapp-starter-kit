@@ -26,10 +26,22 @@ export interface WebappProps {
   eventBus: EventBus;
   asyncJob: AsyncJob;
 
+  /**
+   * Route 53 hosted zone for custom domain.
+   *
+   * @default No custom domain. The webapp will use CloudFront's default domain (e.g., d1234567890.cloudfront.net).
+   */
   hostedZone?: IHostedZone;
+  /**
+   * ACM certificate for custom domain (must be in us-east-1 for CloudFront).
+   *
+   * @default No custom domain.
+   */
   certificate?: ICertificate;
   /**
-   * Use root domain
+   * Subdomain name for the webapp. If not specified, the root domain will be used.
+   *
+   * @default Use root domain
    */
   subDomain?: string;
 }
