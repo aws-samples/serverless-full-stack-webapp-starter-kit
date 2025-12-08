@@ -190,7 +190,7 @@ This project uses type-safe server actions with authentication:
 
 Asynchronous jobs are Lambda functions that handle long-running or background tasks. The `job.Dockerfile` builds all TypeScript files in `src/jobs/` into separate Lambda handlers using `esbuild src/jobs/*.ts --bundle`.
 
-**Project structure:**
+**File structure:**
 
 For simple jobs, place a single file directly under `src/jobs/`:
 
@@ -209,44 +209,16 @@ webapp/src/jobs/
     └── translate.ts              # Job implementation
 ```
 
-**Example implementation:**
+**Deployment:**
+
+All jobs share the same `job.Dockerfile`. The CDK stack overrides the entry point using the `cmd` parameter in `DockerImageCode.fromImageAsset()`:
 
 ```typescript
-// webapp/src/jobs/async-job-runner.ts
-import { translateJobHandler, translateJobSchema } from '@/jobs/async-job/translate';
-import { Handler } from 'aws-lambda';
-import { z } from 'zod';
-
-const jobPayloadPropsSchema = z.discriminatedUnion('type', [
-  translateJobSchema,
-  // Add more job types here
-]);
-
-export const handler: Handler<unknown> = async (event) => {
-  const { data: payload, error } = jobPayloadPropsSchema.safeParse(event);
-  if (error) throw new Error(error.toString());
-
-  switch (payload.type) {
-    case 'translate':
-      await translateJobHandler(payload);
-      break;
-  }
-};
+// Example from cdk/lib/constructs/async-job.ts
+code: DockerImageCode.fromImageAsset(join('..', 'webapp'), {
+  cmd: ['async-job-runner.handler'],  // Override the default CMD
+  file: 'job.Dockerfile',
+})
 ```
 
-```typescript
-// webapp/src/jobs/async-job/translate.ts
-import { z } from 'zod';
-
-export const translateJobSchema = z.object({
-  type: z.literal('translate'),
-  todoItemId: z.string(),
-  userId: z.string(),
-});
-
-export const translateJobHandler = async (params: z.infer<typeof translateJobSchema>) => {
-  // Job implementation
-};
-```
-
-**Note:** All jobs share the same `job.Dockerfile`. No individual Dockerfiles are needed. To deploy jobs, configure them in the CDK stack (see `cdk/lib/constructs/async-job.ts`).
+This allows multiple Lambda functions to use the same Docker image with different handlers.
