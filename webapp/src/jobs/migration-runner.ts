@@ -3,6 +3,12 @@ import { execFile } from 'child_process';
 import path from 'path';
 
 export const handler: Handler = async (event, _) => {
+  // This Lambda function is invoked in two contexts:
+  // 1. CDK Trigger: Automatically invoked during `cdk deploy` with default payload (no command specified, defaults to 'deploy')
+  // 2. Manual Invocation: Use AWS CLI to invoke with custom commands
+  //    Example: aws lambda invoke --function-name <FUNCTION_NAME> --payload '{"command":"force"}' --cli-binary-format raw-in-base64-out /dev/stdout
+  //    The function name and command template are available in the CloudFormation stack outputs after deployment
+  //
   // Available commands are:
   //   deploy: create new database if absent and apply all migrations to the existing database.
   //   reset: delete existing database, create new one, and apply all migrations. NOT for production environment.
