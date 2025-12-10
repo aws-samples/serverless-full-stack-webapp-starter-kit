@@ -84,6 +84,8 @@ ServerlessWebappStarterKitStack.FrontendDomainName = https://web.exmaple.com
 
 Opening the URL in `FrontendDomainName` output, you can now try the sample app on your browser.
 
+> **Note:** The deployment also outputs operational commands for database management. `DatabasePortForwardCommand` establishes a local connection to your RDS database on port 5433, and `DatabaseSecretsCommand` retrieves database credentials from AWS Secrets Manager.
+
 ### WebApp Deployment
 
 The Next.js webapp is built and deployed during the CDK deployment process using [deploy-time-build](https://github.com/tmokmss/deploy-time-build). This approach ensures your application is containerized and deployed to AWS Lambda as part of the infrastructure deployment. See the [implementation](./cdk/lib/constructs/webapp.ts) for details.
