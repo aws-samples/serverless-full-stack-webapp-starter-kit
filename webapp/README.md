@@ -185,3 +185,34 @@ This project uses type-safe server actions with authentication:
      );
    }
    ```
+
+### Asynchronous Jobs
+
+Asynchronous jobs are Lambda functions that handle long-running or background tasks. All async jobs are invoked through a single Lambda function (`async-job-runner.ts`) and can be triggered manually or as scheduled jobs.
+
+**File structure:**
+
+Place each job's implementation in a subdirectory under `src/jobs/`:
+
+```
+webapp/src/jobs/
+├── async-job-runner.ts           # Lambda handler entry point (dispatches to jobs)
+└── async-job/                    # Job implementations directory
+    └── translate.ts              # Job implementation
+```
+
+The `async-job-runner.ts` handler dispatches to the appropriate job based on the event payload type.
+
+**Deployment:**
+
+The `job.Dockerfile` builds all TypeScript files in `src/jobs/` using `esbuild src/jobs/*.ts --bundle`. The CDK stack overrides the entry point using the `cmd` parameter:
+
+```typescript
+// Example from cdk/lib/constructs/async-job.ts
+code: DockerImageCode.fromImageAsset(join('..', 'webapp'), {
+  cmd: ['async-job-runner.handler'],  // Override the default CMD
+  file: 'job.Dockerfile',
+})
+```
+
+This allows multiple Lambda functions to use the same Docker image with different handlers.
