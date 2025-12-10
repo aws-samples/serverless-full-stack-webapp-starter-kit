@@ -338,14 +338,7 @@ exports[`Snapshot test 2`] = `
                 "Endpoint.Port",
               ],
             },
-            ""], "localPortNumber":["",
-            {
-              "Fn::GetAtt": [
-                "DatabaseCluster5B53A178",
-                "Endpoint.Port",
-              ],
-            },
-            ""], "host": ["",
+            ""], "localPortNumber":["5433"], "host": ["",
             {
               "Fn::GetAtt": [
                 "DatabaseCluster5B53A178",

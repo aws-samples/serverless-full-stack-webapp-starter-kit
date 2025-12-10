@@ -67,7 +67,7 @@ export class Database extends Construct implements ec2.IConnectable {
         host.instanceId
       } --document-name AWS-StartPortForwardingSessionToRemoteHost --parameters '{"portNumber":["${
         cluster.clusterEndpoint.port
-      }"], "localPortNumber":["${cluster.clusterEndpoint.port}"], "host": ["${cluster.clusterEndpoint.hostname}"]}'`,
+      }"], "localPortNumber":["5433"], "host": ["${cluster.clusterEndpoint.hostname}"]}'`,
     });
     new CfnOutput(this, 'DatabaseSecretsCommand', {
       value: `aws secretsmanager get-secret-value --secret-id ${cluster.secret!.secretName} --region ${
