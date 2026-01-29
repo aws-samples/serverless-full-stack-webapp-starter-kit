@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { fetchAuthSession } from 'aws-amplify/auth/server';
 import { runWithAmplifyServerContext } from '@/lib/amplifyServerUtils';
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const response = NextResponse.next();
 
   const authenticated = await runWithAmplifyServerContext({
@@ -27,7 +27,6 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  runtime: 'nodejs',
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
@@ -37,5 +36,5 @@ export const config = {
      * - favicon.ico (favicon file)
      */
     '/((?!api|_next/static|_next/image|favicon.ico|sign-in).*)',
-  ],
+  ]
 };
