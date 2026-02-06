@@ -3684,6 +3684,38 @@ sudo service iptables save",
       },
       "Type": "AWS::IAM::Policy",
     },
+    "WebappInvokeFunctionPermission8F3F2610": {
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "WebappHandler8DD158A3",
+            "Arn",
+          ],
+        },
+        "Principal": "cloudfront.amazonaws.com",
+        "SourceArn": {
+          "Fn::Join": [
+            "",
+            [
+              "arn:",
+              {
+                "Ref": "AWS::Partition",
+              },
+              ":cloudfront::",
+              {
+                "Ref": "AWS::AccountId",
+              },
+              ":distribution/",
+              {
+                "Ref": "Webapp107041BD",
+              },
+            ],
+          ],
+        },
+      },
+      "Type": "AWS::Lambda::Permission",
+    },
     "WebappMigrationRunnerAC67C012": {
       "DependsOn": [
         "VpcPrivateSubnet1DefaultRouteBE02A9ED",
