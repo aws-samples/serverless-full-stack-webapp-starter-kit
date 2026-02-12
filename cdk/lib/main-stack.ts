@@ -4,7 +4,7 @@ import { Construct } from 'constructs';
 import { AsyncJob } from './constructs/async-job';
 import { Auth } from './constructs/auth/';
 import { Database } from './constructs/database';
-import { InstanceClass, InstanceSize, InstanceType, NatProvider, Vpc } from 'aws-cdk-lib/aws-ec2';
+import { InstanceClass, InstanceSize, InstanceType, NatProvider, UserData, Vpc } from 'aws-cdk-lib/aws-ec2';
 import { HostedZone } from 'aws-cdk-lib/aws-route53';
 import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { Webapp } from './constructs/webapp';
@@ -56,12 +56,31 @@ export class MainStack extends Stack {
       autoDeleteObjects: true,
     });
 
+    // Custom user data for NAT instance to support Amazon Linux 2023.
+    // CDK's default user data uses `route` command which requires net-tools package,
+    // but AL2023 doesn't have net-tools pre-installed. We use `ip route` instead.
+    // Retry yum install to handle RPM lock conflicts during boot.
+    const natUserData = UserData.forLinux();
+    natUserData.addCommands(
+      // Retry yum install up to 5 times with 10 second intervals
+      'for i in {1..5}; do yum install iptables-services -y && break || sleep 10; done',
+      'systemctl enable iptables',
+      'systemctl start iptables',
+      'echo "net.ipv4.ip_forward=1" > /etc/sysctl.d/custom-ip-forwarding.conf',
+      'sysctl -p /etc/sysctl.d/custom-ip-forwarding.conf',
+      "IFACE=$(ip route show default | awk '{print $5}')",
+      '/sbin/iptables -t nat -A POSTROUTING -o $IFACE -j MASQUERADE',
+      '/sbin/iptables -F FORWARD',
+      'service iptables save',
+    );
+
     const vpc = new Vpc(this, `Vpc`, {
       ...(useNatInstance
         ? {
             natGatewayProvider: NatProvider.instanceV2({
               instanceType: InstanceType.of(InstanceClass.T4G, InstanceSize.NANO),
               associatePublicIpAddress: true,
+              userData: natUserData,
             }),
             natGateways: 1,
           }
