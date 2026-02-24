@@ -153,6 +153,9 @@ cd cdk
 npx cdk destroy --force
 ```
 
+## Maintainers
+* [Kenji Kono (konoken)](https://github.com/konokenj)
+
 ## Security
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
 
