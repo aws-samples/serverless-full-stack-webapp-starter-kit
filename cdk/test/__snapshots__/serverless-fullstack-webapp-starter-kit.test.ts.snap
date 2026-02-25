@@ -166,6 +166,9 @@ exports[`Snapshot test 1`] = `
       "Type": "AWS::Lambda::Function",
     },
     "SignPayloadHandlerCurrentVersionREDACTED": {
+      "Metadata": {
+        "aws:cdk:do-not-refactor": true,
+      },
       "Properties": {
         "FunctionName": {
           "Ref": "SignPayloadHandlerCFEAA14C",
@@ -3337,6 +3340,9 @@ sudo service iptables save",
         "VpcPrivateSubnet3DefaultRoute94B74F0D",
         "VpcPrivateSubnet3RouteTableAssociation16BDDC43",
       ],
+      "Metadata": {
+        "aws:cdk:do-not-refactor": true,
+      },
       "Properties": {
         "FunctionName": {
           "Ref": "WebappHandler8DD158A3",
@@ -3644,6 +3650,9 @@ sudo service iptables save",
         "VpcPrivateSubnet3DefaultRoute94B74F0D",
         "VpcPrivateSubnet3RouteTableAssociation16BDDC43",
       ],
+      "Metadata": {
+        "aws:cdk:do-not-refactor": true,
+      },
       "Properties": {
         "FunctionName": {
           "Ref": "WebappMigrationRunnerAC67C012",
