@@ -1,6 +1,6 @@
 import { Construct } from 'constructs';
-import { Duration } from 'aws-cdk-lib';
-import { FunctionUrlAuthType, Function, InvokeMode } from 'aws-cdk-lib/aws-lambda';
+import { Aws, Duration } from 'aws-cdk-lib';
+import { FunctionUrlAuthType, Function, InvokeMode, CfnPermission } from 'aws-cdk-lib/aws-lambda';
 import {
   AllowedMethods,
   CacheCookieBehavior,
@@ -118,6 +118,18 @@ export class CloudFrontLambdaFunctionUrlService extends Construct {
       ...(hostedZone ? { certificate: certificate, domainNames: [domainName] } : {}),
 
       minimumProtocolVersion: SecurityPolicyProtocol.TLS_V1_2_2021,
+    });
+
+    // Starting October 2025, new function URLs require both lambda:InvokeFunctionUrl
+    // and lambda:InvokeFunction permissions for CloudFront OAC.
+    // CDK's FunctionUrlOrigin.withOriginAccessControl only adds lambda:InvokeFunctionUrl,
+    // so we explicitly add lambda:InvokeFunction here.
+    // See: https://docs.aws.amazon.com/lambda/latest/dg/urls-auth.html
+    new CfnPermission(this, 'InvokeFunctionPermission', {
+      action: 'lambda:InvokeFunction',
+      functionName: handler.functionArn,
+      principal: 'cloudfront.amazonaws.com',
+      sourceArn: `arn:${Aws.PARTITION}:cloudfront::${Aws.ACCOUNT_ID}:distribution/${distribution.distributionId}`,
     });
 
     if (hostedZone) {
