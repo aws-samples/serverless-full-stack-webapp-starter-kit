@@ -26,7 +26,7 @@
     "@aws-appsync/utils": "^1.12.0",
     "@aws-sdk/client-cognito-identity-provider": "^3.987.0",
     "@types/aws-lambda": "^8.10.149",
-    "aws-cdk-lib": "^2.189.1",
+    "aws-cdk-lib": "^2.240.0",
     "cdk-nag": "^2.14.29",
     "constructs": "^10.0.0",
     "deploy-time-build": "^0.3.32",
