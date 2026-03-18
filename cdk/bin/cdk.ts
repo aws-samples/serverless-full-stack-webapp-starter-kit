@@ -52,6 +52,8 @@ new MainStack(app, 'ServerlessWebappStarterKitStack', {
   signPayloadHandler: virginia.signPayloadHandler,
 });
 
+cdk.Tags.of(app).add('Application', 'ServerlessWebappStarterKit');
+
 // import { Aspects } from 'aws-cdk-lib';
 // import { AwsSolutionsChecks } from 'cdk-nag';
 // Aspects.of(app).add(new AwsSolutionsChecks());
