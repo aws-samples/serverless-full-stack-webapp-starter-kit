@@ -1069,7 +1069,7 @@ exports[`Snapshot test 2`] = `
           ],
         },
         "AdminCreateUserConfig": {
-          "AllowAdminCreateUserOnly": false,
+          "AllowAdminCreateUserOnly": true,
         },
         "AutoVerifiedAttributes": [
           "email",
