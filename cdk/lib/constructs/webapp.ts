@@ -82,7 +82,7 @@ export class Webapp extends Construct {
         ASYNC_JOB_HANDLER_ARN: asyncJob.handler.functionArn,
       },
       vpc: database.cluster.vpc,
-      memorySize: 512,
+      memorySize: 1024,
       architecture: Architecture.ARM_64,
     });
     handler.connections.allowToDefaultPort(database);

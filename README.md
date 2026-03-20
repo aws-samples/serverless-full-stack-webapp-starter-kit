@@ -130,7 +130,7 @@ The following table provides a sample cost breakdown for deploying this system i
 | Aurora Serverless v2 | 0.5 ACU × 2 hour/day, 1GB storage | 3.6 |
 | Cognito | 100 MAU (Monthly Active Users) | 1.5 |
 | AppSync Events | 100 events/month, 10 hours connection/user/month | 0.02 |
-| Lambda | 512MB×200ms/request | 0.15 |
+| Lambda | 1024MB×200ms/request | 0.15 |
 | Lambda@Edge | 128MB×50ms/request | 0.09 |
 | VPC | NAT Instance (t4g.nano) x1 | 3.02 |
 | EventBridge | Scheduler 100 jobs/month | 0.0001 |

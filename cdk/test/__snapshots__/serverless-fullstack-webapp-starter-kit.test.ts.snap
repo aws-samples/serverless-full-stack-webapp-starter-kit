@@ -3296,7 +3296,7 @@ service iptables save",
             },
           },
         },
-        "MemorySize": 512,
+        "MemorySize": 1024,
         "PackageType": "Image",
         "Role": {
           "Fn::GetAtt": [
