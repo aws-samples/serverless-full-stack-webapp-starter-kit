@@ -25,6 +25,7 @@ function isRetryableError(error: unknown): boolean {
     msg.includes('idle-session timeout') ||
     msg.includes('terminating connection') ||
     msg.includes('Connection terminated') ||
+    msg.includes('Timed out fetching a new connection from the connection pool') ||
     msg.includes('ECONNRESET')
   );
 }
