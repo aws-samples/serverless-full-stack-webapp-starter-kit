@@ -809,6 +809,11 @@ exports[`Snapshot test 2`] = `
             "async-job-runner.handler",
           ],
         },
+        "LoggingConfig": {
+          "LogGroup": {
+            "Ref": "AsyncJobHandlerLogs20DFEE3E",
+          },
+        },
         "MemorySize": 256,
         "PackageType": "Image",
         "ReservedConcurrentExecutions": 1,
@@ -842,6 +847,14 @@ exports[`Snapshot test 2`] = `
         },
       },
       "Type": "AWS::Lambda::Function",
+    },
+    "AsyncJobHandlerLogs20DFEE3E": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "RetentionInDays": 7,
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Delete",
     },
     "AsyncJobHandlerSecurityGroupF59812E6": {
       "DependsOn": [
@@ -3466,6 +3479,11 @@ service iptables save",
             },
           },
         },
+        "LoggingConfig": {
+          "LogGroup": {
+            "Ref": "WebappHandlerLogs87A6D2D7",
+          },
+        },
         "MemorySize": 1024,
         "PackageType": "Image",
         "Role": {
@@ -3535,6 +3553,14 @@ service iptables save",
         },
       },
       "Type": "AWS::Lambda::Url",
+    },
+    "WebappHandlerLogs87A6D2D7": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "RetentionInDays": 7,
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Delete",
     },
     "WebappHandlerSecurityGroup5451B519": {
       "DependsOn": [
@@ -3829,6 +3855,11 @@ service iptables save",
             "migration-runner.handler",
           ],
         },
+        "LoggingConfig": {
+          "LogGroup": {
+            "Ref": "WebappMigrationRunnerLogsD9A84B90",
+          },
+        },
         "MemorySize": 256,
         "PackageType": "Image",
         "Role": {
@@ -3877,6 +3908,14 @@ service iptables save",
         },
       },
       "Type": "AWS::Lambda::Version",
+    },
+    "WebappMigrationRunnerLogsD9A84B90": {
+      "DeletionPolicy": "Delete",
+      "Properties": {
+        "RetentionInDays": 7,
+      },
+      "Type": "AWS::Logs::LogGroup",
+      "UpdateReplacePolicy": "Delete",
     },
     "WebappMigrationRunnerSecurityGroup7F0DF264": {
       "DependsOn": [

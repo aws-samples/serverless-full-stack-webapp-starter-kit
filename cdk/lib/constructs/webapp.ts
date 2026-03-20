@@ -1,4 +1,5 @@
-import { IgnoreMode, Duration, CfnOutput, Stack } from 'aws-cdk-lib';
+import { IgnoreMode, Duration, CfnOutput, Stack, RemovalPolicy } from 'aws-cdk-lib';
+import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import { DockerImageFunction, DockerImageCode, Architecture } from 'aws-cdk-lib/aws-lambda';
 import { Construct } from 'constructs';
@@ -84,6 +85,10 @@ export class Webapp extends Construct {
       vpc: database.cluster.vpc,
       memorySize: 1024,
       architecture: Architecture.ARM_64,
+      logGroup: new LogGroup(this, 'HandlerLogs', {
+        retention: RetentionDays.ONE_WEEK,
+        removalPolicy: RemovalPolicy.DESTROY,
+      }),
     });
     handler.connections.allowToDefaultPort(database);
     asyncJob.handler.grantInvoke(handler);
@@ -154,6 +159,10 @@ export class Webapp extends Construct {
       },
       vpc: database.cluster.vpc,
       memorySize: 256,
+      logGroup: new LogGroup(this, 'MigrationRunnerLogs', {
+        retention: RetentionDays.ONE_WEEK,
+        removalPolicy: RemovalPolicy.DESTROY,
+      }),
     });
     migrationRunner.connections.allowToDefaultPort(database);
 

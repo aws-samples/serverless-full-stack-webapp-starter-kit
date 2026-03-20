@@ -1,5 +1,6 @@
 import { Construct } from 'constructs';
-import { CfnOutput, Duration, TimeZone } from 'aws-cdk-lib';
+import { CfnOutput, Duration, RemovalPolicy, TimeZone } from 'aws-cdk-lib';
+import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Architecture, DockerImageCode, DockerImageFunction, IFunction } from 'aws-cdk-lib/aws-lambda';
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import { Database } from './database';
@@ -37,6 +38,10 @@ export class AsyncJob extends Construct {
       vpc: database.cluster.vpc,
       // limit concurrency to mitigate any possible EDoS attacks
       reservedConcurrentExecutions: 1,
+      logGroup: new LogGroup(this, 'HandlerLogs', {
+        retention: RetentionDays.ONE_WEEK,
+        removalPolicy: RemovalPolicy.DESTROY,
+      }),
     });
 
     handler.connections.allowToDefaultPort(database);
