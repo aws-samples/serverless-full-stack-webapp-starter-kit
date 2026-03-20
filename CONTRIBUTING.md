@@ -6,6 +6,14 @@ documentation, we greatly value feedback and contributions from our community.
 Please read through this document before submitting any issues or pull requests to ensure we have all the necessary
 information to effectively respond to your bug report or contribution.
 
+## Language policy
+
+- PR titles and code comments: English
+- Issues and discussions: English or Japanese
+
+## Commit and PR conventions
+
+PR titles follow [Conventional Commits](https://www.conventionalcommits.org/) (Angular style). Enforced by CI. Releases are automated via [Release Please](https://github.com/googleapis/release-please).
 
 ## Reporting Bugs/Feature Requests
 
@@ -18,7 +26,6 @@ reported the issue. Please try to include as much information as you can. Detail
 * The version of our code being used
 * Any modifications you've made relevant to the bug
 * Anything unusual about your environment or deployment
-
 
 ## Contributing via Pull Requests
 Contributions via pull requests are much appreciated. Before sending us a pull request, please ensure that:
