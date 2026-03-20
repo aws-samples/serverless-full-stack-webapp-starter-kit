@@ -1754,6 +1754,10 @@ exports[`Snapshot test 2`] = `
         "DBSubnetGroupName": {
           "Ref": "DatabaseClusterSubnets5540150D",
         },
+        "EnableCloudwatchLogsExports": [
+          "postgresql",
+        ],
+        "EnableHttpEndpoint": true,
         "Engine": "aurora-postgresql",
         "EngineVersion": "16.6",
         "MasterUserPassword": {
@@ -1797,6 +1801,30 @@ exports[`Snapshot test 2`] = `
       },
       "Type": "AWS::RDS::DBCluster",
       "UpdateReplacePolicy": "Snapshot",
+    },
+    "DatabaseClusterLogRetentionpostgresql025D39CE": {
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Join": [
+            "",
+            [
+              "/aws/rds/cluster/",
+              {
+                "Ref": "DatabaseCluster5B53A178",
+              },
+              "/postgresql",
+            ],
+          ],
+        },
+        "RetentionInDays": 7,
+        "ServiceToken": {
+          "Fn::GetAtt": [
+            "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A",
+            "Arn",
+          ],
+        },
+      },
+      "Type": "Custom::LogRetention",
     },
     "DatabaseClusterSecretAttachmentDC8466C0": {
       "Properties": {
@@ -2022,6 +2050,8 @@ exports[`Snapshot test 2`] = `
         "Family": "aurora-postgresql16",
         "Parameters": {
           "idle_session_timeout": "60000",
+          "log_connections": "1",
+          "log_disconnections": "1",
         },
       },
       "Type": "AWS::RDS::DBClusterParameterGroup",
@@ -2181,6 +2211,83 @@ exports[`Snapshot test 2`] = `
       },
       "Type": "Custom::CrossRegionExportReader",
       "UpdateReplacePolicy": "Delete",
+    },
+    "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A": {
+      "DependsOn": [
+        "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB",
+        "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB",
+      ],
+      "Properties": {
+        "Code": {
+          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-west-2",
+          "S3Key": "REDACTED",
+        },
+        "Handler": "index.handler",
+        "Role": {
+          "Fn::GetAtt": [
+            "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB",
+            "Arn",
+          ],
+        },
+        "Runtime": "nodejs22.x",
+        "Timeout": 900,
+      },
+      "Type": "AWS::Lambda::Function",
+    },
+    "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB": {
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Statement": [
+            {
+              "Action": "sts:AssumeRole",
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "lambda.amazonaws.com",
+              },
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Join": [
+              "",
+              [
+                "arn:",
+                {
+                  "Ref": "AWS::Partition",
+                },
+                ":iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+              ],
+            ],
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Role",
+    },
+    "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB": {
+      "Properties": {
+        "PolicyDocument": {
+          "Statement": [
+            {
+              "Action": [
+                "logs:PutRetentionPolicy",
+                "logs:DeleteRetentionPolicy",
+              ],
+              "Effect": "Allow",
+              "Resource": "*",
+            },
+          ],
+          "Version": "2012-10-17",
+        },
+        "PolicyName": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB",
+        "Roles": [
+          {
+            "Ref": "LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB",
+          },
+        ],
+      },
+      "Type": "AWS::IAM::Policy",
     },
     "LookupVersionArnc8730278af02f875114ca902814c77b68f19b0087110E04D0A": {
       "DeletionPolicy": "Delete",
@@ -3995,6 +4102,7 @@ service iptables save",
     "WebappMigrationTrigger42AFC1D9": {
       "DeletionPolicy": "Delete",
       "DependsOn": [
+        "DatabaseClusterLogRetentionpostgresql025D39CE",
         "DatabaseCluster5B53A178",
         "DatabaseClusterSecretAttachmentDC8466C0",
         "DatabaseClusterSecretD1FB634F",
