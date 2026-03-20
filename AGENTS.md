@@ -66,13 +66,13 @@ Schema changes:
 # 1. Edit schema
 #    packages/db/src/schema.ts
 
-# 2. Generate migration SQL + DSQL compatibility check
+# 2. Generate migration SQL (auto-transforms for DSQL compatibility)
 pnpm --filter @repo/db run generate
+#    Auto-transforms: statement-breakpoint → blank lines, CREATE INDEX → ASYNC, FK removal
+#    Errors on unfixable patterns: ALTER COLUMN TYPE, DROP COLUMN, SERIAL
 
-# 3. Review and fix the generated SQL in packages/db/migrations/
+# 3. Review the generated SQL in packages/db/migrations/
 #    - Add IF NOT EXISTS for idempotency
-#    - Replace CREATE INDEX with CREATE INDEX ASYNC
-#    - Replace --> statement-breakpoint with blank lines (runner splits on \n\n)
 
 # 4. Apply to dev cluster
 pnpm --filter @repo/db run migrate
