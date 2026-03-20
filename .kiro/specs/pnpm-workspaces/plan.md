@@ -332,10 +332,130 @@ README.md、AGENTS.md を pnpm + DSQL + Drizzle に更新。
 
 ### 12. 最終検証
 
-ゴール:
-- `pnpm install && pnpm -r exec tsc --noEmit` が exit 0
-- `pnpm run lint` が exit 0
-- `cp apps/webapp/.env.local.example apps/webapp/.env.local && pnpm --filter webapp run build` が exit 0
-- `pnpm --filter @aws-samples/serverless-fullstack-webapp-starter-kit run build && pnpm --filter @aws-samples/serverless-fullstack-webapp-starter-kit run test` が exit 0
-- `webapp/` と `cdk/` ディレクトリが存在しない
-- prisma, eslint への依存がどの package.json にもない
+静的チェック（lint, build, tsc）だけでは不十分。ESM モジュールの即時評価、環境変数の読み込み、Docker 内のパス解決、Lambda ランタイムの挙動など、ビルドが通っても実行時にクラッシュする問題が多い。以下の順序で段階的に検証する。各段階で問題を発見・修正してから次に進むこと。
+
+#### 12a. 静的チェック
+
+```bash
+pnpm install
+pnpm -r exec tsc --noEmit
+pnpm run lint
+```
+
+確認事項:
+- `webapp/` と `cdk/` ディレクトリ（旧パス）が存在しないこと
+- prisma, eslint への依存がどの package.json にもないこと
+
+#### 12b. ビルド
+
+```bash
+cp apps/webapp/.env.local.example apps/webapp/.env.local
+pnpm --filter webapp run build
+pnpm --filter @repo/cdk run build
+pnpm --filter @repo/cdk run test
+```
+
+#### 12c. ローカル Docker イメージビルド
+
+Dockerfile が正しく動作するか、CDK を通さずに直接確認する。pnpm workspaces + Docker の組み合わせは罠が多い（`--filter` の推移的依存、`.dockerignore` の読み込み、esbuild の外部パッケージ解決）。
+
+```bash
+# async-job
+docker build --platform linux/arm64 -f apps/async-job/Dockerfile -t test-async-job:local .
+docker run --rm --entrypoint /bin/sh test-async-job:local -c "ls -la /var/task/"
+
+# dsql-migrator
+docker build --platform linux/arm64 -f apps/cdk/lib/constructs/dsql-migrator/Dockerfile -t test-migrator:local .
+docker run --rm --entrypoint /bin/sh test-migrator:local -c "ls -la /var/task/ && cat /var/task/migrations/*.sql"
+
+# webapp（CodeBuild で実行されるため手元では省略可。ただし Dockerfile の構文エラーは確認できる）
+docker build --platform linux/arm64 -f apps/webapp/Dockerfile -t test-webapp:local .
+```
+
+確認事項:
+- esbuild の出力が `.mjs` 拡張子であること
+- `@aws/aurora-dsql-node-postgres-connector` がバンドルに含まれていること（`--external:@aws-sdk/*` で除外されないこと）
+- migrations/ ディレクトリが正しくコピーされていること
+
+#### 12d. ローカルマイグレーション実行
+
+実際の DSQL クラスタに対してマイグレーションを実行する。ビルドが通っても、ESM モジュールの即時評価や `.env` の読み込みでクラッシュする可能性がある。
+
+```bash
+bash scripts/dsql.sh create --region <region>
+pnpm --filter @repo/db run migrate
+```
+
+確認事項:
+- `packages/db/.env` が生成され、`DSQL_ENDPOINT` と `AWS_REGION` が設定されていること
+- マイグレーションが成功し、`_migrations` テーブルにレコードが挿入されること
+- 再実行で冪等（既に適用済みのマイグレーションがスキップされること）
+
+#### 12e. ローカルデバッグサーバー + ブラウザ e2e
+
+`apps/webapp/.env.local` に実際の Cognito / DSQL / AppSync の値を設定し、`pnpm run dev` でローカルサーバーを起動してブラウザで操作する。
+
+```bash
+# .env.local に実際の値を設定（Cognito は既存スタックの出力から取得）
+cd apps/webapp && pnpm run dev
+```
+
+確認事項:
+- サインインページが表示されること
+- Cognito Managed Login でログインできること
+- Todo の CRUD（作成・完了・編集・削除）が動作すること
+- DB からのデータ読み込みが正しいこと
+
+#### 12f. cdk deploy
+
+```bash
+cd apps/cdk && pnpm exec cdk deploy --all
+```
+
+v2 スタックが存在する場合は UPDATE になる。以下の既知の問題に注意:
+
+- **VPC ENI 残存**: VPC Lambda → 非VPC Lambda への移行時、Hyperplane ENI が最大20分 `available` 状態で残り、セキュリティグループとサブネットの削除がブロックされる。`DELETE_FAILED` が出たら手動で ENI → SG の順に削除する（詳細はマイグレーションガイド参照）
+
+確認事項:
+- 両スタック（UsEast1Stack, MainStack）が `UPDATE_COMPLETE` / `CREATE_COMPLETE` になること
+- `MigrationCommand` の出力が DsqlMigrator を指していること
+- `DatabaseClusterEndpoint` の出力が DSQL エンドポイントであること
+
+#### 12g. デプロイ後 e2e
+
+デプロイされた CloudFront URL にブラウザでアクセスし、全機能を確認する。
+
+確認事項:
+- サインイン → Todo 作成 → 完了 → 削除が動作すること
+- **Translate（非同期ジョブ）**: ボタン押下 → Lambda 非同期実行 → AppSync Events でリアルタイム通知 → ページ自動更新で翻訳結果が表示されること
+- サインアウトが動作すること
+
+#### 12h. Lambda マイグレーション実行
+
+```bash
+aws lambda invoke --function-name <MigrationFunctionName> --payload '{}' --cli-binary-format raw-in-base64-out /dev/stdout
+```
+
+確認事項:
+- `{"statusCode":200,"body":"Migration complete"}` が返ること
+- 再実行で冪等であること（既に適用済みのマイグレーションがスキップされること）
+
+## 実装後の検証で発見した問題（2026-03-20）
+
+### ESM モジュール即時評価による cli.ts クラッシュ
+
+`client.ts` で `export const db = drizzle({ client: getPool(), schema })` がモジュール読み込み時に即座に実行される。`cli.ts` が `import { getPool } from './client'` しただけで `db` の初期化も走り、`DSQL_ENDPOINT` 未設定時にクラッシュ。
+
+対策: `db` を Proxy で遅延初期化に変更。`import { db }` の既存コードを壊さずに、実際のプロパティアクセス時まで初期化を遅延させる。
+
+### tsx は .env を自動ロードしない
+
+`"migrate": "tsx src/cli.ts"` では `packages/db/.env` が読まれない。`tsx --env-file=.env src/cli.ts` に変更。
+
+### v2→v3 アップデート時の VPC ENI 残存
+
+Lambda が VPC から外れた後、Hyperplane ENI が `available` 状態で最大20分残存し、セキュリティグループとサブネットの CloudFormation 削除が `DELETE_FAILED` になる。手動で ENI → SG の順に削除が必要。マイグレーションガイドに手順を記載済み。
+
+### 教訓: 静的検証だけでは不十分
+
+タスク12の `tsc --noEmit` と `pnpm run build` は全て通っていたが、実際のランタイム実行（`pnpm --filter @repo/db run migrate`）で即座にクラッシュした。モジュール初期化順序や環境変数の読み込みは型チェック・ビルドでは検出できない。実環境での動作確認が不可欠。
