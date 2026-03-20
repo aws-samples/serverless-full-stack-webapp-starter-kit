@@ -43,6 +43,16 @@ Key differences:
 
 The entire VPC stack has been removed. Lambda functions connect to DSQL over the public internet with IAM authentication.
 
+**Known issue when updating from v2:** When `cdk deploy` removes VPC configuration from Lambda functions, AWS does not immediately delete the Hyperplane ENIs (Elastic Network Interfaces) that were created for VPC access. These ENIs remain in `available` state for up to 20 minutes, blocking deletion of the associated security groups and subnets. CloudFormation will report `DELETE_FAILED` for these security groups with the error "resource has a dependent object".
+
+**Root cause:** Lambda VPC ENIs are managed asynchronously by the Lambda service. When a function's VPC configuration is removed, the ENIs are eventually cleaned up, but the delay can exceed CloudFormation's retry window.
+
+**Workaround:** If `cdk deploy` stalls during VPC resource cleanup:
+1. Identify orphaned ENIs: `aws ec2 describe-network-interfaces --filters "Name=description,Values=AWS Lambda VPC ENI*" "Name=status,Values=available" --region <region>`
+2. Delete each ENI: `aws ec2 delete-network-interface --network-interface-id <eni-id> --region <region>`
+3. Delete the security groups if CloudFormation has already marked them as `DELETE_FAILED`: `aws ec2 delete-security-group --group-id <sg-id> --region <region>`
+4. CloudFormation will continue and complete the remaining VPC resource cleanup automatically.
+
 ### 5. Project structure
 
 ```

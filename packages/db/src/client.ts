@@ -17,15 +17,17 @@ export function getPool(): AuroraDSQLPool {
   return pool;
 }
 
-// Singleton for hot-reload safety
-const globalForDb = globalThis as unknown as { db: ReturnType<typeof createDb> };
+type DbInstance = ReturnType<typeof drizzle<typeof schema>>;
 
-function createDb() {
-  return drizzle({ client: getPool(), schema });
-}
+// Lazy singleton for hot-reload safety.
+// Uses a Proxy so `import { db }` works without triggering pool creation at module load.
+const globalForDb = globalThis as unknown as { _db: DbInstance };
 
-export const db = globalForDb.db ?? createDb();
-
-if (process.env.NODE_ENV !== 'production') {
-  globalForDb.db = db;
-}
+export const db: DbInstance = new Proxy({} as DbInstance, {
+  get(_target, prop, receiver) {
+    if (!globalForDb._db) {
+      globalForDb._db = drizzle({ client: getPool(), schema });
+    }
+    return Reflect.get(globalForDb._db, prop, receiver);
+  },
+});
