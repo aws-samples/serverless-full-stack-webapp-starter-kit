@@ -90,9 +90,10 @@ export class Database extends Construct implements ec2.IConnectable {
 
   public getLambdaEnvironment(databaseName: string) {
     const conn = this.getConnectionInfo();
-    // Aurora Serverless v2 cold start takes up to 15 seconds
-    // https://www.prisma.io/docs/orm/prisma-client/setup-and-configuration/databases-connections/connection-pool
-    const option = '?pool_timeout=20&connect_timeout=20';
+    // connection_limit=1: Each Lambda instance handles one request at a time
+    // connect_timeout=30: Aurora Serverless v2 auto-pause resume takes ~15s (longer after 24h+ pause)
+    // https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless-v2-auto-pause.html
+    const option = '?connection_limit=1&connect_timeout=30';
     return {
       DATABASE_HOST: conn.host,
       DATABASE_NAME: databaseName,

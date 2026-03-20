@@ -27,26 +27,45 @@ export const handler: Handler = async (event, _) => {
   // Currently we don't have any direct method to invoke prisma migration programmatically.
   // As a workaround, we spawn migration script as a child process and wait for its completion.
   // Please also refer to the following GitHub issue: https://github.com/prisma/prisma/issues/4703
-  try {
-    const exitCode = await new Promise((resolve, _) => {
+  await runPrismaDbPush(options);
+};
+
+// Aurora Serverless v2 may be resuming from auto-pause (0 ACU) during CDK deployment,
+// which takes approximately 15 seconds. Retry transient connection errors with exponential backoff.
+// https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless-v2-auto-pause.html
+async function runPrismaDbPush(options: string[], maxRetries = 5, baseDelay = 3000): Promise<void> {
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    const { exitCode, stdout, stderr } = await new Promise<{
+      exitCode: number;
+      stdout: string;
+      stderr: string;
+    }>((resolve) => {
       execFile(
         path.resolve('./node_modules/prisma/build/index.js'),
         ['db', 'push', '--skip-generate'].concat(options),
         (error, stdout, stderr) => {
-          console.log(stdout);
-          if (error != null) {
-            console.log(`prisma db push exited with error ${error.message}`);
-            resolve(error.code ?? 1);
-          } else {
-            resolve(0);
-          }
+          resolve({
+            exitCode: error ? (typeof error.code === 'number' ? error.code : 1) : 0,
+            stdout,
+            stderr,
+          });
         },
       );
     });
 
-    if (exitCode != 0) throw Error(`db push failed with exit code ${exitCode}`);
-  } catch (e) {
-    console.log(e);
-    throw e;
+    console.log(`prisma db push attempt ${attempt}/${maxRetries}`, { exitCode, stdout, stderr });
+
+    if (exitCode === 0) return;
+
+    const isRetryable =
+      stderr.includes('P1001') || stderr.includes("Can't reach database") || stderr.includes('Connection refused');
+
+    if (!isRetryable || attempt === maxRetries) {
+      throw new Error(`prisma db push failed after ${attempt} attempt(s): ${stderr}`);
+    }
+
+    const delay = baseDelay * Math.pow(2, attempt - 1) + Math.random() * 1000;
+    console.log(`Retrying prisma db push in ${Math.round(delay)}ms...`);
+    await new Promise((r) => setTimeout(r, delay));
   }
-};
+}
