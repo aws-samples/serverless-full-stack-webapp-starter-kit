@@ -35,7 +35,11 @@ async function withRetry<T>(fn: () => Promise<T>, maxRetries = 3, baseDelay = 50
   let lastError: unknown;
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
-      return await fn();
+      const result = await fn();
+      if (attempt > 0) {
+        console.warn(`Prisma query succeeded after ${attempt} retry(s)`);
+      }
+      return result;
     } catch (error) {
       lastError = error;
       if (attempt === maxRetries || !isRetryableError(error)) throw error;
