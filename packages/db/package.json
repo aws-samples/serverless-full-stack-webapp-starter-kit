@@ -9,6 +9,7 @@
     "./migrate": "./src/migrate.ts"
   },
   "scripts": {
+    "generate": "drizzle-kit generate && tsx src/check-dsql-compat.ts",
     "migrate": "tsx --env-file=.env src/cli.ts",
     "format": "oxfmt --write .",
     "format:ci": "oxfmt --check .",
@@ -24,6 +25,7 @@
   },
   "devDependencies": {
     "@types/pg": "^8",
+    "drizzle-kit": "^0.31.10",
     "tsx": "^4",
     "typescript": "^5"
   }

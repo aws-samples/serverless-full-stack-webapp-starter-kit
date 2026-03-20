@@ -60,7 +60,27 @@ DSQL constraints:
 
 Migrations are SQL files in `packages/db/migrations/`. The migration runner is invoked automatically during `cdk deploy` via CDK Trigger. For manual invocation, use the `MigrationCommand` from CDK outputs.
 
-Schema changes: edit `packages/db/src/schema.ts` → generate migration SQL → place in `packages/db/migrations/` → commit. Each SQL statement must be separated by a blank line (the runner splits on `\n\n`).
+Schema changes:
+
+```bash
+# 1. Edit schema
+#    packages/db/src/schema.ts
+
+# 2. Generate migration SQL + DSQL compatibility check
+pnpm --filter @repo/db run generate
+
+# 3. Review and fix the generated SQL in packages/db/migrations/
+#    - Add IF NOT EXISTS for idempotency
+#    - Replace CREATE INDEX with CREATE INDEX ASYNC
+#    - Replace --> statement-breakpoint with blank lines (runner splits on \n\n)
+
+# 4. Apply to dev cluster
+pnpm --filter @repo/db run migrate
+
+# 5. Commit schema + migration + snapshot together
+```
+
+Do not use `drizzle-kit push` or `drizzle-kit migrate` — DSQL requires 1 DDL per transaction. The custom runner (`pnpm run migrate`) handles this.
 
 ### Lambda environment
 
