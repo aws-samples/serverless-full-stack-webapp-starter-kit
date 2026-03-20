@@ -1,8 +1,6 @@
+import { getAuthSession } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { runWithAmplifyServerContext } from '@/lib/amplifyServerUtils';
-import { getCurrentUser } from 'aws-amplify/auth/server';
 import { createSafeActionClient, DEFAULT_SERVER_ERROR_MESSAGE } from 'next-safe-action';
-import { cookies } from 'next/headers';
 
 export class MyCustomError extends Error {
   constructor(message: string) {
@@ -28,18 +26,11 @@ const actionClient = createSafeActionClient({
 });
 
 export const authActionClient = actionClient.use(async ({ next }) => {
-  const currentUser = await runWithAmplifyServerContext({
-    nextServerContext: { cookies },
-    operation: (contextSpec) => getCurrentUser(contextSpec),
-  });
-
-  if (!currentUser) {
-    throw new Error('Session is not valid!');
-  }
+  const { userId } = await getAuthSession();
 
   const user = await prisma.user.findUnique({
     where: {
-      id: currentUser.userId,
+      id: userId,
     },
   });
 

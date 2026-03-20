@@ -1,12 +1,12 @@
 import { prisma } from '@/lib/prisma';
-import { getSession } from '@/lib/auth';
+import { getAuthSession } from '@/lib/auth';
 import TodoItemComponent from './components/TodoItem';
 import CreateTodoForm from './components/CreateTodoForm';
 import { TodoItemStatus } from '@prisma/client';
 import Header from '@/components/Header';
 
 export default async function Home() {
-  const { userId } = await getSession();
+  const { userId } = await getAuthSession();
 
   const todos = await prisma.todoItem.findMany({
     where: {
