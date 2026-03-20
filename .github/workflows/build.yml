@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
   pull_request:
 jobs:
-  Build-and-Test-CDK:
+  Build-and-Test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -16,31 +16,15 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: '22.x'
-      - run: |
-          npm ci
-          npm run format:check
-        working-directory: ./cdk
-        name: Install dependencies and run static analysis
-      - run: |
-          npm run build
-          npm run test
-        working-directory: ./cdk
-        name: build and test
-  Build-and-Test-Webapp:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - name: Use Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: '22.x'
-      - run: |
-          npm ci
-          npm run format:check
-        working-directory: ./webapp
-        name: Install dependencies and run static analysis
-      - run: |
-          cp .env.local.example .env.local
-          npm run build
-        working-directory: ./webapp
-        name: build
+      - name: Install pnpm
+        run: corepack enable && corepack prepare pnpm@10.8.1 --activate
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Check
+        run: pnpm run check:ci
+      - name: Test
+        run: pnpm run test:unit
+      - name: Build
+        run: |
+          cp apps/webapp/.env.local.example apps/webapp/.env.local
+          pnpm run build

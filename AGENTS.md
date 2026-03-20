@@ -3,51 +3,64 @@
 ## Commands
 
 ```bash
+# install all dependencies
+pnpm install
+
 # webapp
-cd webapp && npm ci
-cd webapp && npm run dev          # starts on port 3010
-cd webapp && npm run build
-cd webapp && npm run lint
-cd webapp && npm run format
+cd apps/webapp && pnpm run dev          # starts on port 3010
+cd apps/webapp && pnpm run build
+cd apps/webapp && pnpm run lint
 
 # cdk
-cd cdk && npm ci
-cd cdk && npm run build
-cd cdk && npm test
-cd cdk && npm run format
-cd cdk && npx cdk deploy --all
-cd cdk && npx cdk diff
+cd apps/cdk && pnpm run build
+cd apps/cdk && pnpm run test
+cd apps/cdk && pnpm exec cdk deploy --all
+cd apps/cdk && pnpm exec cdk diff
 
-# local development (requires Docker)
-docker compose up -d              # PostgreSQL on port 5432
-cd webapp && npx prisma db push   # sync schema to local DB
-cd webapp && npm run dev
+# db migration (requires DSQL cluster)
+pnpm --filter @repo/db run migrate
+
+# lint (from root)
+pnpm run lint
+
+# local development (requires DSQL cluster)
+bash scripts/dsql.sh create             # create dev DSQL cluster
+cd apps/webapp && pnpm run dev
 ```
 
 ## Development guide
 
 ### Authentication
 
-All server-side mutations must go through `authActionClient` (defined in `lib/safe-action.ts`). It validates the Cognito session via Amplify server-side auth and injects `ctx.userId`. Never call Prisma directly from a Server Action without this middleware.
+All server-side mutations must go through `authActionClient` (defined in `lib/safe-action.ts`). It validates the Cognito session via Amplify server-side auth and injects `ctx.userId`. Never call Drizzle directly from a Server Action without this middleware.
 
 `proxy.ts` handles route protection (redirect to `/sign-in` for unauthenticated users). It is NOT a Next.js middleware file — it runs inside the Lambda handler. There is no `middleware.ts` in this project.
 
 ### Async jobs
 
-The dispatch flow is: Server Action → `runJob()` (Lambda async invoke) → `async-job-runner.ts` (discriminated union dispatch) → job handler → `sendEvent()` (AppSync Events) → client `useEventBus` hook.
+The dispatch flow is: Server Action → `runJob()` (Lambda async invoke) → `apps/async-job/src/handler.ts` (discriminated union dispatch) → job handler → `sendEvent()` (AppSync Events) → client `useEventBus` hook.
 
 To add a new job:
-1. Add a Zod schema with a `type` literal to the discriminated union in `async-job-runner.ts`
-2. Implement the handler in `src/jobs/async-job/`
-3. Add the case to the switch statement
+1. Add a Zod schema with a `type` literal to the discriminated union in `packages/shared-types/src/job-payload.ts`
+2. Implement the handler in `apps/async-job/src/jobs/`
+3. Add the case to the switch statement in `apps/async-job/src/handler.ts`
 
-All job types share a single Lambda function via `job.Dockerfile`. The CDK `cmd` parameter selects the entry point.
+### Database
+
+The project uses Aurora DSQL with Drizzle ORM. Schema is defined in `packages/db/src/schema.ts`.
+
+DSQL constraints:
+- No SERIAL/SEQUENCE — use UUID
+- No FOREIGN KEY — use Drizzle `relations()` for query builder joins
+- No JSON/JSONB — use TEXT
+- CREATE INDEX must use ASYNC keyword
+- 1 DDL per transaction
 
 ### Database migration
 
-`prisma db push` is used for schema sync by default. The migration runner Lambda is invoked automatically during `cdk deploy` via CDK Trigger. For manual invocation, use the `MigrationCommand` from CDK outputs.
+Migrations are SQL files in `packages/db/migrations/`. The migration runner is invoked automatically during `cdk deploy` via CDK Trigger. For manual invocation, use the `MigrationCommand` from CDK outputs.
 
-Schema changes: edit `prisma/schema.prisma` → run `npx prisma db push` locally → commit. The `zod-prisma-types` generator auto-generates Zod schemas from the Prisma schema. If you switch to `prisma migrate`, update the migration runner accordingly.
+Schema changes: edit `packages/db/src/schema.ts` → generate migration SQL → place in `packages/db/migrations/` → commit. Each SQL statement must be separated by a blank line (the runner splits on `\n\n`).
 
 ### Lambda environment
 
@@ -75,8 +88,9 @@ Server → client push uses AppSync Events. Server-side: `sendEvent(channelName,
 
 ## Do not
 
-- Do not bypass `authActionClient` for any mutation. No raw Prisma calls from Server Actions.
+- Do not bypass `authActionClient` for any mutation. No raw Drizzle calls from Server Actions.
 - Do not add `middleware.ts`. Route protection is handled by `proxy.ts` inside the Lambda runtime.
-- Do not use `prisma migrate` commands unless you have explicitly switched from `prisma db push`. The default setup uses `prisma db push`.
 - Do not hardcode AWS region or account IDs. Use CDK context or environment variables.
 - Do not add `NEXT_PUBLIC_` env vars to `.env.local` for deployed builds — they must be set as CDK build args in `webapp.ts`.
+- Do not use `.references()` in Drizzle schema — DSQL does not support foreign keys. Use `relations()` instead.
+- Do not use `serial`, `json`, or `jsonb` column types — DSQL does not support them.
