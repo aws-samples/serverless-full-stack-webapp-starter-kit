@@ -1,5 +1,6 @@
 import { CfnOutput, Stack, Token } from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
+import * as logs from 'aws-cdk-lib/aws-logs';
 import * as rds from 'aws-cdk-lib/aws-rds';
 import * as secretsmanager from 'aws-cdk-lib/aws-secretsmanager';
 import { Construct } from 'constructs';
@@ -34,11 +35,16 @@ export class Database extends Construct implements ec2.IConnectable {
       credentials: rds.Credentials.fromUsername(engine.defaultUsername ?? 'admin', {
         excludeCharacters: ' %+~`#$&*()|[]{}:;<>?!\'/@"\\,=^',
       }),
+      enableDataApi: true,
+      cloudwatchLogsExports: ['postgresql'],
+      cloudwatchLogsRetention: logs.RetentionDays.ONE_WEEK,
       parameterGroup: new rds.ParameterGroup(this, 'ParameterGroup', {
         engine,
         parameters: {
           // Close idle connection after 60 seconds for Aurora auto-pause
           idle_session_timeout: '60000',
+          log_connections: '1',
+          log_disconnections: '1',
         },
       }),
     });
