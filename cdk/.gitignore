@@ -1,5 +1,6 @@
 *.js
 !jest.config.js
+!lib/constructs/cf-lambda-furl-service/cf-function/*.js
 *.d.ts
 node_modules
 

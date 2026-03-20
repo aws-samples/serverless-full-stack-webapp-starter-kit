@@ -8,11 +8,16 @@ import {
   CachePolicy,
   CacheQueryStringBehavior,
   Distribution,
+  Function as CfFunction,
+  FunctionCode as CfFunctionCode,
+  FunctionEventType,
+  FunctionRuntime,
   LambdaEdgeEventType,
   OriginRequestPolicy,
   SecurityPolicyProtocol,
 } from 'aws-cdk-lib/aws-cloudfront';
 import { FunctionUrlOrigin } from 'aws-cdk-lib/aws-cloudfront-origins';
+import * as path from 'path';
 import { StringParameter } from 'aws-cdk-lib/aws-ssm';
 import { ARecord, IHostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53';
 import { CloudFrontTarget } from 'aws-cdk-lib/aws-route53-targets';
@@ -89,11 +94,22 @@ export class CloudFrontLambdaFunctionUrlService extends Construct {
         'X-HTTP-Method-Override',
         'X-HTTP-Method',
         'X-Method-Override',
+        // Hashed Next.js RSC headers set by the CloudFront Function below.
+        // See cf-function/cache-key.js for details.
+        'x-nextjs-cache-key',
       ),
       defaultTtl: Duration.seconds(0),
       cookieBehavior: CacheCookieBehavior.all(),
       enableAcceptEncodingBrotli: true,
       enableAcceptEncodingGzip: true,
+    });
+
+    // CloudFront Function to hash Next.js RSC headers into a single cache key header.
+    // This prevents cache poisoning between HTML and RSC flight responses while
+    // staying within CloudFront's 10-header limit on Cache Policies.
+    const cacheKeyFunction = new CfFunction(this, 'CacheKeyFunction', {
+      runtime: FunctionRuntime.JS_2_0,
+      code: CfFunctionCode.fromFile({ filePath: path.join(__dirname, 'cf-function', 'cache-key.js') }),
     });
 
     const distribution = new Distribution(this, 'Resource', {
@@ -103,6 +119,12 @@ export class CloudFrontLambdaFunctionUrlService extends Construct {
         cachePolicy,
         allowedMethods: AllowedMethods.ALLOW_ALL,
         originRequestPolicy: OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+        functionAssociations: [
+          {
+            function: cacheKeyFunction,
+            eventType: FunctionEventType.VIEWER_REQUEST,
+          },
+        ],
         edgeLambdas: [
           {
             functionVersion: signPayloadHandler.versionArn(this),
