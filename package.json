@@ -1,0 +1,32 @@
+{
+  "private": true,
+  "scripts": {
+    "dev": "pnpm -r run --if-present --parallel dev",
+    "build": "pnpm -r run --if-present build",
+    "test:unit": "pnpm -r run --if-present test:unit",
+    "test:integ": "pnpm -r run --if-present test:integ",
+    "test:e2e": "pnpm -r run --if-present test:e2e",
+    "test:watch": "pnpm -r run --if-present --parallel test:watch",
+    "format": "pnpm -r run --if-present format",
+    "format:ci": "pnpm -r run --if-present format:ci",
+    "lint": "pnpm -r run --if-present lint",
+    "lint:ci": "pnpm -r run --if-present lint:ci",
+    "check": "pnpm run lint && pnpm run format",
+    "check:ci": "pnpm run lint:ci && pnpm run format:ci",
+    "test": "pnpm run check && pnpm run test:unit && pnpm run test:integ && pnpm run test:e2e"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.4",
+    "oxfmt": "^0",
+    "oxlint": "^1",
+    "oxlint-tsgolint": "^0"
+  },
+  "packageManager": "pnpm@10.8.1",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "sharp",
+      "unrs-resolver"
+    ]
+  }
+}

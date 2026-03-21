@@ -9,7 +9,7 @@ Copy, deploy with a single command, then replace the sample todo app with your o
 ## What you get
 
 1. **Working sample app** — A todo app with authentication, DB CRUD, async jobs, and real-time notifications wired end-to-end. Designed as a readable reference for AI coding agents and humans alike.
-2. **End-to-end type safety** — Types flow from Prisma ORM through Zod schemas and Server Actions to React components in a single chain.
+2. **End-to-end type safety** — Types flow from Drizzle ORM through Zod schemas and Server Actions to React components in a single chain.
 3. **Serverless from day one** — Fully serverless architecture starting under $10/month that scales without operational overhead.
 4. **Integrated DB migration** — Schema migration is integrated into the CDK deploy process via CDK Trigger, providing a development-to-production path out of the box.
 
@@ -31,11 +31,12 @@ After login, you can add, delete, and manage your todo items. The translate butt
 
 ## Architecture
 
+<!-- Source: .serverless-full-stack-webapp-starter-kit/docs/imgs/architecture.drawio -->
 ![architecture](./.serverless-full-stack-webapp-starter-kit/docs/imgs/architecture.png)
 
 | Service | Role |
 |---------|------|
-| [Aurora PostgreSQL Serverless v2](https://aws.amazon.com/rds/aurora/serverless/) | Relational database with Prisma ORM |
+| [Aurora DSQL](https://aws.amazon.com/rds/aurora/dsql/) | Serverless distributed SQL database with Drizzle ORM |
 | [Next.js App Router](https://nextjs.org/docs/app) on [Lambda](https://aws.amazon.com/lambda/) | Unified frontend and backend |
 | [CloudFront](https://aws.amazon.com/cloudfront/) + Lambda Function URL | Content delivery with response streaming |
 | [Cognito](https://aws.amazon.com/cognito/) | Authentication (email by default, OIDC federation supported) |
@@ -44,12 +45,13 @@ After login, you can add, delete, and manage your todo items. The translate butt
 | [CloudWatch](https://aws.amazon.com/cloudwatch/) + S3 | Access logging |
 | [CDK](https://aws.amazon.com/cdk/) | Infrastructure as Code |
 
-Fully serverless — high cost efficiency, scalability, and minimal operational overhead.
+Fully serverless — no VPC required, high cost efficiency, scalability, and minimal operational overhead.
 
 ## Getting started
 
 Prerequisites:
-* [Node.js](https://nodejs.org/) (>= v20)
+* [Node.js](https://nodejs.org/) (>= v22)
+* [pnpm](https://pnpm.io/) (>= v10)
 * [Docker](https://docs.docker.com/get-docker/)
 * [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) with a configured IAM profile
 
@@ -67,34 +69,29 @@ git add -A && git commit -m "Initial commit from serverless-full-stack-webapp-st
 
 ### 2. Customize (optional)
 
-- Update the application name (stack name, tags) in [`cdk/bin/cdk.ts`](cdk/bin/cdk.ts)
-- Set a custom domain in `cdk/bin/cdk.ts`
-- Remove `cdk.context.json` from `cdk/.gitignore` and commit it (recommended for your own project)
-- Switch from `prisma db push` to `prisma migrate` if you need migration history
+- Update the application name (stack name, tags) in [`apps/cdk/bin/cdk.ts`](apps/cdk/bin/cdk.ts)
+- Set a custom domain in `apps/cdk/bin/cdk.ts`
 
 ### 3. Deploy
 
 ```sh
-cd cdk
-npm ci
-npx cdk bootstrap
-npx cdk deploy --all
+pnpm install
+cd apps/cdk
+pnpm exec cdk bootstrap
+pnpm exec cdk deploy --all
 ```
 
-Initial deployment takes about 20 minutes. After success, you'll see:
+Initial deployment takes about 15 minutes. After success, you'll see:
 
 ```
  ✅  ServerlessWebappStarterKitStack
 
 Outputs:
 ServerlessWebappStarterKitStack.FrontendDomainName = https://web.example.com
-ServerlessWebappStarterKitStack.DatabaseSecretsCommand = aws secretsmanager get-secret-value ...
-ServerlessWebappStarterKitStack.DatabasePortForwardCommand = aws ssm start-session ...
+ServerlessWebappStarterKitStack.DatabaseClusterEndpoint = <cluster>.dsql.<region>.on.aws
 ```
 
 Open the `FrontendDomainName` URL to try the sample app.
-
-> **Note:** `DatabasePortForwardCommand` establishes a local connection to your RDS database, and `DatabaseSecretsCommand` retrieves database credentials from Secrets Manager.
 
 ### 4. Add your own features
 
@@ -112,23 +109,22 @@ Sample cost breakdown for us-east-1, one month, with cost-optimized configuratio
 
 | Service | Usage Details | Monthly Cost [USD] |
 |---------|--------------|-------------------|
-| Aurora Serverless v2 | 0.5 ACU × 2 hour/day, 1GB storage | 3.6 |
-| Cognito | 100 MAU | 1.5 |
+| Aurora DSQL | 1M read RPUs, 0.5M write RPUs, 1GB storage | 0.65 |
+| Cognito | 100 MAU | 1.50 |
 | AppSync Events | 100 events/month, 10 hours connection/user/month | 0.02 |
 | Lambda | 1024MB × 200ms/request | 0.15 |
 | Lambda@Edge | 128MB × 50ms/request | 0.09 |
-| VPC | NAT Instance (t4g.nano) × 1 | 3.02 |
-| EventBridge | Scheduler 100 jobs/month | 0.0001 |
+| EventBridge | Scheduler 100 jobs/month | 0.00 |
 | CloudFront | Data transfer 1kB/request | 0.01 |
-| **Total** | | **8.49** |
+| **Total** | | **2.42** |
 
-Assumes 100 users/month, 1000 requests/user. Costs could be further reduced with [Free Tier](https://aws.amazon.com/free/).
+Assumes 100 users/month, 1000 requests/user. Costs could be further reduced with [Free Tier](https://aws.amazon.com/free/). No VPC or NAT costs — DSQL uses IAM authentication over the public internet.
 
 ## Clean up
 
 ```sh
-cd cdk
-npx cdk destroy --force
+cd apps/cdk
+pnpm exec cdk destroy --force
 ```
 
 ## Maintainers

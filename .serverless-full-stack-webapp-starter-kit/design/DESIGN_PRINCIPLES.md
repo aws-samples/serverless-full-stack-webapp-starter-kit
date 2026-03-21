@@ -13,7 +13,7 @@ As an aws-samples project:
 - Correctness is the top priority — users learn patterns from this code.
 - Reproducibility — following the README must produce a working deployment.
 - Readability — code should be understandable by developers new to serverless.
-- One-command deploy — `npx cdk deploy --all` must be the only deployment step.
+- One-command deploy — `pnpm exec cdk deploy --all` must be the only deployment step.
 
 The litmus test for any PR: "After this merges, will a developer who copies the kit build their app on a correct understanding?"
 
@@ -41,12 +41,14 @@ The litmus test for any PR: "After this merges, will a developer who copies the 
 
 | Choice | Rationale |
 |--------|-----------|
-| `prisma db push` over `prisma migrate` | Simpler default for starter-kit scope. Users can switch to `prisma migrate` when they need migration history. |
-| NAT Instance over NAT Gateway | ~$30/month savings. Acceptable trade-off for a starter kit. |
+| Aurora DSQL over Aurora Serverless v2 | No VPC required, true pay-per-request, IAM authentication. Eliminates NAT Instance cost and VPC complexity. |
+| Drizzle ORM over Prisma | Pure TypeScript (no `prisma generate`), `relations()` naturally fits DSQL's no-FK constraint, simpler monorepo sharing. |
+| Custom migration runner over `drizzle-kit push` | DSQL requires 1 DDL per transaction. The runner splits SQL on blank lines and validates DSQL compatibility before execution. |
 | Single Lambda for all async jobs | Reduces cold starts and simplifies deployment. `cmd` parameter selects the entry point. |
 | `proxy.ts` over Next.js middleware | Runs inside Lambda handler, avoiding cold-start CPU starvation from JWKS fetch in middleware. |
 | `output: 'standalone'` | Required for Lambda deployment via Docker image. |
 | Lambda Web Adapter | Enables response streaming with CloudFront + Lambda Function URL. |
+| oxlint + oxfmt over ESLint + Prettier | Faster linting and formatting. Type-aware linting via oxlint-tsgolint replaces `tsc --noEmit`. |
 
 ### Architecture Decision Records (ADR)
 

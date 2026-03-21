@@ -1,0 +1,49 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
+  "plugins": ["nextjs", "typescript"],
+  "options": {
+    "typeAware": true,
+    "typeCheck": true
+  },
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "rules": {
+    "typescript/no-unused-vars": "off",
+    "typescript/no-unsafe-type-assertion": "off",
+    "no-new": "off",
+    "no-unused-expressions": "off",
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": [
+          { "name": "drizzle-orm/pg-core", "importNames": ["serial", "smallserial", "bigserial", "json", "jsonb"], "message": "DSQL does not support serial types or JSON columns. Use uuid/text instead." }
+        ]
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["**/schema.ts", "**/schema/*.ts"],
+      "rules": {
+        "no-restricted-syntax": [
+          "error",
+          {
+            "selector": "CallExpression > MemberExpression > Identifier[name='references']",
+            "message": "DSQL does not support foreign keys. Use Drizzle relations() instead of .references()."
+          }
+        ]
+      }
+    }
+  ],
+  "ignorePatterns": [
+    "node_modules",
+    ".next",
+    "cdk.out",
+    "dist",
+    "*.js",
+    "*.mjs",
+    "*.d.ts"
+  ]
+}

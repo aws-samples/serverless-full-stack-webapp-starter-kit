@@ -25,12 +25,13 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: "22.x"
+      - name: Install pnpm
+        run: corepack enable && corepack prepare pnpm@10.8.1 --activate
       - run: |
-          npm ci
-          npm run test -- -u
-        working-directory: ./cdk
+          pnpm install --frozen-lockfile
+          cd apps/cdk && pnpm run test:unit -u
       - name: Add & Commit
         uses: EndBug/add-and-commit@v7.2.0
         with:
-          add: "cdk/test/__snapshots__/."
+          add: "apps/cdk/test/__snapshots__/."
           message: "update snapshot"
