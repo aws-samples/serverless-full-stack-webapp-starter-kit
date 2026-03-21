@@ -24,9 +24,9 @@ export class DsqlMigrator extends Construct {
         ignoreMode: IgnoreMode.DOCKER,
       }),
       architecture: Architecture.ARM_64,
-      timeout: Duration.minutes(5),
+      timeout: Duration.minutes(15),
       environment: database.getLambdaEnvironment(),
-      memorySize: 256,
+      memorySize: 2048,
       logGroup: new LogGroup(this, 'Logs', {
         retention: RetentionDays.ONE_WEEK,
         removalPolicy: RemovalPolicy.DESTROY,

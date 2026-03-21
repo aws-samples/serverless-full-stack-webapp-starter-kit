@@ -55,32 +55,17 @@ DSQL constraints:
 - No JSON/JSONB — use TEXT
 - CREATE INDEX must use ASYNC keyword
 - 1 DDL per transaction
+- ALTER TABLE only supports: ADD COLUMN, RENAME COLUMN/TABLE/CONSTRAINT, SET SCHEMA, OWNER TO, and IDENTITY operations. Everything else (DROP COLUMN, ALTER COLUMN TYPE, SET/DROP NOT NULL, SET/DROP DEFAULT, DROP CONSTRAINT) requires table recreation.
 
 ### Database migration
 
-Migrations are SQL files in `packages/db/migrations/`. The migration runner is invoked automatically during `cdk deploy` via CDK Trigger. For manual invocation, use the `MigrationCommand` from CDK outputs.
+See `packages/db/README.md` for full usage. Key rules:
 
-Schema changes:
-
-```bash
-# 1. Edit schema
-#    packages/db/src/schema.ts
-
-# 2. Generate migration SQL (auto-transforms for DSQL compatibility)
-pnpm --filter @repo/db run generate
-#    Auto-transforms: statement-breakpoint → blank lines, CREATE INDEX → ASYNC, FK removal
-#    Errors on unfixable patterns: ALTER COLUMN TYPE, DROP COLUMN, SERIAL
-
-# 3. Review the generated SQL in packages/db/migrations/
-#    - Add IF NOT EXISTS for idempotency
-
-# 4. Apply to dev cluster
-pnpm --filter @repo/db run migrate
-
-# 5. Commit schema + migration + snapshot together
-```
-
-Do not use `drizzle-kit push` or `drizzle-kit migrate` — DSQL requires 1 DDL per transaction. The custom runner (`pnpm run migrate`) handles this.
+- `pnpm --filter @repo/db run generate` — generates and auto-transforms SQL for DSQL.
+- `pnpm --filter @repo/db run migrate` — applies migrations (1 DDL per transaction).
+- Do not use `drizzle-kit push` or `drizzle-kit migrate` — they violate DSQL's 1 DDL/transaction constraint.
+- When `generate` errors on unfixable patterns (DROP COLUMN, ALTER COLUMN TYPE, etc.): run `git checkout -- migrations/`, then `drizzle-kit generate --custom --name=<name>`, and write table recreation SQL or a `.ts` batch migration manually.
+- `.ts` / `.mjs` migrations exist for batch data migrations (e.g. table recreation with >3,000 rows). They `export default async function(client: PoolClient)`.
 
 ### Lambda environment
 
@@ -105,6 +90,7 @@ Server → client push uses AppSync Events. Server-side: `sendEvent(channelName,
 - UI components: use [shadcn/ui](https://ui.shadcn.com/). Do not introduce alternative component libraries.
 - Logs: use JSON structured output.
 - Dependencies: esbuild and Next.js bundle everything, so only packages with native binaries needed at Lambda runtime belong in `dependencies`. Everything else goes in `devDependencies`.
+- Tests: colocate with source (`foo.test.ts` next to `foo.ts`). Use `.integ.test.ts` suffix for tests requiring external resources. Test runner is vitest.
 
 ## Do not
 

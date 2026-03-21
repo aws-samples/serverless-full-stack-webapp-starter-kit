@@ -1,0 +1,1 @@
+ALTER TABLE "TodoItem" ALTER COLUMN "title" SET NOT NULL;

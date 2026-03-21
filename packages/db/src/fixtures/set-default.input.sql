@@ -1,0 +1,1 @@
+ALTER TABLE "TodoItem" ALTER COLUMN "status" SET DEFAULT 'DONE';

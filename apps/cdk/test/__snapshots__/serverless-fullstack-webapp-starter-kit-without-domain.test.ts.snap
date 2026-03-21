@@ -1507,7 +1507,7 @@ exports[`Snapshot test 2`] = `
             "Ref": "DsqlMigratorLogsD0AD5027",
           },
         },
-        "MemorySize": 256,
+        "MemorySize": 2048,
         "PackageType": "Image",
         "Role": {
           "Fn::GetAtt": [
@@ -1515,7 +1515,7 @@ exports[`Snapshot test 2`] = `
             "Arn",
           ],
         },
-        "Timeout": 300,
+        "Timeout": 900,
       },
       "Type": "AWS::Lambda::Function",
     },
