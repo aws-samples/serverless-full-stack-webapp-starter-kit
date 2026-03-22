@@ -6,7 +6,9 @@
 
 ## コンテキスト
 
-キットにはコーディング時に DSQL 非互換パターンを検出するリントルールが必要 — 具体的には `drizzle-orm/pg-core` からの `serial`, `json`, `jsonb` import をブロックする `no-restricted-imports`。リンター速度は開発者体験と CI 時間に影響し、モノレポの成長に伴い重要性が増す。
+キットにはコーディング時に DSQL 非互換パターンを検出するリントルールが必要 — 具体的には `drizzle-orm/pg-core` からの `serial`, `json`, `jsonb` import をブロックする `no-restricted-imports`。
+
+また、キットは AI コーディングエージェントとの併用を前提としており、ファイル書き込みごとに lint + format を実行する post-write hook を推奨している（README「Agentic coding」セクション参照）。このワークフローでは、リンターとフォーマッターが体感できない速度で完了することが必須条件となる。
 
 ## 決定
 
