@@ -52,4 +52,26 @@ The litmus test for any PR: "After this merges, will a developer who copies the 
 
 ### Architecture Decision Records (ADR)
 
-ADRs are not used yet. Introduce `design/adr/` when a major technology decision is made (e.g., ORM migration, database engine change) that requires recording the context, alternatives considered, and rationale.
+Design documents and ADRs record not just decisions but **intent** — the reasoning, constraints, and trade-offs behind a design. In AI-driven development, intent outlives code: when models or workflows evolve, regenerating from intent can produce better results than patching existing code. Users who "copy and grow" this kit may not copy files verbatim — they read the intent and have an AI agent re-implement it for their context.
+
+ADRs use the Nygard format (Status → Context → Decision → Consequences) with rejected alternatives in the Decision section. Place them in `docs/<version>/adr.md` alongside the design document for that version.
+
+When a major technology decision is made (e.g., ORM migration, database engine change), create:
+- `docs/<version>/design.md` — motivation, target architecture, key design decisions
+- `docs/<version>/adr.md` — formal decision records with alternatives and consequences
+
+### Migration guides
+
+When a breaking change is introduced, write a migration guide alongside the ADR. Place it in `docs/<version>/migration-prompt.md`.
+
+A migration guide is not a step-by-step procedure for humans. It is a meta-prompt for an AI coding agent — the agent reads it, compares against the user's codebase, and builds a project-specific migration plan. Write it with that consumer in mind: describe what changed, why, what patterns in user code are affected, and provide phased execution with checkpoints to prevent data loss.
+
+To surface the guide in release notes, include a link in the `BREAKING CHANGE:` commit footer:
+
+```
+feat!: replace ORM from Prisma to Drizzle
+
+BREAKING CHANGE: ORM has been replaced. See [migration guide](docs/v3.0.0/migration-prompt.md) for details.
+```
+
+release-please will carry this into the Breaking Changes section of the GitHub Release.

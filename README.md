@@ -138,7 +138,7 @@ pnpm exec cdk destroy --force
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-Contributors (human and AI) **must** read [`.serverless-full-stack-webapp-starter-kit/design/DESIGN_PRINCIPLES.md`](./.serverless-full-stack-webapp-starter-kit/design/DESIGN_PRINCIPLES.md) before making changes. It defines the design decisions and constraints that govern this kit.
+Contributors (human and AI) **must** read [`.serverless-full-stack-webapp-starter-kit/DESIGN_PRINCIPLES.md`](./.serverless-full-stack-webapp-starter-kit/DESIGN_PRINCIPLES.md) before making changes. It defines the design decisions and constraints that govern this kit.
 
 ## Security
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
