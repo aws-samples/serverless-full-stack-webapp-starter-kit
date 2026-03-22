@@ -94,7 +94,7 @@ export class Database extends Construct implements ec2.IConnectable {
     // pool_timeout=30: Must be >= connect_timeout to allow Aurora Serverless v2 resume (~15s)
     // connect_timeout=30: Aurora Serverless v2 auto-pause resume takes ~15s (longer after 24h+ pause)
     // https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/aurora-serverless-v2-auto-pause.html
-    const option = '?connection_limit=1&pool_timeout=30&connect_timeout=30';
+    const option = '?connection_limit=1&connect_timeout=30';
     return {
       DATABASE_HOST: conn.host,
       DATABASE_NAME: databaseName,
