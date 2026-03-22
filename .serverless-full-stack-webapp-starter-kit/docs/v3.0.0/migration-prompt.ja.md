@@ -2,117 +2,290 @@
 
 ## 目的
 
-あなたは Serverless Full Stack WebApp Starter Kit の v2 から v3 へユーザーのアプリケーションを移行する AI コーディングエージェントです。このドキュメントがあなたの移行計画です — 開始前に全体を読み、各フェーズを順番に実行してください。
+あなたは Serverless Full Stack WebApp Starter Kit の v2 から v3 へユーザーのアプリケーションを移行するソフトウェアエンジニアです。このドキュメントが移行計画の全体像です — 開始前に全体を読み、各フェーズを順番に実行してください。
 
-ユーザーは v2 ベースのアプリケーション（キットをコピーして構築した独自コード）と、本番データを持つ稼働中の Aurora Serverless v2 データベースを持っています。あなたの仕事は、各フェーズのチェックポイントでデータ損失を防ぎながら、コードベースとデータを安全に移行することです。
+ユーザーは v2 ベースのアプリケーション（キットをコピーして構築した独自コード）と、本番データを持つ稼働中の Aurora Serverless v2 データベースを持っています。あなたの仕事は、各フェーズのチェックポイントでデータ安全性を確認しながら、コードベースとデータを移行することです。
 
 ## 前提条件
 
 - Node.js >= v22、pnpm >= v10、Docker、IAM プロファイル設定済みの AWS CLI
 - ユーザーの v2 アプリケーションソースコード
 - ユーザーの AWS アカウントへのアクセス（Aurora Serverless v2 クラスタ、Cognito 等）
-- 参照用の v3 キットのコピー（スキーマパターン、設定例）
+- **参照用の v3 キットのコピー** — ディレクトリ構造、設定ファイル、スキーマパターンはすべて v3 キットを読んで把握すること。本ドキュメントには v3 キットのコードから読み取れる情報は記載しない
 
-## Phase 0: バックアップと事前評価
+## 行動規約
+
+⚠️ **最重要ルール: フェーズを飛ばさないこと。** 特に Phase 5（データベース移行）は段階的な CDK デプロイが必要。RETAIN を設定せずに Aurora v2 リソース定義を削除すると、CloudFormation がクラスタを削除し本番データが失われる。必ず Phase 5-1（RETAIN + DSQL 追加）→ 5-2（データ移行）→ 5-3（切り替え）→ 5-4（旧リソース削除）の順にステップバイステップで進めること。
+
+1. **現在のフェーズのチェックポイントが失敗した場合、次のフェーズに進まない。** まず問題を修正する
+2. **Phase 5-4 はユーザーの明示的な承認が必要。** 削除されるリソースの一覧を提示し、確認を待つ
+3. **Phase 5-2 の前に、Phase 1 の Aurora v2 スナップショットが存在することを再確認。** 存在しない場合、続行前に新しいスナップショットを作成
+4. **ロールバック安全性**: Phase 5-4 の前であればいつでも、スナップショットからリストアし v2 CDK コードを再デプロイすることで Aurora v2 に戻せる。Phase 5-4 以降のロールバックにはスナップショットからのリストアと VPC リソースの再作成が必要
+5. **各フェーズのデータリスク**: Phase 1〜4 はコードのみの変更（データリスクなし）。Phase 5-1 はリソースを追加するのみ。Phase 5-2 はデータをコピー（ソースは未変更）。Phase 5-3 はトラフィックを切り替えるが旧リソースは残る。**Phase 5-4 のみが破壊的**
+
+## v3 キットから直接コピーできるファイル
+
+以下のファイルはユーザー固有のカスタマイズを含まない基盤コードであり、v3 キットからそのままコピーする。変換や手書きは不要。
+
+| コピー元（v3 キット） | 備考 |
+|----------------------|------|
+| `pnpm-workspace.yaml` | — |
+| `oxlintrc.json` | — |
+| `.oxfmtrc.json` | — |
+| `.dockerignore` | — |
+| `packages/db/src/client.ts` | Proxy 遅延初期化 + globalThis シングルトン |
+| `packages/db/src/migrate.ts` | マイグレーションランナーコアロジック |
+| `packages/db/src/dsql-compat.ts` | SQL 変換 + バリデーション |
+| `packages/db/src/cli.ts` | CLI エントリポイント |
+| `packages/db/src/check-dsql-compat.ts` | drizzle-kit generate 後処理 |
+| `packages/db/drizzle.config.ts` | — |
+| `packages/db/package.json` | — |
+| `packages/db/tsconfig.json` | — |
+| `packages/shared-types/package.json` | — |
+| `packages/shared-types/tsconfig.json` | — |
+| `apps/cdk/lib/constructs/database.ts` | DSQL CfnCluster + IAM 認証 |
+| `apps/cdk/lib/constructs/dsql-migrator/` | Dockerfile, handler.ts, index.ts 一式 |
+| `scripts/dsql.sh` | 開発用 DSQL クラスタの作成・削除 |
+
+以下はユーザー固有の変換が必要なため、コピーではなく手書き・変換する:
+
+| ファイル | 理由 |
+|---------|------|
+| `packages/db/src/schema.ts` | ユーザーが追加したテーブル・カラムを含む |
+| `packages/db/migrations/` | ユーザーのスキーマに対応した初期マイグレーション SQL。v3 キットの `0001_initial.sql` はサンプルスキーマ用なのでコピーしない |
+| `packages/shared-types/src/job-payload.ts` | ユーザーが追加したジョブ型を含む |
+| `apps/async-job/src/handler.ts` | ユーザーが追加したジョブの switch 分岐を含む |
+| `apps/async-job/src/jobs/` | ユーザーが追加したジョブハンドラを含む |
+| `apps/webapp/Dockerfile` | v3 キットをベースに、ユーザーが追加した依存やビルド引数を反映する |
+| `apps/async-job/Dockerfile` | 同上 |
+| `apps/webapp/next.config.ts` | v3 では `transpilePackages: ['@repo/db', '@repo/shared-types']` の追加が必要。ユーザーの既存設定を保持しつつマージする |
+
+## Phase 1: バックアップと事前評価
 
 コード変更の前に、既存データを確保し現在のスキーマを把握する。
 
-1. **Aurora Serverless v2 スナップショットの作成**:
-   ```bash
-   aws rds create-db-cluster-snapshot \
-     --db-cluster-identifier <cluster-id> \
-     --db-cluster-snapshot-identifier v2-pre-migration-$(date +%Y%m%d)
-   ```
+### 1-1. Aurora Serverless v2 スナップショットの作成
 
-2. **スキーマとデータのダンプ**（Bastion Host または VPC アクセス可能な環境から接続）:
-   ```bash
-   pg_dump --schema-only -h <aurora-endpoint> -U <user> -d <db> > schema-v2.sql
-   pg_dump --data-only -h <aurora-endpoint> -U <user> -d <db> > data-v2.sql
-   ```
+```bash
+aws rds create-db-cluster-snapshot \
+  --db-cluster-identifier <cluster-id> \
+  --db-cluster-snapshot-identifier v2-pre-migration-$(date +%Y%m%d)
+```
 
-3. **現在のスキーマの評価**: ユーザーの全スキーマを確認 — 全テーブル、カラム、データ型、インデックス、制約。キットのデフォルトスキーマと一致すると仮定しないこと。以下を特定:
-   - SERIAL/BIGSERIAL 主キーを持つテーブル → UUID または IDENTITY への変換が必要
-   - ENUM 型 → TEXT になる
-   - JSON/JSONB カラム → TEXT になる
-   - 外部キー制約 → 削除される（代わりに Drizzle `relations()` を使用）
-   - インデックス → `ASYNC` キーワードが必要
-   - テーブルごとの行数（3,000行超のテーブルはバッチ移行が必要）
+### 1-2. スキーマとデータのダンプ
 
-4. **チェックポイント**: スナップショットの存在を確認（`aws rds describe-db-cluster-snapshots`）、ダンプファイルが空でないことを確認、スナップショットからリストアできることを確認。
+Bastion Host または VPC アクセス可能な環境から接続:
 
-## Phase A: パッケージマネージャ移行（npm → pnpm）
+```bash
+pg_dump --schema-only -h <aurora-endpoint> -U <user> -d <db> > schema-v2.sql
+pg_dump --data-only -h <aurora-endpoint> -U <user> -d <db> > data-v2.sql
+```
 
-1. プロジェクトルートに `pnpm-workspace.yaml` を作成
+### 1-3. ユーザースキーマの分析
+
+ユーザーの `prisma/schema.prisma` と `schema-v2.sql` の両方を読み、以下の DSQL 非互換パターンを特定する。キットのデフォルトスキーマと一致すると仮定しないこと — ユーザーは独自のテーブル・カラムを追加している。
+
+schema.prisma を主たるデータソースとする。理由: Prisma スキーマはモデル定義が構造化されており、フィールド型・リレーション・デフォルト値の対応関係が明確。ダンプ SQL は PostgreSQL の DDL がそのまま含まれ、DSQL 非互換パターンの分離が困難。schema-v2.sql はインデックスや実行時に追加された制約の確認に補助的に使う。
+
+| 検出対象 | DSQL での対処 | 判断基準 |
+|---------|-------------|---------|
+| `SERIAL` / `BIGSERIAL` 主キー | `uuid().defaultRandom()` または IDENTITY 列 | 既存データに外部参照がある場合は UUID 変換時に参照元も更新が必要 |
+| `ENUM` 型 | `text()` + Zod バリデーション | 既存の ENUM 値を洗い出し、Zod スキーマに列挙する |
+| `JSON` / `JSONB` カラム | `text()` + アプリ層でシリアライズ | 既存データの JSON 構造を確認し、型定義を作成する |
+| 外部キー制約（`@relation`） | 削除（Drizzle `relations()` で代替） | アプリ層で参照整合性を担保する必要があるか評価 |
+| インデックス（`@@index`） | `CREATE INDEX ASYNC` に変換 | — |
+| `Decimal` / `Float` 型 | Drizzle は `string` を返す（Prisma は `number`） | アプリコードで数値演算している箇所を特定 |
+| `@updatedAt` | `.$onUpdate(() => new Date())` | — |
+| `zod-prisma-types` 等の生成 Zod スキーマ | 手書きまたは `drizzle-zod` で置き換え | 生成ファイルの一覧を特定 |
+
+各テーブルの行数も記録する — 3,000行超のテーブルは Phase 5-2 でバッチ移行が必要。
+
+### 1-4. ユーザー独自拡張の棚卸し
+
+v2 キットのデフォルトから追加・変更されたファイルを特定する。以降のフェーズで正しい配置先を判断するために必要。
+
+- **独自の CDK Construct**: VPC に依存するもの（RDS に接続する Lambda 等）は Phase 5 で VPC 依存を解消する必要がある
+- **独自の非同期ジョブ**: `webapp/src/jobs/` 配下のファイルを列挙
+- **CI/CD パイプライン**: `.github/workflows/` 等に `npm ci`、`npx prisma generate` 等の v2 固有コマンドがないか確認
+- **webapp の設定ファイル**: `next.config.ts`、`tailwind.config.ts` 等のユーザー変更箇所を把握
+
+### チェックポイント
+
+- スナップショットの存在を確認（`aws rds describe-db-cluster-snapshots`）
+- ダンプファイルが空でないことを確認
+- 全テーブルの非互換パターンと行数を記録した分析結果が完成
+- ユーザー独自拡張の棚卸しが完成
+
+## Phase 2: パッケージマネージャ移行 + モノレポ構造化 + リンター導入
+
+pnpm 移行、ディレクトリ再構成、リンター導入を1つのフェーズで行う。理由: `pnpm-workspace.yaml` は `apps/*` と `packages/*` を参照するため、ディレクトリ構造が先に存在しないと `pnpm install` が失敗する。リンターを同時に入れることで、Phase 3 の Drizzle スキーマ作成時に `serial`/`json`/`jsonb` の import を即座に検出できる。
+
+### 2-1. ディレクトリ再構成
+
+v3 キットのディレクトリ構造を参照し、ユーザーのプロジェクトを再構成する。主な変更:
+
+- `webapp/` → `apps/webapp/`（`src/jobs/` を除去）
+- `cdk/` → `apps/cdk/`
+- `webapp/src/jobs/` → `apps/async-job/` として抽出
+- `packages/db/` を新規作成
+- `packages/shared-types/` を新規作成
+
+ユーザーが追加した独自コードの配置先を判断する:
+- DB アクセスを含む共有ロジック → `packages/` 配下に抽出を検討
+- webapp 固有のロジック → `apps/webapp/` に残す
+- 非同期ジョブ → `apps/async-job/src/jobs/` に移動し、ペイロード型を `packages/shared-types/` に追加
+
+### 2-2. パッケージマネージャ移行（npm → pnpm）
+
+1. 「v3 キットから直接コピーできるファイル」セクションに記載のファイルをコピーする
 2. `package-lock.json` を削除
-3. `shamefully-hoist=false`（strict モード）で `.npmrc` を作成
+3. 各パッケージの `package.json` を v3 キットを参照して作成。import パスを更新
 4. `pnpm install` を実行
 
-**チェックポイント**: `pnpm install` が終了コード 0 で完了。
+pnpm はデフォルトで strict モード（`shamefully-hoist=false`）。`.npmrc` を作成してはならない — `shamefully-hoist=true` にすると Docker ビルドで未宣言依存が隠蔽される。
 
-## Phase B: モノレポ構造化（apps/ + packages/）
+### 2-3. リンター移行（ESLint → oxlint）
 
-プロジェクトを v3 のレイアウトに再構成:
+1. 全 `package.json` から `eslint`、`prettier`、`eslint-config-next`、関連パッケージを削除
+2. v3 キットからコピー済みの `oxlintrc.json` を確認（DSQL 非互換 import のブロックルールが含まれている）
+3. ルートの `package.json` の lint スクリプトを v3 キットに合わせて更新
 
+### 2-4. npm/npx の残存を除去
+
+プロジェクト全体から `npm` / `npx` コマンドの残存を除去する。対象は `.ts`、`.json` だけでなく、Dockerfile、CI/CD ワークフロー（`.yml`）、シェルスクリプトも含む:
+
+```bash
+rg 'npm |npx ' -g '!node_modules' -g '!pnpm-lock.yaml'
 ```
-apps/
-  cdk/             ← cdk/ から
-  webapp/          ← webapp/ から（src/jobs/ を除去）
-  async-job/       ← webapp/src/jobs/ から抽出
-packages/
-  db/              ← 新規: Drizzle スキーマ、クライアント、マイグレーションランナー
-  shared-types/    ← 新規: ジョブペイロード型
+
+主な変換:
+- `npm ci` → `pnpm install --frozen-lockfile`
+- `npm run <script>` → `pnpm run <script>`
+- `npx <cmd>` → `pnpm exec <cmd>`
+- Dockerfile 内の `npm ci` → `corepack enable && corepack prepare pnpm@<version> --activate && pnpm install --frozen-lockfile`
+
+### チェックポイント
+
+- `pnpm install` が終了コード 0 で完了
+- `pnpm run lint` が終了コード 0（oxlint の `typeCheck: true` が型チェックも行うため `tsc --noEmit` は不要）
+- ESLint/Prettier の import が残っていない
+- `rg 'npm |npx ' -g '!node_modules' -g '!pnpm-lock.yaml'` で npm/npx の残存がないことを確認
+
+## Phase 3: ORM 移行（Prisma → Drizzle）
+
+### 3-1. ユーザーの Prisma スキーマを分析
+
+Phase 1-3 の分析結果を元に、`prisma/schema.prisma` の各モデルについて変換計画を立てる:
+
+1. 全モデルを列挙し、各フィールドの DSQL 互換な Drizzle 型を決定
+2. `@relation` で定義されたリレーションを Drizzle `relations()` に変換する対応表を作成
+3. Phase 1-3 で特定した生成 Zod スキーマの置き換え方針を決定
+
+### 3-2. Drizzle スキーマの作成
+
+Phase 3-1 の変換計画に従い、`packages/db/src/schema.ts` に Drizzle スキーマを手書きする。v3 キットの `schema.ts` をパターンの参照にすること。
+
+**`drizzle-kit introspect` を Aurora v2 に対して使わないこと** — 出力は `SERIAL`、`.references()`、その他の DSQL 非互換パターンを含み、全面的な書き直しが必要になる。schema.prisma から手書きの方が確実。
+
+### 3-3. 初期マイグレーション SQL の生成
+
+v3 キットの `packages/db/migrations/` にはサンプルスキーマ用の `0001_initial.sql` と `meta/` が含まれている。ユーザーのスキーマ用の初期マイグレーションを生成する前に、これらを削除する:
+
+```bash
+rm -rf packages/db/migrations/*
 ```
 
-1. ディレクトリを移動し import パスを更新
-2. `pnpm-workspace.yaml` を `apps/*` と `packages/*` を含むよう更新
-3. 各パッケージの `tsconfig.json` 参照を更新
+その後、生成を実行:
 
-**チェックポイント**: 各パッケージで `tsc --noEmit` が終了コード 0。
+```bash
+pnpm --filter @repo/db run generate
+```
 
-## Phase C: ORM 移行（Prisma → Drizzle）
+`check-dsql-compat.ts` が自動変換とバリデーションを実行する。エラーが出た場合は AGENTS.md の「Database migration」セクションの手順に従う。
 
-### スキーマ変換
+### 3-4. アプリケーションコードの変換
 
-Phase 0 のスキーマダンプを参照し、v3 のパターンに従って `packages/db/src/schema.ts` に Drizzle スキーマを手書きする。Aurora v2 に対して `drizzle-kit introspect` を使わないこと — 出力は SERIAL、`.references()`、その他の DSQL 非互換パターンを使用しており、全面的な書き直しが必要になる。
+ユーザーのコードベースで Prisma を import している全ファイルを特定し（`rg '@prisma|from.*prisma' --type ts`）、Drizzle API に変換する。v3 キットの Server Action 実装を参照パターンとして使うこと。
 
-DSQL 互換スキーマルール:
-- `SERIAL` / `BIGSERIAL` → `uuid('id').primaryKey().defaultRandom()` または IDENTITY カラム
-- `ENUM` → `text('status')`（アプリケーション層で Zod によるバリデーション）
-- `JSON` / `JSONB` → `text('data')`（アプリケーションコードでシリアライズ/デシリアライズ）
-- 外部キー → `.references()` を使わない。クエリビルダーの join 用に `relations()` を別途定義
-- `@updatedAt` → `.$onUpdate(() => new Date())` を使用するか、アプリケーションコードで明示的に設定
-- `numeric` 型: Prisma は `number` を返すが、Drizzle は `string` を返す。アプリケーションコードを適宜更新
+主な変換ポイント:
+- `import { prisma } from '@/lib/prisma'` → `import { db } from '@repo/db/client'`
+- `import { ... } from '@prisma/client'` → `import { ... } from '@repo/db/schema'`
+- v2 の `prisma.ts`（リトライ拡張付き PrismaClient）は削除。DSQL は IAM 認証で接続し、Aurora v2 のコールドスタート・idle timeout 問題がないためリトライロジックは不要
+- `next.config.ts` に `transpilePackages: ['@repo/db', '@repo/shared-types']` を追加（ユーザーの既存設定を保持しつつマージ）
 
-### クエリ変換パターン
+### 3-5. クリーンアップ
 
-| Prisma | Drizzle |
-|--------|---------|
-| `prisma.model.findMany()` | `db.query.model.findMany()` または `db.select().from(table)` |
-| `prisma.model.findUnique({ where: { id } })` | `db.query.model.findFirst({ where: eq(table.id, id) })` |
-| `prisma.model.create({ data })` | `db.insert(table).values(data)` |
-| `prisma.model.createMany({ data })` | `db.insert(table).values([...data])` |
-| `prisma.model.update({ where, data })` | `db.update(table).set(data).where(eq(table.id, id))` |
-| `prisma.model.delete({ where })` | `db.delete(table).where(eq(table.id, id))` |
-| `prisma.$transaction([...])` | `db.transaction(async (tx) => { ... })` |
-
-### クリーンアップ
-
-1. 全 `package.json` から `@prisma/client`、`prisma`、Prisma 関連パッケージを削除
+1. 全 `package.json` から `@prisma/client`、`prisma`、`zod-prisma-types` 等の Prisma 関連パッケージを削除
 2. `prisma/` ディレクトリ（schema.prisma、migrations/）を削除
 3. `package.json` から `prisma generate` スクリプトを削除
-4. `zod-prisma-types` を使用していた場合、生成された Zod スキーマを手書きまたは `drizzle-zod` に置き換え
 
-**チェックポイント**: `pnpm run build` が終了コード 0。Prisma の import が残っていない（`rg '@prisma|from.*prisma' --type ts` が結果なし）。
+### 3-6. 開発用 DSQL クラスタでの検証
 
-## Phase D: データベース移行（Aurora Serverless v2 → DSQL）
+本番データベースに触れる前に、開発用 DSQL クラスタでスキーマとアプリコードの動作を検証する。v3 キットの `scripts/dsql.sh` を使う:
 
-このフェーズはデータ損失を防ぐため3回の個別 CDK デプロイが必要。単一デプロイを試みないこと — Aurora v2 クラスタと全データが削除される。
+```bash
+bash scripts/dsql.sh create --region <region>
+```
 
-### Phase D-1: DSQL クラスタ作成（CDK デプロイ 1回目）
+このスクリプトは開発用 DSQL クラスタを作成し、`packages/db/.env` に接続情報を自動で書き込む。
 
-1. **Aurora v2 リソースに RemovalPolicy.RETAIN を設定**: CDK 変更の前に、Aurora Serverless v2 クラスタ、VPC、関連リソースに `removalPolicy: cdk.RemovalPolicy.RETAIN` を追加。スタック更新時に CloudFormation がこれらを削除することを防止。
+検証手順:
+1. マイグレーションを実行してスキーマが DSQL に通ることを確認:
+   ```bash
+   pnpm --filter @repo/db run migrate
+   ```
+2. webapp の dev server を起動して CRUD 操作が動作することを確認:
+   ```bash
+   cd apps/webapp && pnpm run dev
+   ```
+3. 問題があればスキーマやアプリコードを修正し、再検証する
 
-2. **CDK に DSQL クラスタを追加**: DSQL 用の `CfnCluster` リソースを追加。webapp と async-job はまだ Aurora v2 に接続したまま。
+検証完了後、開発用クラスタは残しておく（Phase 5 の本番移行完了後に削除）:
+```bash
+# Phase 5 完了後に実行
+bash scripts/dsql.sh delete --region <region>
+```
+
+### チェックポイント
+
+- `pnpm run build` が終了コード 0
+- `pnpm run lint` が終了コード 0（oxlint が DSQL 非互換パターンを検出しないことを確認）
+- Prisma の import が残っていない（`rg '@prisma|from.*prisma' --type ts` が結果なし）
+- 開発用 DSQL クラスタでマイグレーションが成功し、アプリが動作する
+
+## Phase 4: CDK 移行
+
+v3 キットの CDK コードを参照し、ユーザーの CDK コードを更新する。Phase 5 のデータベース移行に先立ち、DSQL 以外の CDK 変更をここで完了させる。
+
+### 4-1. Dockerfile の更新
+
+webapp と async-job の Dockerfile を v3 のパターンに更新する。v3 キットの Dockerfile をベースに、ユーザーが追加した独自の依存やビルド引数を反映する。主な変更点:
+- `npm ci` → pnpm workspaces 対応（`corepack enable` + `pnpm install --frozen-lockfile`）
+- `npx prisma generate` の削除
+- esbuild の ESM 出力（`--format=esm`、出力ファイルは `.mjs` 拡張子）
+- モノレポルートからのビルドコンテキスト
+
+### 4-2. CDK Construct の更新
+
+- dsql-migrator Construct を追加（ただし Phase 5-1 まではデプロイしない）
+- async-job の Lambda 関数定義を追加
+- v2 の `prisma generate` や `prisma db push` に依存するビルドステップを削除
+- ユーザーが追加した独自 Construct は維持する。ただし VPC に依存する Construct がある場合は Phase 5-3 で VPC 依存を解消する必要があるため、ここで特定しておく
+
+### チェックポイント
+
+- `cd apps/cdk && pnpm run build` が終了コード 0
+- `pnpm run test` が終了コード 0（CDK テストがある場合）
+
+## Phase 5: データベース移行（Aurora Serverless v2 → DSQL）
+
+このフェーズはデータ損失を防ぐため段階的な CDK デプロイが必要。**Phase 5-1 と 5-3 の2回のデプロイを1回にまとめないこと** — RETAIN を設定せずに Aurora v2 リソース定義を削除すると、CloudFormation がクラスタを削除し本番データが失われる。Phase 5-1 で RETAIN を設定してから初めて、Phase 5-3 でリソース定義を安全に削除できる。
+
+### Phase 5-1: DSQL クラスタ作成（CDK デプロイ 1回目）
+
+1. **Aurora v2 リソースに RemovalPolicy.RETAIN を設定**: CDK の Aurora Serverless v2 クラスタ、VPC、関連リソースに `removalPolicy: cdk.RemovalPolicy.RETAIN` を追加。これにより CloudFormation の `DeletionPolicy` が `Retain` に変わり、後のデプロイでリソース定義を削除しても実リソースは残る。
+
+2. **CDK に DSQL クラスタを追加**: v3 キットからコピー済みの `database.ts` を使用。webapp と async-job はまだ Aurora v2 に接続したまま。
 
 3. **デプロイ**:
    ```bash
@@ -121,49 +294,74 @@ DSQL 互換スキーマルール:
 
 **チェックポイント**: DSQL クラスタが ACTIVE（`aws dsql get-cluster --identifier <id>`）。Aurora v2 クラスタがデータ付きでまだ存在。
 
-### Phase D-2: データ移行
+### Phase 5-2: データ移行
 
-1. **DSQL スキーマの作成**: 新しい DSQL クラスタに対してマイグレーションランナーを実行しテーブルを作成:
-   ```bash
-   pnpm --filter @repo/db run migrate
-   ```
+#### DSQL 接続の切り替え
 
-2. **Aurora v2 から DSQL へのデータ移行**:
+`packages/db/.env` を Phase 5-1 で作成した本番 DSQL クラスタに切り替える（Phase 3-6 で開発用クラスタを設定済みの場合は上書き）:
 
-   小規模データセット（テーブルあたり 3,000行未満）の場合:
-   - Phase 0 の `pg_dump --data-only` 出力を使用
-   - DSQL 互換性のためデータを変換（SERIAL PK → UUID 値、ENUM → TEXT 値）
-   - マイグレーションスクリプトで DSQL に INSERT
+```
+DSQL_ENDPOINT=<Phase 5-1 で作成したクラスタのエンドポイント>
+AWS_REGION=<リージョン>
+```
 
-   大規模データセット（テーブルあたり 3,000行超）の場合:
-   - 500〜1,000行単位でバッチ INSERT（DSQL の3,000行/トランザクション制限）
-   - 非常に大きなテーブルには DMS + S3 を検討（[sample-migration-aurora-dsql-using-ai](https://github.com/aws-samples/sample-migration-aurora-dsql-using-ai) を参照）
-   - 複雑な変換には `export default async function(client: PoolClient)` の `.ts` マイグレーションファイルを使用
+エンドポイントは Phase 5-1 のデプロイ出力（`DatabaseClusterEndpoint`）または `aws dsql get-cluster` で取得できる。
 
-   AI 支援の DSQL 移行パターンについては [Agentic migration with AI tools](https://docs.aws.amazon.com/aurora-dsql/latest/userguide/dsql-agentic-migration.html) を参照。
+#### スキーマの作成
 
-3. **データ整合性の検証**: 各テーブルについて Aurora v2 と DSQL の行数を比較:
-   ```sql
-   -- Aurora v2 上
-   SELECT count(*) FROM "TableName";
-   -- DSQL 上
-   SELECT count(*) FROM "TableName";
-   ```
+DSQL クラスタに対してマイグレーションランナーを実行しテーブルを作成:
 
-**チェックポイント**: Aurora v2 と DSQL の間で全テーブルの行数が一致。
+```bash
+pnpm --filter @repo/db run migrate
+```
 
-### Phase D-3: アプリケーション切り替え（CDK デプロイ 2回目）
+#### データの移行
 
-1. **CDK を更新**: Aurora v2 リソース定義を削除（RETAIN が設定されているため実リソースは残る）。webapp と async-job の環境変数を DSQL エンドポイントに変更。Lambda 関数から VPC 設定を削除。
+Phase 1-3 で記録した各テーブルの行数に基づいて移行方法を選択する。
+
+v3 のマイグレーションランナーは `.ts` ファイルをサポートしている。`packages/db/migrations/` にデータ移行用の `.ts` ファイルを作成し、以下の形式で実装する:
+
+```typescript
+import type { PoolClient } from 'pg';
+
+export default async function (client: PoolClient) {
+  // Phase 1-2 のダンプデータを DSQL 互換に変換して INSERT
+  // SERIAL PK → UUID 値（参照元テーブルの FK カラムも同じ UUID に更新）
+  // ENUM 値 → TEXT 値（値自体は同じ文字列）
+  //
+  // 3,000行/トランザクション制限に注意 — 500〜1,000行単位でバッチ分割
+  await client.query('BEGIN');
+  await client.query(`INSERT INTO "TableName" (...) VALUES ...`);
+  await client.query('COMMIT');
+}
+```
+
+非常に大きなテーブルには [Agentic migration with AI tools](https://docs.aws.amazon.com/aurora-dsql/latest/userguide/dsql-agentic-migration.html) を参照。
+
+#### データ整合性の検証
+
+各テーブルについて Aurora v2 と DSQL の行数を比較:
+
+```sql
+-- Aurora v2 上
+SELECT count(*) FROM "TableName";
+-- DSQL 上
+SELECT count(*) FROM "TableName";
+```
+
+**チェックポイント**: 全テーブルの行数が Aurora v2 と DSQL で一致。
+
+### Phase 5-3: アプリケーション切り替え（CDK デプロイ 2回目）
+
+1. **CDK を更新**: Aurora v2 リソース定義を削除（RETAIN が設定されているため実リソースは残る）。webapp と async-job の環境変数を DSQL エンドポイントに変更。Lambda 関数から VPC 設定を削除。Phase 4-2 で特定した VPC 依存の独自 Construct がある場合は、ここで VPC 依存を解消する。
 
 2. **デプロイ**（本番環境ではメンテナンスウィンドウを推奨）:
    ```bash
    cd apps/cdk && pnpm exec cdk deploy --all
    ```
 
-3. **既知の問題 — VPC ENI クリーンアップ**: Lambda 関数が VPC から外れると、AWS は Hyperplane ENI を即座に削除しない。最大20分間 `available` 状態で残り、セキュリティグループとサブネットの削除をブロック。CloudFormation が `DELETE_FAILED` を報告する場合がある。
+3. **VPC ENI クリーンアップ**: Lambda 関数が VPC から外れると、Hyperplane ENI が最大20分間 `available` 状態で残り、セキュリティグループとサブネットの削除をブロックする。CloudFormation が `DELETE_FAILED` を報告する場合:
 
-   回避策:
    ```bash
    # 孤立した ENI を検索
    aws ec2 describe-network-interfaces \
@@ -171,13 +369,13 @@ DSQL 互換スキーマルール:
      --region <region>
    # 各 ENI を削除
    aws ec2 delete-network-interface --network-interface-id <eni-id> --region <region>
-   # CloudFormation が DELETE_FAILED にしたセキュリティグループを削除
+   # DELETE_FAILED のセキュリティグループを削除
    aws ec2 delete-security-group --group-id <sg-id> --region <region>
    ```
 
 **チェックポイント**: アプリケーションが DSQL 経由でエンドツーエンドで動作 — サインイン、CRUD 操作、リアルタイム通知付き非同期ジョブ。
 
-### Phase D-4: 旧リソース削除（CDK デプロイ 3回目 — または手動）
+### Phase 5-4: 旧リソース削除（CDK デプロイ 3回目 — または手動）
 
 ⚠️ **ポイントオブノーリターン。続行前にユーザーの明示的な確認を求めること。**
 
@@ -185,70 +383,3 @@ DSQL 互換スキーマルール:
 2. CDK（RETAIN リソースを削除してデプロイ）または AWS コンソール/CLI で手動実行可能
 
 **チェックポイント**: 旧リソースが削除済み。VPC コストが残っていない。
-
-## Phase E: リンター移行（ESLint → oxlint）
-
-1. 全 `package.json` から `eslint`、`prettier`、`eslint-config-next`、関連パッケージを削除
-2. ルートの `devDependencies` に `oxlint` を追加
-3. DSQL 固有ルール付きの `oxlintrc.json` を作成:
-   - `no-restricted-imports`: `drizzle-orm/pg-core` からの `serial`, `smallserial`, `bigserial`, `json`, `jsonb` をブロック
-4. `package.json` の lint スクリプトを更新: `eslint` → `oxlint`
-5. フォーマッティング用に `oxfmt` を追加（Prettier の代替）
-
-**チェックポイント**: `pnpm run lint` が終了コード 0。ESLint/Prettier の import が残っていない。
-
-## セーフガード
-
-- **現在のフェーズのチェックポイントが失敗した場合、次のフェーズに進まないこと。** まず問題を修正する。
-- **Phase D-4 はユーザーの明示的な承認が必要。** 削除されるリソースの一覧を提示し、確認を待つ。
-- **Phase D-2 の前に、Phase 0 の Aurora v2 スナップショットが存在することを再確認。** 存在しない場合、続行前に新しいスナップショットを作成。
-- **ロールバック安全性**: Phase D-4 の前であればいつでも、スナップショットからリストアし v2 CDK コードを再デプロイすることで Aurora v2 に戻せる。Phase D-4 以降のロールバックにはスナップショットからのリストアと VPC リソースの再作成が必要。
-- **各フェーズは独立して安全**: Phase A〜C はコードのみの変更（データリスクなし）。Phase D-1 はリソースを追加するのみで削除しない。Phase D-2 はデータをコピー（ソースは未変更）。Phase D-3 はトラフィックを切り替えるが旧リソースは残る。Phase D-4 のみが破壊的。
-
-## 破壊的変更リファレンス
-
-### パッケージマネージャ
-
-- `npm ci` → `pnpm install`
-- `npm run <script>` → `pnpm run <script>`
-- `package-lock.json` → `pnpm-lock.yaml`
-
-### プロジェクト構造
-
-```
-webapp/          → apps/webapp/
-cdk/             → apps/cdk/
-                   apps/async-job/     （新規、webapp/src/jobs/ から抽出）
-                   packages/db/        （新規、Drizzle スキーマ + マイグレーションランナー）
-                   packages/shared-types/ （新規、ジョブペイロード型）
-```
-
-### ORM（Prisma → Drizzle）
-
-- `prisma generate` ステップなし — Drizzle は純粋 TypeScript
-- スキーマは `packages/db/src/schema.ts` に `pgTable()` API で定義
-- リレーションは `relations()` を使用（クエリビルダー専用、SQL レベルの FK なし）
-- Zod スキーマは手書き、ORM からの生成ではない
-- `numeric` 型: Prisma は `number` を返すが、Drizzle は `string` を返す
-
-### データベース（Aurora Serverless v2 → DSQL）
-
-- VPC、NAT Instance、Bastion Host なし
-- ユーザー名/パスワードの代わりに IAM 認証
-- DSQL 制約: SERIAL なし（UUID/IDENTITY を使用）、FK なし、JSON/JSONB なし（TEXT を使用）、1トランザクション1DDL、`CREATE INDEX ASYNC` のみ
-- ALTER TABLE 制限: ADD COLUMN、RENAME、identity 操作、OWNER TO、SET SCHEMA のみ
-- 書き込みトランザクションあたり3,000行
-- TRUNCATE なし（`DELETE FROM` を使用）
-
-### リンティング（ESLint → oxlint）
-
-- `eslint` → `oxlint`
-- `prettier` → `oxfmt`
-- `oxlintrc.json` に DSQL 固有の `no-restricted-imports` ルール
-
-### pnpm モノレポでの Docker ビルド
-
-- `pnpm install --filter` は strict モードで推移的依存をホイストしない。Dockerfile では `--filter` なしの `pnpm install --frozen-lockfile` を使用。
-- CDK `DockerImageCode.fromImageAsset` は `.dockerignore` を読むために `ignoreMode: IgnoreMode.DOCKER` が必要。
-- esbuild `--format=esm` の出力は Lambda で `.mjs` 拡張子が必要。
-- `--external:@aws-sdk/*` は `@aws/*` パッケージ（例: `@aws/aurora-dsql-node-postgres-connector`）を除外しない。明示的にバンドルすること。
