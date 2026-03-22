@@ -204,9 +204,10 @@ strict モードでの Docker ビルドには4つの罠がある（詳細は [AD
 
 ## ESM 即時評価と Proxy 遅延初期化
 
-`client.ts` は Proxy ベースの遅延初期化を使用し、モジュール読み込み時に `db` が初期化されることを防止する。
+`client.ts` は Proxy ベースの遅延初期化と `globalThis` シングルトンを組み合わせて、2つの問題を解決する。
 
-ESM ではトップレベルの `export const db = drizzle(...)` がモジュール import 時に即座に評価される。`cli.ts` が `import { getPool } from './client'` しただけで `db` の初期化も走り、`DSQL_ENDPOINT` 未設定時にクラッシュする。Proxy を使うことで、`import { db }` の既存コードを変更せずに、実際のプロパティアクセス時まで初期化を遅延させる。関数でラップする方式（`getDb()`）も検討したが、全ての呼び出し箇所の変更が必要になるため不採用。
+1. **ESM 即時評価の回避（Proxy）**: ESM ではトップレベルの `export const db = drizzle(...)` がモジュール import 時に即座に評価される。`cli.ts` が `import { getPool } from './client'` しただけで `db` の初期化も走り、`DSQL_ENDPOINT` 未設定時にクラッシュする。Proxy を使うことで、`import { db }` の既存コードを変更せずに、実際のプロパティアクセス時まで初期化を遅延させる。関数でラップする方式（`getDb()`）も検討したが、全ての呼び出し箇所の変更が必要になるため不採用。
+2. **Next.js hot-reload でのコネクションリーク防止（`globalThis`）**: Next.js の dev server はモジュールを再評価するため、`globalThis` にインスタンスを保持しないと reload のたびに新しいコネクションプールが作られリークする。Proxy の遅延初期化先を `globalThis` 上のシングルトンにすることで両方を同時に解決。
 
 ## テスト設計
 

@@ -63,18 +63,18 @@ research → ADR → design doc → implementation plan → code → migration p
 | Artifact | Path | Committed | Description |
 |----------|------|-----------|-------------|
 | research | — | No | Technology investigation, constraint analysis, prototype validation. |
-| ADR | `docs/<version>/adr-NNN-<slug>.md` | Yes | Immutable decision records (Nygard format). What was chosen, what was rejected, and why. Must be self-contained. Once published, write a new ADR to supersede rather than editing. |
-| design doc | `docs/<version>/design.md` | Yes | Implementation specification. References ADRs for rationale; focuses on "how it works". |
+| ADR | `docs/<version>/adr-NNN-<slug>[.lang].md` | Yes | Immutable decision records (Nygard format). What was chosen, what was rejected, and why. Must be self-contained. Once published, write a new ADR to supersede rather than editing. |
+| design doc | `docs/<version>/design[.lang].md` | Yes | Implementation specification. References ADRs for rationale; focuses on "how it works". |
 | implementation plan | — | No | Task breakdown with ordering, dependencies, and verification criteria. Working document consumed during implementation and discarded after. |
 | code | — | Yes | Implementation following the design doc. |
-| migration prompt | `docs/<version>/migration-prompt.md` | Yes | AI coding agent meta-prompt for migrating user codebases. Written last — requires knowledge that only emerges during implementation (e.g., VPC ENI cleanup timing, ESM module evaluation order). Not a step-by-step procedure for humans; the agent reads it, compares against the user's codebase, and builds a project-specific migration plan with phased execution and checkpoints to prevent data loss. |
+| migration prompt | `docs/<version>/migration-prompt[.lang].md` | Yes | AI coding agent meta-prompt for migrating user codebases. Written last — requires knowledge that only emerges during implementation (e.g., VPC ENI cleanup timing, ESM module evaluation order). Not a step-by-step procedure for humans; the agent reads it, compares against the user's codebase, and builds a project-specific migration plan with phased execution and checkpoints to prevent data loss. |
 
 To surface the migration guide in release notes, include a link in the `BREAKING CHANGE:` commit footer:
 
 ```
 feat!: replace ORM from Prisma to Drizzle
 
-BREAKING CHANGE: ORM has been replaced. See [migration guide](docs/v3.0.0/migration-prompt.md) for details.
+BREAKING CHANGE: ORM has been replaced. See [migration guide](docs/v3.0.0/migration-prompt.ja.md) for details.
 ```
 
 release-please will carry this into the Breaking Changes section of the GitHub Release.
