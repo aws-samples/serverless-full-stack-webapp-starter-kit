@@ -30,7 +30,7 @@ export const getAuthSession = cache(async () => {
 
 /**
  * Try to get the authenticated session, returning null on failure.
- * Use in API Routes where you need to distinguish 401 from 500.
+ * Use in API Routes to avoid try/catch boilerplate for auth checks.
  */
 export async function tryGetAuthSession() {
   try {

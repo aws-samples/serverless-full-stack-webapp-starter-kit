@@ -1,5 +1,4 @@
-import { getAuthSession } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { getSessionWithUser } from '@/lib/auth';
 import { createSafeActionClient, DEFAULT_SERVER_ERROR_MESSAGE } from 'next-safe-action';
 
 export class MyCustomError extends Error {
@@ -26,17 +25,6 @@ const actionClient = createSafeActionClient({
 });
 
 export const authActionClient = actionClient.use(async ({ next }) => {
-  const { userId } = await getAuthSession();
-
-  const user = await prisma.user.findUnique({
-    where: {
-      id: userId,
-    },
-  });
-
-  if (user == null) {
-    throw new Error('user not found');
-  }
-
+  const { user } = await getSessionWithUser();
   return next({ ctx: { userId: user.id } });
 });

@@ -1,21 +1,15 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
-import { fetchAuthSession } from 'aws-amplify/auth/server';
-import { runWithAmplifyServerContext } from '@/lib/amplifyServerUtils';
+import { tryGetAuthSession } from '@/lib/auth';
 
 export async function GET() {
   try {
-    const session = await runWithAmplifyServerContext({
-      nextServerContext: { cookies },
-      operation: (contextSpec) => fetchAuthSession(contextSpec),
-    });
-
-    if (session.tokens?.accessToken == null) {
+    const session = await tryGetAuthSession();
+    if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     return NextResponse.json({
-      accessToken: session.tokens.accessToken.toString(),
+      accessToken: session.accessToken,
     });
   } catch (error) {
     console.error('Error fetching Cognito token:', error);
