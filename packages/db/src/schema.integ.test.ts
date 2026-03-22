@@ -64,6 +64,7 @@ describe('oxlint DSQL rules', () => {
   // no-restricted-syntax is not yet supported by oxlint (as of v1.56.0).
   // The rule is configured in oxlintrc.json for future compatibility.
   // These tests are skipped until oxlint adds support.
+  // oxlint-disable-next-line jest/no-disabled-tests -- waiting for oxlint no-restricted-syntax support
   test.skip('L5: .references() detected in schema.ts', () => {
     const file = writeFile(
       'schema.ts',
@@ -78,6 +79,7 @@ describe('oxlint DSQL rules', () => {
     expect(output).toContain('no-restricted-syntax');
   });
 
+  // oxlint-disable-next-line jest/no-disabled-tests -- waiting for oxlint no-restricted-syntax support
   test.skip('L6: .references() not detected in non-schema file', () => {
     const file = writeFile('actions.ts', "const x = { references: () => 'ok' };\nx.references();\n");
     const { output } = runOxlint(file);

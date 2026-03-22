@@ -150,7 +150,7 @@ export class CloudFrontLambdaFunctionUrlService extends Construct {
         parameters: {
           DistributionId: distribution.distributionId,
           InvalidationBatch: {
-            CallerReference: `${handler.currentVersion.version}`,
+            CallerReference: handler.currentVersion.version,
             Paths: {
               Quantity: 1,
               Items: ['/*'],

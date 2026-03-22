@@ -95,8 +95,11 @@ export default function TodoItemComponent({ todo }: TodoItemProps) {
           <input type="hidden" {...registerUpdate('status')} value={todo.status} />
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Title</label>
+            <label htmlFor={`title-${todo.id}`} className="block text-sm font-medium text-gray-700">
+              Title
+            </label>
             <input
+              id={`title-${todo.id}`}
               type="text"
               {...registerUpdate('title')}
               className="mt-1 p-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
@@ -107,8 +110,11 @@ export default function TodoItemComponent({ todo }: TodoItemProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Description</label>
+            <label htmlFor={`description-${todo.id}`} className="block text-sm font-medium text-gray-700">
+              Description
+            </label>
             <textarea
+              id={`description-${todo.id}`}
               {...registerUpdate('description')}
               rows={3}
               className="mt-1 p-2 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"

@@ -118,6 +118,7 @@ describe.skipIf(!endpoint)('migrate integration (DSQL)', () => {
     }
   });
 
+  // oxlint-disable-next-line jest/expect-expect -- success of await migrate() is the assertion
   test('I4: modified applied file still skipped (no hash check)', async () => {
     fs.writeFileSync(
       path.join(tmpDir, '0001_initial.sql'),
@@ -161,6 +162,7 @@ describe.skipIf(!endpoint)('migrate integration (DSQL)', () => {
     }
   });
 
+  // oxlint-disable-next-line jest/expect-expect -- success of await migrate() is the assertion
   test('I6: multiple statements in separate transactions', async () => {
     fs.writeFileSync(
       path.join(tmpDir, '0001.sql'),

@@ -99,6 +99,27 @@ See [`AGENTS.md`](./AGENTS.md) for development guide — local development setup
 
 To add social sign-in (Google, Facebook, etc.), see [Add social sign-in to a user pool](https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-configuring-federation-with-social-idp.html).
 
+## Agentic coding
+
+This kit is designed to work well with AI coding agents. The following setup is recommended.
+
+### Aurora DSQL skill
+
+Install the [Aurora DSQL skill](https://docs.aws.amazon.com/aurora-dsql/latest/userguide/SECTION_aurora-dsql-steering.html) to give your agent DSQL-specific knowledge (schema design, migration patterns, constraints):
+
+```sh
+npx skills add awslabs/mcp --skill dsql
+```
+
+### Lint and format on save
+
+This kit uses [oxlint](https://oxc.rs/) + [oxfmt](https://oxc.rs/docs/guide/usage/formatter) — Rust-based linter and formatter fast enough to run on every file write without noticeable delay. Set up a post-write hook in your AI coding agent to get instant feedback:
+
+```sh
+oxlint --config oxlintrc.json --fix <file>
+oxfmt --write <file>
+```
+
 ## Maintenance policy
 
 This kit follows [Semantic Versioning](https://semver.org/). Since users copy (not fork) this kit, breaking changes are introduced as new major versions without a lengthy deprecation cycle.
