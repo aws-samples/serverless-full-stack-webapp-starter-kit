@@ -50,23 +50,26 @@ The litmus test for any PR: "After this merges, will a developer who copies the 
 | Lambda Web Adapter | Enables response streaming with CloudFront + Lambda Function URL. |
 | oxlint + oxfmt over ESLint + Prettier | Faster linting and formatting. Type-aware linting via oxlint-tsgolint replaces `tsc --noEmit`. |
 
-### Architecture Decision Records (ADR)
+## Major version process
 
-Design documents and ADRs record not just decisions but **intent** — the reasoning, constraints, and trade-offs behind a design. In AI-driven development, intent outlives code: when models or workflows evolve, regenerating from intent can produce better results than patching existing code. Users who "copy and grow" this kit may not copy files verbatim — they read the intent and have an AI agent re-implement it for their context.
+Design documents and ADRs record not just decisions but **intent**. In AI-driven development, intent outlives code: when models or workflows evolve, regenerating from intent can produce better results than patching existing code. Users who "copy and grow" this kit may not copy files verbatim — they read the intent and have an AI agent re-implement it for their context.
 
-ADRs use the Nygard format (Status → Context → Decision → Consequences) with rejected alternatives in the Decision section. Place them in `docs/<version>/adr.md` alongside the design document for that version.
+When a major technology decision is made (e.g., ORM migration, database engine change), the following artifacts are produced. In practice the process is iterative, but the dependency direction is:
 
-When a major technology decision is made (e.g., ORM migration, database engine change), create:
-- `docs/<version>/design.md` — motivation, target architecture, key design decisions
-- `docs/<version>/adr.md` — formal decision records with alternatives and consequences
+```
+research → ADR → design doc → implementation plan → code → migration prompt
+```
 
-### Migration guides
+| Artifact | Path | Committed | Description |
+|----------|------|-----------|-------------|
+| research | — | No | Technology investigation, constraint analysis, prototype validation. |
+| ADR | `docs/<version>/adr-NNN-<slug>.md` | Yes | Immutable decision records (Nygard format). What was chosen, what was rejected, and why. Must be self-contained. Once published, write a new ADR to supersede rather than editing. |
+| design doc | `docs/<version>/design.md` | Yes | Implementation specification. References ADRs for rationale; focuses on "how it works". |
+| implementation plan | — | No | Task breakdown with ordering, dependencies, and verification criteria. Working document consumed during implementation and discarded after. |
+| code | — | Yes | Implementation following the design doc. |
+| migration prompt | `docs/<version>/migration-prompt.md` | Yes | AI coding agent meta-prompt for migrating user codebases. Written last — requires knowledge that only emerges during implementation (e.g., VPC ENI cleanup timing, ESM module evaluation order). Not a step-by-step procedure for humans; the agent reads it, compares against the user's codebase, and builds a project-specific migration plan with phased execution and checkpoints to prevent data loss. |
 
-When a breaking change is introduced, write a migration guide alongside the ADR. Place it in `docs/<version>/migration-prompt.md`.
-
-A migration guide is not a step-by-step procedure for humans. It is a meta-prompt for an AI coding agent — the agent reads it, compares against the user's codebase, and builds a project-specific migration plan. Write it with that consumer in mind: describe what changed, why, what patterns in user code are affected, and provide phased execution with checkpoints to prevent data loss.
-
-To surface the guide in release notes, include a link in the `BREAKING CHANGE:` commit footer:
+To surface the migration guide in release notes, include a link in the `BREAKING CHANGE:` commit footer:
 
 ```
 feat!: replace ORM from Prisma to Drizzle
