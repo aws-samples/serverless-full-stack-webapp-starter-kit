@@ -66,23 +66,33 @@ const POST_TRANSFORM_CHECKS: { pattern: RegExp; name: string; message: string }[
 ];
 
 /**
+ * Strip SQL comments from a statement to avoid false positives in pattern matching.
+ * Removes: line comments (-- ...), block comments, and inline comments.
+ */
+function stripComments(sql: string): string {
+  return sql
+    .replace(/\/\*[\s\S]*?\*\//g, '') // block comments /* ... */
+    .replace(/--[^\n]*/g, '') // line comments -- ...
+    .trim();
+}
+
+/**
  * Validate SQL for DSQL compatibility. Returns errors for unfixable patterns.
  * Operates on already-transformed SQL.
  */
 export function validateSql(sql: string): ValidationError[] {
   const errors: ValidationError[] = [];
-  // Split into statements to avoid matching inside SQL comments
   const statements = sql
     .split('\n\n')
     .map((s) => s.trim())
     .filter((s) => s.length > 0);
 
   for (const stmt of statements) {
-    // Skip SQL comments
-    if (stmt.startsWith('--')) continue;
+    const stripped = stripComments(stmt);
+    if (stripped.length === 0) continue;
 
     for (const { pattern, name, message } of [...UNFIXABLE_PATTERNS, ...POST_TRANSFORM_CHECKS]) {
-      if (pattern.test(stmt)) {
+      if (pattern.test(stripped)) {
         errors.push({ pattern: name, message });
       }
     }
@@ -95,9 +105,11 @@ export function validateSql(sql: string): ValidationError[] {
  * Throws on DSQL-incompatible patterns.
  */
 export function validateStatement(statement: string, file: string): void {
+  const stripped = stripComments(statement);
+  if (stripped.length === 0) return;
   const allPatterns = [...UNFIXABLE_PATTERNS, ...POST_TRANSFORM_CHECKS];
   for (const { pattern, name, message } of allPatterns) {
-    if (pattern.test(statement)) {
+    if (pattern.test(stripped)) {
       throw new Error(
         `DSQL incompatible SQL in ${file}: ${name} — ${message}\n  Statement: ${statement.slice(0, 200)}`,
       );

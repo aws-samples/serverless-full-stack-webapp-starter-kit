@@ -111,6 +111,16 @@ describe('validateSql', () => {
     expect(errors).toHaveLength(0);
   });
 
+  test('V12: block comment with incompatible keyword is not flagged', () => {
+    const errors = validateSql('/* DROP COLUMN workaround */\nALTER TABLE "T" ADD COLUMN "c" text;');
+    expect(errors).toHaveLength(0);
+  });
+
+  test('V13: inline comment with incompatible keyword is not flagged', () => {
+    const errors = validateSql('ALTER TABLE "T" ADD COLUMN "c" text; -- was DROP COLUMN but recreated');
+    expect(errors).toHaveLength(0);
+  });
+
   test('TRUNCATE detected', () => {
     const errors = validateSql(readFixture('truncate.input.sql'));
     expect(errors.some((e) => e.pattern === 'TRUNCATE')).toBe(true);

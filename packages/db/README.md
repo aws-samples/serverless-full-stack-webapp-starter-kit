@@ -56,6 +56,19 @@ pnpm exec drizzle-kit generate --custom --name=<migration-name>      # empty mig
 pnpm run migrate
 ```
 
+After adding a custom migration, always verify the snapshot is in sync:
+
+```bash
+pnpm run generate    # should print "nothing to migrate"
+```
+
+If it generates an unexpected `.sql` file, the `meta/` snapshot has diverged from `schema.ts`. To fix:
+
+1. Keep the generated `meta/NNNN_snapshot.json` — it reflects `schema.ts` accurately
+2. Delete the unwanted `.sql`: `rm migrations/NNNN_xxx.sql`
+3. In `meta/_journal.json`, change the latest entry's `tag` to match your custom migration filename (without extension)
+4. Run `pnpm run generate` again — confirm "nothing to migrate"
+
 ## Do not
 
 - **Do not use `drizzle-kit push` or `drizzle-kit migrate`** — they run all DDL in one transaction. DSQL requires 1 DDL per transaction. Use `pnpm run migrate` (custom runner).

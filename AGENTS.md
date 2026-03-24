@@ -41,6 +41,7 @@ All server-side mutations must go through `authActionClient` (defined in `lib/sa
 The dispatch flow is: Server Action → `runJob()` (Lambda async invoke) → `apps/async-job/src/handler.ts` (discriminated union dispatch) → job handler → `sendEvent()` (AppSync Events) → client `useEventBus` hook.
 
 To add a new job:
+
 1. Add a Zod schema with a `type` literal to the discriminated union in `packages/shared-types/src/job-payload.ts`
 2. Implement the handler in `apps/async-job/src/jobs/`
 3. Add the case to the switch statement in `apps/async-job/src/handler.ts`
@@ -50,9 +51,11 @@ To add a new job:
 The project uses Aurora DSQL with Drizzle ORM. Schema is defined in `packages/db/src/schema.ts`.
 
 DSQL constraints:
+
 - No SERIAL/SEQUENCE — use UUID
 - No FOREIGN KEY — use Drizzle `relations()` for query builder joins
 - No JSON/JSONB — use TEXT
+- No TRUNCATE — use `DELETE FROM` instead
 - CREATE INDEX must use ASYNC keyword
 - 1 DDL per transaction
 - ALTER TABLE only supports: ADD COLUMN, RENAME COLUMN/TABLE/CONSTRAINT, SET SCHEMA, OWNER TO, and IDENTITY operations. Everything else (DROP COLUMN, ALTER COLUMN TYPE, SET/DROP NOT NULL, SET/DROP DEFAULT, DROP CONSTRAINT) requires table recreation.
