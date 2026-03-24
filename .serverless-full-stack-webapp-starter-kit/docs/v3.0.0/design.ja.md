@@ -135,13 +135,13 @@ hash 検証を不採用にした理由は [ADR-001 の Consequences](adr-001-dsq
 
 `check-dsql-compat.ts` が drizzle-kit generate の出力を DSQL 互換に自動変換する。変換ルール:
 
-| 変換 | 入力パターン | 出力 |
-|------|-------------|------|
-| ステートメント区切り | `--> statement-breakpoint\n` | `\n\n`（空行。ランナーがこの空行で SQL を分割する） |
-| INDEX → ASYNC | `CREATE INDEX` / `CREATE UNIQUE INDEX` | `CREATE INDEX ASYNC` / `CREATE UNIQUE INDEX ASYNC`（既に ASYNC の場合は変換しない） |
-| CONSTRAINT FK 行の除去 | `,\n  CONSTRAINT "..." FOREIGN KEY (...) REFERENCES "..."("...")` | 行ごと除去（カンマも含めて削除） |
-| 無名 FK 行の除去 | `,\n  FOREIGN KEY (...) REFERENCES "..."("...")` | 行ごと除去 |
-| インライン REFERENCES の除去 | `"col" text NOT NULL REFERENCES "Table"("id")` | `"col" text NOT NULL`（REFERENCES 部分のみ除去し、カラム定義は保持） |
+| 変換                         | 入力パターン                                                      | 出力                                                                                |
+| ---------------------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| ステートメント区切り         | `--> statement-breakpoint\n`                                      | `\n\n`（空行。ランナーがこの空行で SQL を分割する）                                 |
+| INDEX → ASYNC                | `CREATE INDEX` / `CREATE UNIQUE INDEX`                            | `CREATE INDEX ASYNC` / `CREATE UNIQUE INDEX ASYNC`（既に ASYNC の場合は変換しない） |
+| CONSTRAINT FK 行の除去       | `,\n  CONSTRAINT "..." FOREIGN KEY (...) REFERENCES "..."("...")` | 行ごと除去（カンマも含めて削除）                                                    |
+| 無名 FK 行の除去             | `,\n  FOREIGN KEY (...) REFERENCES "..."("...")`                  | 行ごと除去                                                                          |
+| インライン REFERENCES の除去 | `"col" text NOT NULL REFERENCES "Table"("id")`                    | `"col" text NOT NULL`（REFERENCES 部分のみ除去し、カラム定義は保持）                |
 
 FK 除去が2パターンに分かれる理由: drizzle-kit は FK を2通りの形式で出力する。CONSTRAINT 行（`CREATE TABLE` 末尾の独立した制約定義）とインライン REFERENCES（カラム定義の末尾に付加）。CONSTRAINT 行は行ごと除去するが、インライン REFERENCES はカラム定義を壊さないよう REFERENCES 部分のみを除去する必要がある。除去順序も重要で、CONSTRAINT 行を先に除去しないと、インライン REFERENCES の正規表現が CONSTRAINT 行内の REFERENCES にもマッチしてしまい、不完全な行が残る。
 
@@ -149,23 +149,24 @@ FK 除去が2パターンに分かれる理由: drizzle-kit は FK を2通りの
 
 ランナーは各 SQL 文の実行前に DSQL 非互換パターンを検証する。検出対象:
 
-| パターン | 理由 |
-|---------|------|
-| `CREATE INDEX` に `ASYNC` がない | DSQL は同期 INDEX を許可しない |
-| `REFERENCES` / `FOREIGN KEY` | DSQL は FK 非サポート |
-| `ALTER COLUMN ... TYPE` / `SET DATA TYPE` | ALTER TABLE の公式構文に含まれない |
-| `DROP COLUMN` | ALTER TABLE の公式構文に含まれない |
-| `SET NOT NULL` / `DROP NOT NULL` | ALTER TABLE の公式構文に含まれない |
-| `SET DEFAULT` / `DROP DEFAULT` | ALTER TABLE の公式構文に含まれない |
-| `DROP CONSTRAINT` | ALTER TABLE の公式構文に含まれない |
-| `SERIAL` / `BIGSERIAL` / `SMALLSERIAL` | DSQL 非サポート型 |
-| `TRUNCATE` | DSQL 非サポート。`DELETE FROM` で代替 |
+| パターン                                  | 理由                                  |
+| ----------------------------------------- | ------------------------------------- |
+| `CREATE INDEX` に `ASYNC` がない          | DSQL は同期 INDEX を許可しない        |
+| `REFERENCES` / `FOREIGN KEY`              | DSQL は FK 非サポート                 |
+| `ALTER COLUMN ... TYPE` / `SET DATA TYPE` | ALTER TABLE の公式構文に含まれない    |
+| `DROP COLUMN`                             | ALTER TABLE の公式構文に含まれない    |
+| `SET NOT NULL` / `DROP NOT NULL`          | ALTER TABLE の公式構文に含まれない    |
+| `SET DEFAULT` / `DROP DEFAULT`            | ALTER TABLE の公式構文に含まれない    |
+| `DROP CONSTRAINT`                         | ALTER TABLE の公式構文に含まれない    |
+| `SERIAL` / `BIGSERIAL` / `SMALLSERIAL`    | DSQL 非サポート型                     |
+| `TRUNCATE`                                | DSQL 非サポート。`DELETE FROM` で代替 |
 
 ### .ts マイグレーション
 
 テーブル再作成（DROP COLUMN、ALTER COLUMN TYPE 等）で3,000行超のバッチデータ移行が必要な場合に使用する。`export default async function(client: PoolClient)` をエクスポートする。
 
 制約:
+
 - Lambda 最大実行時間は15分。これを超えるマイグレーションは Step Functions 等の別メカニズムが必要（ランナーのスコープ外）
 - Lambda 環境では `.ts` ファイルは Dockerfile 内で esbuild により `.mjs` に事前トランスパイルが必要
 - CLI 環境では `tsx` が `.ts` を直接実行可能
@@ -194,6 +195,14 @@ DSQL 非互換パターンをコーディング時とマイグレーション時
 ## pnpm workspaces + Docker ビルド
 
 選定理由は [ADR-002](adr-002-pnpm-workspaces.ja.md) を参照。以下は実装上の制約と対処。
+
+### スクリプト規約
+
+各サブパッケージが定型タスク名（`dev`、`build`、`test:unit`、`lint`、`check:ci` 等）を自身の `package.json` に定義し、ルートからは `pnpm -r run <task>` で一括実行する。ルート `package.json` にはタスクのエイリアススクリプトを置かない — 各パッケージが自身のスクリプトを持つため冗長であり、`--if-present` 付きの間接呼び出しはデバッグを困難にする。
+
+pre-commit フックは `simple-git-hooks` + `lint-staged` で構成し、ステージ済みファイルに oxlint/oxfmt を実行した後、全パッケージの `test:unit` を実行する。`prepare` スクリプトにより `pnpm install` 時にフックが自動インストールされる。
+
+### Docker ビルドの制約
 
 strict モードでの Docker ビルドには4つの罠がある（詳細は [ADR-002 の Consequences](adr-002-pnpm-workspaces.ja.md) を参照）:
 
