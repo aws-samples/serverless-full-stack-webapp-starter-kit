@@ -21,10 +21,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Check
-        run: pnpm run check:ci
+        run: pnpm -r run check:ci
       - name: Test
-        run: pnpm run test:unit
+        run: pnpm -r run test:unit
       - name: Build
         run: |
           cp apps/webapp/.env.local.example apps/webapp/.env.local
-          pnpm run build
+          pnpm -r run build
