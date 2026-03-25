@@ -9,6 +9,7 @@ v3 では DB エンジン（Aurora Serverless v2 → Aurora DSQL）、ORM（Pris
 - [ADR-001: Aurora DSQL + Drizzle ORM + カスタムマイグレーションランナー](adr-001-dsql-drizzle-migrator.ja.md)
 - [ADR-002: pnpm workspaces モノレポ](adr-002-pnpm-workspaces.ja.md)
 - [ADR-003: oxlint + oxfmt](adr-003-oxlint-oxfmt.ja.md)
+- [ADR-004: DSQL admin ロールの維持](adr-004-dsql-admin-role.ja.md)
 
 ## ターゲットアーキテクチャ
 
@@ -45,6 +46,18 @@ DSQL は IAM 認証でのみ接続を受け付ける。`@aws/aurora-dsql-node-po
 - Lambda 環境では実行ロールの IAM 認証、ローカル CLI では AWS プロファイルの認証情報を自動的に使い分ける
 
 `@aws/aurora-dsql-postgres-js-connector`（Postgres.js 用）も存在するが、Drizzle の node-postgres ドライバとの組み合わせで `AuroraDSQLPool` を使う方がシンプル。
+
+### DB ロールと権限モデル
+
+DSQL は PostgreSQL のロールシステムを IAM と統合した2層の権限モデルを持つ:
+
+- **admin ロール**（`dsql:DbConnectAdmin`）: DDL + DML。クラスタ作成時に自動生成される唯一の組み込みロール
+- **カスタムロール**（`dsql:DbConnect`）: DML のみ。`admin` で接続して `CREATE ROLE ... WITH LOGIN` + `AWS IAM GRANT` で作成し、テーブルごとに `GRANT` で権限を付与する
+
+本キットでは全 Lambda（webapp、async-job、migrator）が `admin` ロールで接続する。最小権限の観点では webapp と async-job は DML のみで十分だが、以下の理由で `admin` を維持する判断をした。詳細は [ADR-004](adr-004-dsql-admin-role.ja.md) を参照。
+
+- カスタムロールの導入にはマイグレーション時の `GRANT` 管理、Lambda 実行ロール ARN の CDK → マイグレーション間の受け渡し、`DEFAULT PRIVILEGES` の DSQL 対応状況の確認が必要で、スターターキットとしての複雑さに見合わない
+- 認証自体は IAM 一時トークンで保護されており、Lambda 実行ロールは対象クラスタにスコープされている
 
 ### DDL 制約
 
