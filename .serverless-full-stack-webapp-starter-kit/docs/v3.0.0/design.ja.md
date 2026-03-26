@@ -206,6 +206,19 @@ DSQL 非互換パターンをコーディング時とマイグレーション時
 
 選定理由は [ADR-002](adr-002-pnpm-workspaces.ja.md) を参照。以下は実装上の制約と対処。
 
+### ContainerImageBuild によるリモートビルド
+
+全コンテナイメージ（webapp、async-job、dsql-migrator）を `@cdklabs/deploy-time-build` の `ContainerImageBuild` でビルドする。`DockerImageCode.fromImageAsset`（ローカル Docker ビルド）は使用しない。
+
+動機: デプロイ時のローカル Docker 依存を排除する。Windows での Docker Desktop セットアップや CI 環境での Docker-in-Docker が不要になり、Prerequisites から Docker を削除できる。
+
+仕組み: `cdk deploy` 時に CloudFormation カスタムリソースが CodeBuild（ARM/Small）でイメージをビルドし ECR にプッシュする。同一スタック・同一アーキテクチャの `ContainerImageBuild` は `SingletonProject` により1つの CodeBuild プロジェクトを共有する。
+
+トレードオフ:
+
+- Docker レイヤーキャッシュが効かない（毎回フルビルド）
+- CodeBuild ARM/Small の同時実行クォータがデフォルト1のため、複数ビルドはキューイングされ直列実行になる。Service Quotas で引き上げ可能
+
 ### スクリプト規約
 
 各サブパッケージが定型タスク名（`dev`、`build`、`test:unit`、`lint`、`check:ci` 等）を自身の `package.json` に定義し、ルートからは `pnpm -r run <task>` で一括実行する。ルート `package.json` にはタスクのエイリアススクリプトを置かない — 各パッケージが自身のスクリプトを持つため冗長であり、`--if-present` 付きの間接呼び出しはデバッグを困難にする。

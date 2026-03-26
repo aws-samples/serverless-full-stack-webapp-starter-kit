@@ -10,7 +10,7 @@ import { Database } from './database';
 import { EdgeFunction } from './cf-lambda-furl-service/edge-function';
 import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
 import { Auth } from './auth/';
-import { ContainerImageBuild } from 'deploy-time-build';
+import { ContainerImageBuild } from '@cdklabs/deploy-time-build';
 import { join } from 'path';
 import { EventBus } from './event-bus/';
 import { AsyncJob } from './async-job';

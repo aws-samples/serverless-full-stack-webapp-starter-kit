@@ -52,7 +52,6 @@ Fully serverless — no VPC required, high cost efficiency, scalability, and min
 Prerequisites:
 * [Node.js](https://nodejs.org/) (>= v22)
 * [pnpm](https://pnpm.io/) (>= v10)
-* [Docker](https://docs.docker.com/get-docker/)
 * [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) with a configured IAM profile
 
 ### 1. Copy the kit
