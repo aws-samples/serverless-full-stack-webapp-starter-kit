@@ -15,13 +15,14 @@
 ESLint + Prettier を oxlint + oxfmt に置き換え。oxlint は必要な `no-restricted-imports` ルールを ESLint より大幅に高速に実行（Rust ベース）。oxfmt は Prettier の代替。
 
 設定済みの DSQL 固有ルール:
+
 - `no-restricted-imports`: `drizzle-orm/pg-core` からの `serial`, `smallserial`, `bigserial`, `json`, `jsonb` をブロック
 - `no-restricted-syntax`: スキーマファイルでの `.references()` 呼び出しをブロック（設定済みだが未動作 — 結果を参照）
 
 ### 却下した代替案
 
-- *ESLint + Prettier（維持）*: 実行速度が遅い。ESLint のエコシステムは大きいが、キットが必要とするのはルールの小さなサブセットのみ。速度差は CI とエディタのフィードバックで体感できる。
-- *Biome*: Rust ベースのリンター + フォーマッター（単一ツール）。ただし Biome は必要な粒度（モジュールからの特定の名前付き import のブロック）で `no-restricted-imports` をサポートしていない。oxlint の実装は ESLint のルールセマンティクスに一致。
+- _ESLint + Prettier（維持）_: 実行速度が遅い。ESLint のエコシステムは大きいが、キットが必要とするのはルールの小さなサブセットのみ。速度差は CI とエディタのフィードバックで体感できる。
+- _Biome_: Rust ベースのリンター + フォーマッター（単一ツール）。ただし Biome は必要な粒度（モジュールからの特定の名前付き import のブロック）で `no-restricted-imports` をサポートしていない。oxlint の実装は ESLint のルールセマンティクスに一致。
 
 ## 結果
 

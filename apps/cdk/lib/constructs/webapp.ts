@@ -53,6 +53,7 @@ export class Webapp extends Construct {
 
     const { database, hostedZone, auth, subDomain, eventBus, asyncJob } = props;
 
+    // Use ContainerImageBuild to inject deploy-time values in the build environment
     const image = new ContainerImageBuild(this, 'Build', {
       directory: join('..', '..'),
       platform: Platform.LINUX_ARM64,
@@ -71,7 +72,7 @@ export class Webapp extends Construct {
       code: image.toLambdaDockerImageCode(),
       timeout: Duration.minutes(3),
       environment: {
-        ...database.getLambdaEnvironment(),
+        DSQL_ENDPOINT: database.endpoint,
         COGNITO_DOMAIN: auth.domainName,
         USER_POOL_ID: auth.userPool.userPoolId,
         USER_POOL_CLIENT_ID: auth.client.userPoolClientId,
@@ -114,6 +115,9 @@ export class Webapp extends Construct {
         [`${this.baseUrl}/api/auth/sign-out-callback`, `http://localhost:3010/api/auth/sign-out-callback`],
       );
 
+      // We need to pass AMPLIFY_APP_ORIGIN environment variable for callback URL,
+      // but we cannot know CloudFront domain before deploying Lambda function.
+      // To avoid the circular dependency, we fetch the domain name on runtime.
       const originSourceParameter = new StringParameter(this, 'OriginSourceParameter', {
         stringValue: 'dummy',
       });

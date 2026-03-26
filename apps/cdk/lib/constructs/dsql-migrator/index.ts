@@ -29,7 +29,9 @@ export class DsqlMigrator extends Construct {
       code: image.toLambdaDockerImageCode(),
       architecture: Architecture.ARM_64,
       timeout: Duration.minutes(15),
-      environment: database.getLambdaEnvironment(),
+      environment: {
+        DSQL_ENDPOINT: database.endpoint,
+      },
       memorySize: 2048,
       logGroup: new LogGroup(this, 'Logs', {
         retention: RetentionDays.ONE_WEEK,

@@ -1510,12 +1510,12 @@ exports[`Snapshot test 2`] = `
       "Type": "AWS::IAM::Role",
     },
     "DatabaseClusterC6094C50": {
-      "DeletionPolicy": "Delete",
+      "DeletionPolicy": "RetainExceptOnCreate",
       "Properties": {
         "DeletionProtectionEnabled": false,
       },
       "Type": "AWS::DSQL::Cluster",
-      "UpdateReplacePolicy": "Delete",
+      "UpdateReplacePolicy": "Retain",
     },
     "DeployTimeBuildCustomResourceHandlerdb740fd554364a848a09e6dfcd01f4f306AEFF37": {
       "DependsOn": [

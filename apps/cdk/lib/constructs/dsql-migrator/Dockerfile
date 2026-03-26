@@ -6,7 +6,7 @@ COPY apps/cdk/package.json apps/cdk/
 RUN corepack enable && corepack prepare pnpm@10.8.1 --activate && pnpm install --frozen-lockfile
 COPY packages/db/ packages/db/
 COPY apps/cdk/lib/constructs/dsql-migrator/handler.ts apps/cdk/lib/constructs/dsql-migrator/
-RUN npx esbuild apps/cdk/lib/constructs/dsql-migrator/handler.ts --bundle --outfile=dist/handler.mjs --platform=node --format=esm --charset=utf8 \
+RUN pnpm exec esbuild apps/cdk/lib/constructs/dsql-migrator/handler.ts --bundle --outfile=dist/handler.mjs --platform=node --format=esm --charset=utf8 \
   --external:@aws-sdk/* --external:pg-native \
   --banner:js="import{createRequire}from'module';const require=createRequire(import.meta.url);"
 

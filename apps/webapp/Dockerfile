@@ -16,7 +16,7 @@ ENV USER_POOL_CLIENT_ID="dummy"
 ENV USER_POOL_ID="dummy"
 ENV AMPLIFY_APP_ORIGIN="https://dummy.example.com"
 ENV COGNITO_DOMAIN="dummy.example.com"
-RUN cd apps/webapp && npx next build
+RUN cd apps/webapp && pnpm exec next build
 
 FROM public.ecr.aws/lambda/nodejs:22 AS runner
 COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:0.9.0 /lambda-adapter /opt/extensions/lambda-adapter

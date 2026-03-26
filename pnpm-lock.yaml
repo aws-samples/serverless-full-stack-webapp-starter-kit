@@ -28,7 +28,7 @@ importers:
         version: 2.13.1
 
   apps/async-job:
-    dependencies:
+    devDependencies:
       '@aws-crypto/sha256-js':
         specifier: ^5
         version: 5.2.0
@@ -50,22 +50,21 @@ importers:
       '@smithy/signature-v4':
         specifier: ^5
         version: 5.3.12
-      drizzle-orm:
-        specifier: ^0.44
-        version: 0.44.7(@types/pg@8.18.0)(pg@8.20.0)
-      zod:
-        specifier: ^3.24.2
-        version: 3.25.76
-    devDependencies:
       '@types/aws-lambda':
         specifier: ^8.10.149
         version: 8.10.161
       '@types/node':
         specifier: ^22
         version: 22.19.15
+      drizzle-orm:
+        specifier: ^0.44
+        version: 0.44.7(@types/pg@8.18.0)(pg@8.20.0)
       typescript:
         specifier: ^5
         version: 5.9.3
+      zod:
+        specifier: ^3.24.2
+        version: 3.25.76
 
   apps/cdk:
     dependencies:

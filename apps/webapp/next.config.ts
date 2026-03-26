@@ -7,6 +7,8 @@ if (process.env.ALLOWED_ORIGIN_HOST) {
 
 const nextConfig: NextConfig = {
   output: 'standalone',
+  // Required for pnpm workspace packages — Next.js standalone output does not
+  // resolve symlinked workspace dependencies by default.
   transpilePackages: ['@repo/db', '@repo/shared-types'],
   experimental: {
     webpackBuildWorker: true,

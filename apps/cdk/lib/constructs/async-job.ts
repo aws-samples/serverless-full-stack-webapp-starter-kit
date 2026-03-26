@@ -36,9 +36,10 @@ export class AsyncJob extends Construct {
       timeout: Duration.minutes(10),
       architecture: Architecture.ARM_64,
       environment: {
-        ...database.getLambdaEnvironment(),
+        DSQL_ENDPOINT: database.endpoint,
         EVENT_HTTP_ENDPOINT: eventBus.httpEndpoint,
       },
+      // limit concurrency to mitigate any possible EDoS attacks
       reservedConcurrentExecutions: 1,
       logGroup: new LogGroup(this, 'HandlerLogs', {
         retention: RetentionDays.ONE_WEEK,
@@ -59,6 +60,7 @@ export class AsyncJob extends Construct {
     new CfnOutput(this, 'HandlerArn', { value: handler.functionArn });
     this.handler = handler;
 
+    // you can add scheduled jobs here.
     this.addSchedule(
       'SampleJob',
       ScheduleExpression.cron({ minute: '0', hour: '0', day: '1', timeZone: TimeZone.ETC_UTC }),
