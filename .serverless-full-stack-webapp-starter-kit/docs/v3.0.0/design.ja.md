@@ -51,13 +51,10 @@ DSQL は IAM 認証でのみ接続を受け付ける。`@aws/aurora-dsql-node-po
 
 DSQL は PostgreSQL のロールシステムを IAM と統合した2層の権限モデルを持つ:
 
-- **admin ロール**（`dsql:DbConnectAdmin`）: DDL + DML。クラスタ作成時に自動生成される唯一の組み込みロール
-- **カスタムロール**（`dsql:DbConnect`）: DML のみ。`admin` で接続して `CREATE ROLE ... WITH LOGIN` + `AWS IAM GRANT` で作成し、テーブルごとに `GRANT` で権限を付与する
+- **admin ロール**（`dsql:DbConnectAdmin`）: DDL + DML + ロール管理。クラスタ作成時に自動生成される唯一の組み込みロール
+- **カスタムロール**（`dsql:DbConnect`）: DML のみ。`admin` で接続して `CREATE ROLE ... WITH LOGIN` + `AWS IAM GRANT` + `GRANT ... ON ALL TABLES IN SCHEMA` で作成する
 
-本キットでは全 Lambda（webapp、async-job、migrator）が `admin` ロールで接続する。最小権限の観点では webapp と async-job は DML のみで十分だが、以下の理由で `admin` を維持する判断をした。詳細は [ADR-004](adr-004-dsql-admin-role.ja.md) を参照。
-
-- カスタムロールの導入にはマイグレーション時の `GRANT` 管理、Lambda 実行ロール ARN の CDK → マイグレーション間の受け渡し、`DEFAULT PRIVILEGES` の DSQL 対応状況の確認が必要で、スターターキットとしての複雑さに見合わない
-- 認証自体は IAM 一時トークンで保護されており、Lambda 実行ロールは対象クラスタにスコープされている
+本キットでは全 Lambda（webapp、async-job、migrator）が `admin` ロールで接続する。最小権限の観点では webapp と async-job は DML のみで十分だが、CDK → マイグレーション間の順序依存（Lambda 実行ロール ARN の受け渡し）がスターターキットとしての複雑さに見合わないため `admin` を維持する。v2 でもマスターユーザーで全接続しており、v3 では IAM 一時トークンへの移行で認証レイヤーは改善済み。詳細は [ADR-004](adr-004-dsql-admin-role.ja.md) を参照。
 
 ### DDL 制約
 
