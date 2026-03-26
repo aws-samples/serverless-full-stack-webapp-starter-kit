@@ -95,6 +95,7 @@ schema.prisma を主たるデータソースとする。理由: Prisma スキー
 | 検出対象                                 | DSQL での対処                                    | 判断基準                                                                                                                                                                                                                   |
 | ---------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `SERIAL` / `BIGSERIAL` 主キー            | `uuid().defaultRandom()` または IDENTITY 列      | 既存データに外部参照がある場合は UUID 変換時に参照元も更新が必要                                                                                                                                                           |
+| `@default(uuid())` の主キー              | `uuid()` または `text()` を選択                  | **DSQL は `uuid = text` の暗黙型キャストをサポートしない。** アプリコードやクエリで文字列リテラルと比較している場合は `text()` を使うこと。`uuid()` を選ぶ場合は全ての比較箇所で型を一致させる必要がある                   |
 | `ENUM` 型                                | `text()` + Zod バリデーション                    | 既存の ENUM 値を洗い出し、Zod スキーマに列挙する                                                                                                                                                                           |
 | `JSON` / `JSONB` カラム                  | `text()` + アプリ層でシリアライズ                | 既存データの JSON 構造を確認し、型定義を作成する。**Prisma は Json 型を自動で parse/stringify するが、Drizzle の text() は手動変換が必要。** Phase 3-4 で全ての読み書き箇所に `JSON.parse`/`JSON.stringify` を追加すること |
 | 外部キー制約（`@relation`）              | 削除（Drizzle `relations()` で代替）             | **`onDelete: Cascade` / `onDelete: SetNull` に依存する削除ロジックを特定すること。** DSQL は FK をサポートしないため、cascade 削除はアプリ層で `db.transaction()` 内の明示的な削除に変換が必要                             |
@@ -368,7 +369,7 @@ cd apps/webapp && pnpm run dev
 
 ### Phase 5-1: DSQL クラスタ作成（CDK デプロイ 1回目）
 
-1. **Aurora v2 リソースに RemovalPolicy.RETAIN を設定**: CDK の Aurora Serverless v2 クラスタ、VPC、関連リソースに `removalPolicy: cdk.RemovalPolicy.RETAIN` を追加。これにより CloudFormation の `DeletionPolicy` が `Retain` に変わり、後のデプロイでリソース定義を削除しても実リソースは残る。
+1. **Aurora v2 リソースに RemovalPolicy.RETAIN を設定**: CDK の Aurora Serverless v2 クラスタ、VPC、関連リソースに `removalPolicy: cdk.RemovalPolicy.RETAIN` を追加。これにより CloudFormation の `DeletionPolicy` が `Retain` に変わり、後のデプロイでリソース定義を削除しても実リソースは残る。**注意: `Vpc.applyRemovalPolicy(RETAIN)` は子リソース（サブネット、ルートテーブル、インターネットゲートウェイ等）に伝播しない。** VPC を RETAIN する場合は、`vpc.node.findAll()` で子リソースを列挙し個別に `applyRemovalPolicy(RETAIN)` を設定するか、Phase 5-3 で VPC リソース定義を削除する際に2段階デプロイ（1回目: Lambda の VPC 設定を外す → 2回目: VPC 定義を削除）で ENI の解放を待つこと。
 
 2. **CDK に DSQL クラスタを追加**: v3 キットからコピー済みの `database.ts` を使用。webapp と async-job はまだ Aurora v2 に接続したまま。
 
@@ -403,6 +404,8 @@ pnpm --filter @repo/db run migrate
 #### データの移行
 
 Phase 1-3 で記録した各テーブルの行数に基づいて移行方法を選択する。
+
+**DSQL は `COPY FROM STDIN` をサポートする。** `pg_dump --data-only` のデフォルト出力（COPY 形式）をそのまま `psql` で投入できるため、小〜中規模データの移行では最も簡単な方法。ただし DSQL の 3,000 行/トランザクション制限があるため、大テーブルは COPY 文をテーブルごとに分割し、各 COPY を個別トランザクションで実行すること。
 
 `pg_dump --data-only` で取得したダンプを DSQL に投入する場合、以下の変換が必要:
 

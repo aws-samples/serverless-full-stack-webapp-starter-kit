@@ -223,7 +223,7 @@ DSQL 非互換パターンをコーディング時とマイグレーション時
 
 各サブパッケージが定型タスク名（`dev`、`build`、`test:unit`、`lint`、`check:ci` 等）を自身の `package.json` に定義し、ルートからは `pnpm -r run <task>` で一括実行する。ルート `package.json` にはタスクのエイリアススクリプトを置かない — 各パッケージが自身のスクリプトを持つため冗長であり、`--if-present` 付きの間接呼び出しはデバッグを困難にする。
 
-pre-commit フックは `simple-git-hooks` + `lint-staged` で構成し、ステージ済みファイルに oxlint/oxfmt を実行した後、全パッケージの `test:unit` を実行する。`prepare` スクリプトにより `pnpm install` 時にフックが自動インストールされる。
+pre-commit フックは `simple-git-hooks` + `lint-staged` で構成し、ステージ済みファイルに oxlint/oxfmt を実行した後、全パッケージの `test:unit` を実行する。`prepare` スクリプトにより `pnpm install` 時にフックが自動インストールされる。lint-staged の oxlint 呼び出しでは `typeCheck` による型チェックが効かない — lint-staged はステージ済みファイルのみを引数に渡すため、プロジェクト全体の tsconfig 解決が必要な型チェックと非互換。型チェックは CI の `check:ci`（`oxlintrc.json` の `typeCheck: true`）で担保する。
 
 ### Docker ビルドの制約
 

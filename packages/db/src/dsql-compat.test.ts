@@ -34,6 +34,11 @@ describe('transformSql', () => {
     expect(transformSql(input)).toBe(input);
   });
 
+  test('T4b: USING btree removed from CREATE INDEX', () => {
+    const input = 'CREATE INDEX "idx" ON "T" USING btree ("col");';
+    expect(transformSql(input)).toBe('CREATE INDEX ASYNC "idx" ON "T" ("col");');
+  });
+
   test('T5: inline REFERENCES removed, column definition preserved', () => {
     const result = transformSql(readFixture('add-fk-inline.input.sql'));
     expect(result).toBe(readFixture('add-fk-inline.expected.sql'));

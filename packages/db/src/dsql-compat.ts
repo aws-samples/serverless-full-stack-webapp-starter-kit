@@ -20,6 +20,9 @@ export function transformSql(sql: string): string {
     unique ? `CREATE UNIQUE INDEX ASYNC` : `CREATE INDEX ASYNC`,
   );
 
+  // Remove USING btree — DSQL indexes are B-tree by default and do not support the USING clause.
+  result = result.replace(/\s+USING\s+btree/gi, '');
+
   // Remove standalone FOREIGN KEY constraint lines BEFORE inline REFERENCES removal.
   // The inline REFERENCES regex would strip the REFERENCES part, leaving a partial CONSTRAINT line.
   // Pattern: ,\n\tCONSTRAINT "..." FOREIGN KEY (...) REFERENCES "..."("...")

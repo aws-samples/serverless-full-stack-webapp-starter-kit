@@ -77,9 +77,6 @@ importers:
       '@cdklabs/deploy-time-build':
         specifier: ^0.1.1
         version: 0.1.1(aws-cdk-lib@2.244.0(constructs@10.5.1))(constructs@10.5.1)
-      '@types/aws-lambda':
-        specifier: ^8.10.149
-        version: 8.10.161
       aws-cdk-lib:
         specifier: ^2.189.1
         version: 2.244.0(constructs@10.5.1)
@@ -93,6 +90,9 @@ importers:
         specifier: ^0.5.21
         version: 0.5.21
     devDependencies:
+      '@types/aws-lambda':
+        specifier: ^8.10.149
+        version: 8.10.161
       '@types/jest':
         specifier: ^27.5.0
         version: 27.5.2
