@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   // Required for pnpm workspace packages — Next.js standalone output does not
   // resolve symlinked workspace dependencies by default.
-  transpilePackages: ['@repo/db', '@repo/shared-types'],
+  transpilePackages: ['@repo/db', '@repo/shared-types', '@repo/event-utils'],
   experimental: {
     webpackBuildWorker: true,
     parallelServerBuildTraces: true,
@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
     },
   },
   typescript: {
-    ignoreBuildErrors: process.env.SKIP_TS_BUILD == 'true',
+    ignoreBuildErrors: process.env.SKIP_TS_BUILD === 'true',
   },
 };
 

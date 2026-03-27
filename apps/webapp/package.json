@@ -18,6 +18,7 @@
     "@aws-sdk/client-lambda": "^3.995.0",
     "@aws-sdk/client-ssm": "^3.995.0",
     "@repo/db": "workspace:*",
+    "@repo/event-utils": "workspace:*",
     "@repo/shared-types": "workspace:*",
     "aws-amplify": "^6.16.2",
     "class-variance-authority": "^0.7.1",
@@ -36,12 +37,8 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
-    "@aws-crypto/sha256-js": "^5",
-    "@aws-sdk/credential-provider-node": "^3",
     "@hookform/resolvers": "^5.2.2",
     "@next-safe-action/adapter-react-hook-form": "^1.0.14",
-    "@smithy/protocol-http": "^5",
-    "@smithy/signature-v4": "^5",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

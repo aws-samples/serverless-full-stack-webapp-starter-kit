@@ -3,6 +3,7 @@ WORKDIR /build
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY packages/db/package.json packages/db/
 COPY packages/shared-types/package.json packages/shared-types/
+COPY packages/event-utils/package.json packages/event-utils/
 COPY apps/webapp/package.json apps/webapp/
 RUN corepack enable && corepack prepare pnpm@10.8.1 --activate && pnpm install --frozen-lockfile
 COPY packages/ packages/
@@ -12,10 +13,14 @@ ARG SKIP_TS_BUILD=""
 ARG ALLOWED_ORIGIN_HOST=""
 ARG NEXT_PUBLIC_EVENT_HTTP_ENDPOINT=""
 ARG NEXT_PUBLIC_AWS_REGION=""
-ENV USER_POOL_CLIENT_ID="dummy"
-ENV USER_POOL_ID="dummy"
-ENV AMPLIFY_APP_ORIGIN="https://dummy.example.com"
-ENV COGNITO_DOMAIN="dummy.example.com"
+ARG USER_POOL_CLIENT_ID="dummy"
+ARG USER_POOL_ID="dummy"
+ARG AMPLIFY_APP_ORIGIN="https://dummy.example.com"
+ARG COGNITO_DOMAIN="dummy.example.com"
+ENV USER_POOL_CLIENT_ID=$USER_POOL_CLIENT_ID
+ENV USER_POOL_ID=$USER_POOL_ID
+ENV AMPLIFY_APP_ORIGIN=$AMPLIFY_APP_ORIGIN
+ENV COGNITO_DOMAIN=$COGNITO_DOMAIN
 RUN cd apps/webapp && pnpm exec next build
 
 FROM public.ecr.aws/lambda/nodejs:22 AS runner

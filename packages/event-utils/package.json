@@ -1,0 +1,25 @@
+{
+  "name": "@repo/event-utils",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./send-event": "./src/send-event.ts"
+  },
+  "scripts": {
+    "lint": "oxlint --config ../../oxlintrc.json --fix .",
+    "lint:ci": "oxlint --config ../../oxlintrc.json --max-warnings 0 .",
+    "check": "pnpm run lint",
+    "check:ci": "pnpm run lint:ci"
+  },
+  "dependencies": {
+    "@aws-crypto/sha256-js": "^5",
+    "@aws-sdk/credential-provider-node": "^3",
+    "@smithy/protocol-http": "^5",
+    "@smithy/signature-v4": "^5"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "typescript": "^5"
+  }
+}

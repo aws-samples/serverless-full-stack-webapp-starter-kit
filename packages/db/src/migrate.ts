@@ -47,6 +47,12 @@ export async function migrate({ pool, migrationsDir }: MigrateOptions): Promise<
   }
 }
 
+/**
+ * SQL files are split into statements by blank lines (`\n\n`).
+ * Do NOT include blank lines inside a single SQL statement (e.g. within CREATE TABLE).
+ * drizzle-kit generate uses `--> statement-breakpoint` which check-dsql-compat.ts
+ * transforms to blank lines. Hand-written SQL must follow the same convention.
+ */
 async function runSqlMigration(client: PoolClient, filePath: string, file: string): Promise<void> {
   const content = fs.readFileSync(filePath, 'utf8');
   const statements = content
@@ -76,5 +82,11 @@ async function runTsMigration(client: PoolClient, filePath: string): Promise<voi
   if (typeof mod.default !== 'function') {
     throw new Error(`TS migration ${filePath} must export a default async function(client: PoolClient)`);
   }
-  await mod.default(client);
+  try {
+    await mod.default(client);
+  } catch (error) {
+    // Safety net: ROLLBACK any open transaction left by user code
+    await client.query('ROLLBACK').catch(() => {});
+    throw error;
+  }
 }

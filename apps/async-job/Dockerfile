@@ -3,6 +3,7 @@ WORKDIR /build
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY packages/db/package.json packages/db/
 COPY packages/shared-types/package.json packages/shared-types/
+COPY packages/event-utils/package.json packages/event-utils/
 COPY apps/async-job/package.json apps/async-job/
 RUN corepack enable && corepack prepare pnpm@10.8.1 --activate && pnpm install --frozen-lockfile
 COPY packages/ packages/

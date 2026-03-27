@@ -5,8 +5,11 @@ import { db } from '@repo/db/client';
 import { users } from '@repo/db/schema';
 import { eq } from 'drizzle-orm';
 
-export class UserNotCreatedError {
-  constructor(public readonly userId: string) {}
+export class UserNotCreatedError extends Error {
+  constructor(public readonly userId: string) {
+    super(`User ${userId} not found in database`);
+    this.name = 'UserNotCreatedError';
+  }
 }
 
 export async function getSession() {

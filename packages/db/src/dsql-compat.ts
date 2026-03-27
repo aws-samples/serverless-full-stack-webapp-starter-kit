@@ -34,8 +34,11 @@ export function transformSql(sql: string): string {
   result = result.replace(/,\n\s*FOREIGN\s+KEY\s*\([^)]*\)\s*REFERENCES\s*"[^"]*"\s*\("[^"]*"\)[^\n]*/gi, '');
 
   // Remove inline REFERENCES from column definitions, preserving the column itself.
-  // e.g. "userId" text NOT NULL REFERENCES "User"("id") → "userId" text NOT NULL
-  result = result.replace(/\s+REFERENCES\s+"[^"]+"\("[^"]+"\)/gi, '');
+  // e.g. "userId" text NOT NULL REFERENCES "User"("id") ON DELETE CASCADE → "userId" text NOT NULL
+  result = result.replace(
+    /\s+REFERENCES\s+"[^"]+"\("[^"]+"\)(\s+ON\s+(?:DELETE|UPDATE)\s+(?:CASCADE|SET\s+NULL|SET\s+DEFAULT|RESTRICT|NO\s+ACTION))*/gi,
+    '',
+  );
 
   return result;
 }

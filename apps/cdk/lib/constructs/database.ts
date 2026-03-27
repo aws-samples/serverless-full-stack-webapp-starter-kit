@@ -41,6 +41,11 @@ export class Database extends Construct {
     });
   }
 
+  /**
+   * Grant DML-only connect permission (dsql:DbConnect) for application workloads.
+   * Requires a custom database role created via migration. See ADR-004.
+   * TODO: Migrate webapp/async-job to use this method with a custom DB role.
+   */
   public grantConnect(grantee: IGrantable): Grant {
     return Grant.addToPrincipal({
       grantee,

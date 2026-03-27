@@ -12,13 +12,10 @@
     "check:ci": "pnpm run lint:ci && pnpm run format:ci"
   },
   "devDependencies": {
-    "@aws-crypto/sha256-js": "^5",
     "@aws-sdk/client-translate": "^3.995.0",
-    "@aws-sdk/credential-provider-node": "^3",
     "@repo/db": "workspace:*",
+    "@repo/event-utils": "workspace:*",
     "@repo/shared-types": "workspace:*",
-    "@smithy/protocol-http": "^5",
-    "@smithy/signature-v4": "^5",
     "@types/aws-lambda": "^8.10.149",
     "@types/node": "^22",
     "drizzle-orm": "^0.44",

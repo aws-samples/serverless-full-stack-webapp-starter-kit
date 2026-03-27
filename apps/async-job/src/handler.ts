@@ -5,7 +5,7 @@ import type { Handler } from 'aws-lambda';
 export const handler: Handler<unknown> = async (event) => {
   const { data: payload, error } = jobPayloadPropsSchema.safeParse(event);
   if (error) {
-    console.log(error);
+    console.error(error);
     throw new Error(error.toString());
   }
 

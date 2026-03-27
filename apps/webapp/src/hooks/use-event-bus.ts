@@ -1,7 +1,7 @@
 import { decodeJWT } from 'aws-amplify/auth';
 import { Amplify } from 'aws-amplify';
 import { events } from 'aws-amplify/data';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 Amplify.configure(
   {
@@ -34,6 +34,9 @@ type UseEventBusProps = {
 };
 
 export const useEventBus = ({ channelName, onReceived }: UseEventBusProps) => {
+  const onReceivedRef = useRef(onReceived);
+  onReceivedRef.current = onReceived;
+
   useEffect(() => {
     const connectAndSubscribe = async () => {
       const channel = await events.connect(`event-bus/${channelName}`);
@@ -41,7 +44,7 @@ export const useEventBus = ({ channelName, onReceived }: UseEventBusProps) => {
 
       channel.subscribe({
         next: (data) => {
-          onReceived(data);
+          onReceivedRef.current(data);
         },
         error: (err) => console.error('error', err),
       });
@@ -55,5 +58,5 @@ export const useEventBus = ({ channelName, onReceived }: UseEventBusProps) => {
         channel.close();
       });
     };
-  }, [channelName, onReceived]);
+  }, [channelName]);
 };

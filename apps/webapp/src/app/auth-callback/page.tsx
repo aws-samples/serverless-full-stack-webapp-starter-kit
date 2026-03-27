@@ -13,7 +13,7 @@ export default async function AuthCallbackPage() {
     if (e instanceof UserNotCreatedError) {
       const userId = e.userId;
       console.log(userId);
-      await db.insert(users).values({ id: userId });
+      await db.insert(users).values({ id: userId }).onConflictDoNothing();
     } else {
       throw e;
     }

@@ -6,13 +6,11 @@ let pool: AuroraDSQLPool | undefined;
 
 export function getPool(): AuroraDSQLPool {
   if (!pool) {
-    pool = new AuroraDSQLPool({
-      host: process.env.DSQL_ENDPOINT!,
-      region: process.env.AWS_REGION!,
-      user: 'admin',
-      database: 'postgres',
-      port: 5432,
-    });
+    const host = process.env.DSQL_ENDPOINT;
+    if (!host) throw new Error('DSQL_ENDPOINT environment variable is required');
+    const region = process.env.AWS_REGION;
+    if (!region) throw new Error('AWS_REGION environment variable is required');
+    pool = new AuroraDSQLPool({ host, region, user: 'admin', database: 'postgres', port: 5432 });
   }
   return pool;
 }

@@ -1,22 +1,20 @@
-import { sendEvent } from '../events';
+import { sendEvent } from '@repo/event-utils/send-event';
 import { db } from '@repo/db/client';
 import { todoItems } from '@repo/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import type { TranslateJobPayload } from '@repo/shared-types/job-payload';
 import { TranslateClient, TranslateTextCommand } from '@aws-sdk/client-translate';
 
 export async function translateJobHandler(params: TranslateJobPayload) {
   const todoItem = await db.query.todoItems.findFirst({
-    where: eq(todoItems.id, params.todoItemId),
+    where: and(eq(todoItems.id, params.todoItemId), eq(todoItems.userId, params.userId)),
   });
   if (!todoItem) {
     console.log(`item ${params.todoItemId} not found.`);
     return;
   }
 
-  const translateClient = new TranslateClient({
-    region: process.env.AWS_REGION || 'ap-northeast-1',
-  });
+  const translateClient = new TranslateClient({});
 
   const targetLanguage = 'ja';
   const translateResult = await translateClient.send(
