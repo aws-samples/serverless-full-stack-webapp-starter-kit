@@ -30,6 +30,7 @@ export class Database extends Construct {
 
     const cluster = new CfnCluster(this, 'Cluster', {
       deletionProtectionEnabled,
+      tags: [{ key: 'Name', value: `${Stack.of(this).stackName}-dsql` }],
     });
     cluster.applyRemovalPolicy(removalPolicy);
 

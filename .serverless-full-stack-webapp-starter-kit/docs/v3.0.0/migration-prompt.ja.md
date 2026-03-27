@@ -41,7 +41,7 @@
 | `packages/db/src/client.ts`              | Proxy 遅延初期化 + globalThis シングルトン |
 | `packages/db/src/migrate.ts`             | マイグレーションランナーコアロジック       |
 | `packages/db/src/dsql-compat.ts`         | SQL 変換 + バリデーション                  |
-| `packages/db/src/cli.ts`                 | CLI エントリポイント                       |
+| `packages/db/src/migrate-cli.ts`         | マイグレーション CLI エントリポイント      |
 | `packages/db/src/check-dsql-compat.ts`   | drizzle-kit generate 後処理                |
 | `packages/db/drizzle.config.ts`          | —                                          |
 | `packages/db/package.json`               | —                                          |
@@ -50,7 +50,7 @@
 | `packages/shared-types/tsconfig.json`    | —                                          |
 | `apps/cdk/lib/constructs/database.ts`    | DSQL CfnCluster + IAM 認証                 |
 | `apps/cdk/lib/constructs/dsql-migrator/` | Dockerfile, handler.ts, index.ts 一式      |
-| `scripts/dsql.sh`                        | 開発用 DSQL クラスタの作成・削除           |
+| `packages/db/src/cluster-cli.ts`         | 開発用 DSQL クラスタの作成・削除           |
 
 以下はユーザー固有の変換が必要なため、コピーではなく手書き・変換する:
 
@@ -229,6 +229,7 @@ pnpm --filter @repo/db run generate
 - `next.config.ts` に `transpilePackages: ['@repo/db', '@repo/shared-types']` を追加（ユーザーの既存設定を保持しつつマージ）
 - **Json カラムの全使用箇所を洗い出す**（`rg 'Json|\.json\b' --type ts` でスキーマ定義と読み書き箇所を特定）。Prisma は Json 型を自動で parse/stringify するが、Drizzle の `text()` は手動変換が必要。読み出し時に `JSON.parse()`、書き込み時に `JSON.stringify()` を追加すること
 - **Prisma の nested create（暗黙トランザクション）を `db.transaction()` に変換する。** 特に `onDelete: Cascade` に依存していた削除ロジックは、`db.transaction()` 内で子テーブルを先に削除してから親テーブルを削除するように書き換えること
+- **`db.query.*.findMany()` を `exists()`/`notExists()` サブクエリと組み合わせないこと。** `findMany()` は内部でテーブルにエイリアスを付与するが、`where`/`extras` 内のカラム参照は元テーブル名で展開されるため `invalid reference to FROM-clause entry for table` エラーになる。`db.select().from().leftJoin()` に書き換えること。`findFirst()` はサブクエリなしなら安全。詳細は drizzle-team/drizzle-orm#3068
 
 ### 3-5. クリーンアップ
 
@@ -238,10 +239,10 @@ pnpm --filter @repo/db run generate
 
 ### 3-6. 開発用 DSQL クラスタでの検証
 
-本番データベースに触れる前に、開発用 DSQL クラスタでスキーマとアプリコードの動作を検証する。v3 キットの `scripts/dsql.sh` を使う:
+本番データベースに触れる前に、開発用 DSQL クラスタでスキーマとアプリコードの動作を検証する。v3 キットの `packages/db` の cluster コマンドを使う:
 
 ```bash
-bash scripts/dsql.sh create --region <region>
+pnpm --filter @repo/db run cluster create --region <region>
 ```
 
 このスクリプトは開発用 DSQL クラスタを作成し、`packages/db/.env` に接続情報を自動で書き込む。
@@ -262,7 +263,7 @@ bash scripts/dsql.sh create --region <region>
 
 ```bash
 # Phase 5 完了後に実行
-bash scripts/dsql.sh delete --region <region>
+pnpm --filter @repo/db run cluster delete --region <region>
 ```
 
 ### チェックポイント

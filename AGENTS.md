@@ -24,7 +24,7 @@ pnpm --filter @repo/db run migrate
 pnpm run lint
 
 # local development (requires DSQL cluster)
-bash scripts/dsql.sh create             # create dev DSQL cluster
+pnpm --filter @repo/db run cluster create   # create dev DSQL cluster
 cd apps/webapp && pnpm run dev
 ```
 
@@ -59,6 +59,8 @@ DSQL constraints:
 - CREATE INDEX must use ASYNC keyword
 - 1 DDL per transaction
 - ALTER TABLE only supports: ADD COLUMN, RENAME COLUMN/TABLE/CONSTRAINT, SET SCHEMA, OWNER TO, and IDENTITY operations. Everything else (DROP COLUMN, ALTER COLUMN TYPE, SET/DROP NOT NULL, SET/DROP DEFAULT, DROP CONSTRAINT) requires table recreation.
+
+- `db.query.*.findMany()` with `exists()`/`sql` subqueries causes alias errors on DSQL (drizzle-team/drizzle-orm#3068). Use `db.select().from()` instead. `findFirst()` is safe.
 
 ### Database migration
 

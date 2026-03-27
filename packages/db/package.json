@@ -10,7 +10,8 @@
   },
   "scripts": {
     "generate": "drizzle-kit generate && tsx src/check-dsql-compat.ts",
-    "migrate": "tsx --env-file=.env src/cli.ts",
+    "migrate": "tsx --env-file=.env src/migrate-cli.ts",
+    "cluster": "tsx src/cluster-cli.ts",
     "test:unit": "vitest run --exclude '**/*.integ.test.ts'",
     "test:integ": "vitest run --config vitest.integ.config.ts",
     "test:watch": "vitest --exclude '**/*.integ.test.ts'",
@@ -27,6 +28,7 @@
     "pg": "^8"
   },
   "devDependencies": {
+    "@aws-sdk/client-dsql": "^3",
     "@types/pg": "^8",
     "drizzle-kit": "^0.31.10",
     "tsx": "^4",

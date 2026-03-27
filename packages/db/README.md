@@ -94,7 +94,7 @@ DSQL_ENDPOINT=<cluster>.dsql.<region>.on.aws
 AWS_REGION=<region>
 ```
 
-Or use `scripts/dsql.sh create --region <region>` from the repo root to provision a dev cluster and write `.env` automatically.
+Or use `pnpm --filter @repo/db run cluster create --region <region>` to provision a dev cluster and write `.env` automatically.
 
 ## Testing
 
