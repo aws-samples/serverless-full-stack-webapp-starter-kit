@@ -10,11 +10,11 @@ import {
 } from './schemas';
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
-import { TodoItemStatus } from '@prisma/client';
+import { TodoItemStatus, TodoItemPriority } from '@prisma/client';
 import { runJob } from '@/lib/jobs';
 
 export const createTodo = authActionClient.schema(createTodoSchema).action(async ({ parsedInput, ctx }) => {
-  const { title, description } = parsedInput;
+  const { title, description, priority, dueDate, category } = parsedInput;
   const { userId } = ctx;
 
   const todo = await prisma.todoItem.create({
@@ -23,6 +23,9 @@ export const createTodo = authActionClient.schema(createTodoSchema).action(async
       description,
       userId,
       status: TodoItemStatus.PENDING,
+      priority: (priority as TodoItemPriority) || TodoItemPriority.MEDIUM,
+      dueDate: dueDate ? new Date(dueDate) : null,
+      category: category || null,
     },
   });
 
@@ -31,7 +34,7 @@ export const createTodo = authActionClient.schema(createTodoSchema).action(async
 });
 
 export const updateTodo = authActionClient.schema(updateTodoSchema).action(async ({ parsedInput, ctx }) => {
-  const { id, title, description, status } = parsedInput;
+  const { id, title, description, status, priority, dueDate, category } = parsedInput;
   const { userId } = ctx;
 
   const todo = await prisma.todoItem.update({
@@ -43,6 +46,9 @@ export const updateTodo = authActionClient.schema(updateTodoSchema).action(async
       title,
       description,
       status,
+      ...(priority && { priority: priority as TodoItemPriority }),
+      ...(dueDate !== undefined && { dueDate: dueDate ? new Date(dueDate) : null }),
+      ...(category !== undefined && { category: category || null }),
     },
   });
 

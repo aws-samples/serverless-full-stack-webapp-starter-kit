@@ -1,9 +1,8 @@
 import { prisma } from '@/lib/prisma';
 import { getAuthSession } from '@/lib/auth';
-import TodoItemComponent from './components/TodoItem';
 import CreateTodoForm from './components/CreateTodoForm';
-import { TodoItemStatus } from '@prisma/client';
 import Header from '@/components/Header';
+import TodoList from './components/TodoList';
 
 export default async function Home() {
   const { userId } = await getAuthSession();
@@ -17,44 +16,34 @@ export default async function Home() {
     },
   });
 
-  const pendingTodos = todos.filter((todo) => todo.status === TodoItemStatus.PENDING);
-  const completedTodos = todos.filter((todo) => todo.status === TodoItemStatus.COMPLETED);
-
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
 
       <main className="flex-grow">
-        <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
+          {/* Page Header */}
+          <div className="mb-8 animate-fade-in-up">
+            <h1 className="text-2xl font-bold text-zinc-100 mb-1">
+              My Tasks
+            </h1>
+            <p className="text-sm text-zinc-500">
+              Organize, prioritize, and conquer your day.
+            </p>
+          </div>
+
+          {/* Create Todo */}
           <CreateTodoForm userId={userId} />
 
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">Pending Tasks ({pendingTodos.length})</h2>
-            {pendingTodos.length === 0 ? (
-              <p className="text-gray-500 text-center py-4">No pending tasks. Great job!</p>
-            ) : (
-              <div>
-                {pendingTodos.map((todo) => (
-                  <TodoItemComponent key={todo.id} todo={todo} />
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Completed Tasks ({completedTodos.length})</h2>
-            {completedTodos.length === 0 ? (
-              <p className="text-gray-500 text-center py-4">No completed tasks yet.</p>
-            ) : (
-              <div>
-                {completedTodos.map((todo) => (
-                  <TodoItemComponent key={todo.id} todo={todo} />
-                ))}
-              </div>
-            )}
-          </div>
+          {/* Todo List with Search, Filters, Stats */}
+          <TodoList todos={todos} userId={userId} />
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="py-6 text-center text-xs text-zinc-700 border-t border-white/[0.04]">
+        © {new Date().getFullYear()} Shegxy. Built with ✨
+      </footer>
     </div>
   );
 }

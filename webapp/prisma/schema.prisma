@@ -25,12 +25,22 @@ enum TodoItemStatus {
   COMPLETED
 }
 
+enum TodoItemPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
 model TodoItem {
-  id          String         @id @default(uuid())
+  id          String           @id @default(uuid())
   title       String
-  description String         @db.Text()
+  description String           @db.Text()
   userId      String
   status      TodoItemStatus
+  priority    TodoItemPriority @default(MEDIUM)
+  dueDate     DateTime?
+  category    String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
