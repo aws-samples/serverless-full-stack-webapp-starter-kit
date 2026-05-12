@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - feature/**
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  basic-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show files
+        run: ls -la
+
+      - name: Basic validation
+        run: echo "CI is running for shegxy-webapp"

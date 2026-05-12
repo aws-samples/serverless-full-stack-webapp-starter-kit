@@ -1,4 +1,4 @@
-# Serverless Full Stack WebApp Starter Kit
+# shegxy-webapp
 [![Build](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/actions/workflows/build.yml/badge.svg)](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/actions/workflows/build.yml)
 [![Release](https://img.shields.io/github/v/release/aws-samples/serverless-full-stack-webapp-starter-kit)](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/releases)
 
