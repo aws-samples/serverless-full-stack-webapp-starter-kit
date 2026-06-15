@@ -43,7 +43,7 @@
     "eslint-config-next": "15.3.0",
     "prettier": "^3.8.4",
     "tailwindcss": "^4",
-    "typescript": "^5",
+    "typescript": "^6",
     "zod-prisma-types": "^3.3.11"
   }
 }
