@@ -27,7 +27,7 @@ exports[`Snapshot test 1`] = `
             "Arn",
           ],
         },
-        "Runtime": "nodejs22.x",
+        "Runtime": "nodejs24.x",
         "Timeout": 900,
       },
       "Type": "AWS::Lambda::Function",
@@ -433,7 +433,7 @@ exports[`Snapshot test 2`] = `
             "Arn",
           ],
         },
-        "Runtime": "nodejs22.x",
+        "Runtime": "nodejs24.x",
         "Timeout": 120,
       },
       "Type": "AWS::Lambda::Function",
@@ -486,7 +486,7 @@ exports[`Snapshot test 2`] = `
             "Arn",
           ],
         },
-        "Runtime": "nodejs22.x",
+        "Runtime": "nodejs24.x",
         "Timeout": 900,
       },
       "Type": "AWS::Lambda::Function",
@@ -1290,17 +1290,20 @@ exports[`Snapshot test 2`] = `
         "aws s3 cp \\"$sourceS3Url\\" temp.zip",
         "unzip temp.zip",
         "ls -la",
-        "aws ecr get-login-password | docker login --username AWS --password-stdin $repositoryAuthUri",
+        "aws ecr get-login-password --region $repositoryRegion | docker login --username AWS --password-stdin $repositoryAuthUri",
         "aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws",
-        "docker buildx create --use",
         "docker buildx ls",
-        "eval \\"$buildCommand\\""
+        "echo \\"$buildCommand\\"",
+        "eval \\"$buildCommand\\"",
+        "docker images",
+        "docker tag artifact:$imageTag $repositoryUri:$imageTag",
+        "docker push $repositoryUri:$imageTag"
       ]
     },
     "post_build": {
       "commands": [
         "echo Build completed on \`date\`",
-        "\\nSTATUS='SUCCESS'\\nif [ $CODEBUILD_BUILD_SUCCEEDING -ne 1 ] # Test if the build is failing\\nthen\\nSTATUS='FAILED'\\nREASON=\\"ContainerImageBuild failed. See CloudWatch Log stream for the detailed reason: \\nhttps://$AWS_REGION.console.aws.amazon.com/cloudwatch/home?region=$AWS_REGION#logsV2:log-groups/log-group/\\\\$252Faws\\\\$252Fcodebuild\\\\$252F$projectName/log-events/$CODEBUILD_LOG_PATH\\"\\nfi\\ncat <<EOF > payload.json\\n{\\n  \\"StackId\\": \\"$stackId\\",\\n  \\"RequestId\\": \\"$requestId\\",\\n  \\"LogicalResourceId\\":\\"$logicalResourceId\\",\\n  \\"PhysicalResourceId\\": \\"$imageTag\\",\\n  \\"Status\\": \\"$STATUS\\",\\n  \\"Reason\\": \\"$REASON\\",\\n  \\"Data\\": {\\n    \\"ImageTag\\": \\"$imageTag\\"\\n  }\\n}\\nEOF\\ncurl -v -i -X PUT -H 'Content-Type:' -d \\"@payload.json\\" \\"$responseURL\\"\\n              "
+        "\\nSTATUS='SUCCESS'\\nif [ $CODEBUILD_BUILD_SUCCEEDING -ne 1 ] # Test if the build is failing\\nthen\\nSTATUS='FAILED'\\nREASON=\\"ContainerImageBuild failed. See CloudWatch Log stream for the detailed reason: \\nhttps://$AWS_REGION.console.aws.amazon.com/cloudwatch/home?region=$AWS_REGION#logsV2:log-groups/log-group/\\\\$252Faws\\\\$252Fcodebuild\\\\$252F$projectName/log-events/$CODEBUILD_LOG_PATH\\"\\nfi\\ncat <<EOF > payload.json\\n{\\n  \\"StackId\\": \\"$stackId\\",\\n  \\"RequestId\\": \\"$requestId\\",\\n  \\"LogicalResourceId\\":\\"$logicalResourceId\\",\\n  \\"PhysicalResourceId\\": \\"$imageTag\\",\\n  \\"Status\\": \\"$STATUS\\",\\n  \\"Reason\\": \\"$REASON\\",\\n  \\"Data\\": {\\n    \\"ImageTag\\": \\"$imageTag\\"\\n  }\\n}\\nEOF\\ncurl -i -X PUT -H 'Content-Type:' -d \\"@payload.json\\" \\"$responseURL\\"\\n              "
       ]
     }
   }
@@ -1508,7 +1511,7 @@ exports[`Snapshot test 2`] = `
             "Arn",
           ],
         },
-        "Runtime": "nodejs22.x",
+        "Runtime": "nodejs24.x",
         "Timeout": 900,
       },
       "Type": "AWS::Lambda::Function",
@@ -1594,7 +1597,7 @@ exports[`Snapshot test 2`] = `
             "Arn",
           ],
         },
-        "Runtime": "nodejs22.x",
+        "Runtime": "nodejs24.x",
         "Timeout": 900,
       },
       "Type": "AWS::Lambda::Function",
@@ -2076,7 +2079,7 @@ exports[`Snapshot test 2`] = `
             "Arn",
           ],
         },
-        "Runtime": "nodejs20.x",
+        "Runtime": "nodejs22.x",
         "Timeout": 300,
       },
       "Type": "AWS::Lambda::Function",
@@ -2232,7 +2235,7 @@ exports[`Snapshot test 2`] = `
             "Arn",
           ],
         },
-        "Runtime": "nodejs22.x",
+        "Runtime": "nodejs24.x",
         "Timeout": 900,
       },
       "Type": "AWS::Lambda::Function",
@@ -3193,49 +3196,7 @@ service iptables save",
                   "Dns.Http",
                 ],
               },
-              " --build-arg NEXT_PUBLIC_AWS_REGION=us-west-2 --platform linux/arm64 --output type=image,name=",
-              {
-                "Fn::Select": [
-                  4,
-                  {
-                    "Fn::Split": [
-                      ":",
-                      {
-                        "Fn::GetAtt": [
-                          "WebappBuildRepository4C93D48D",
-                          "Arn",
-                        ],
-                      },
-                    ],
-                  },
-                ],
-              },
-              ".dkr.ecr.",
-              {
-                "Fn::Select": [
-                  3,
-                  {
-                    "Fn::Split": [
-                      ":",
-                      {
-                        "Fn::GetAtt": [
-                          "WebappBuildRepository4C93D48D",
-                          "Arn",
-                        ],
-                      },
-                    ],
-                  },
-                ],
-              },
-              ".",
-              {
-                "Ref": "AWS::URLSuffix",
-              },
-              "/",
-              {
-                "Ref": "WebappBuildRepository4C93D48D",
-              },
-              ":<IMAGE_TAG>,push=true --provenance=false .",
+              " --build-arg NEXT_PUBLIC_AWS_REGION=us-west-2 --platform linux/arm64 --output type=docker,name=artifact:$imageTag --provenance=false .",
             ],
           ],
         },
@@ -3301,6 +3262,9 @@ service iptables save",
       "DeletionPolicy": "Delete",
       "Properties": {
         "EmptyOnDelete": true,
+        "ImageScanningConfiguration": {
+          "ScanOnPush": true,
+        },
         "RepositoryPolicyText": {
           "Statement": [
             {
