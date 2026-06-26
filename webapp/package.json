@@ -16,7 +16,7 @@
     "@aws-sdk/client-ssm": "^3.1075.0",
     "@aws-sdk/client-translate": "^3.1075.0",
     "@next-safe-action/adapter-react-hook-form": "^1.0.14",
-    "@prisma/client": "^6.6.0",
+    "@prisma/client": "^7.8.0",
     "aws-amplify": "^6.16.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
