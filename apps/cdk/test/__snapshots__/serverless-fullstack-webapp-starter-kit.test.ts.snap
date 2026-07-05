@@ -1889,6 +1889,7 @@ exports[`Snapshot test 2`] = `
           "Ref": "DsqlMigratorHandlerCurrentVersionREDACTED",
         },
         "InvocationType": "RequestResponse",
+        "MigrationHash": "96b4516a41f11c54c2903a0e9680282e459f73436246f47b82729695bff6f7b2",
         "ServiceToken": {
           "Fn::GetAtt": [
             "AWSCDKTriggerCustomResourceProviderCustomResourceProviderHandler97BECD91",

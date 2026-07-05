@@ -130,6 +130,46 @@ describe('validateSql', () => {
     const errors = validateSql(readFixture('truncate.input.sql'));
     expect(errors.some((e) => e.pattern === 'TRUNCATE')).toBe(true);
   });
+
+  // C3a: ADD COLUMN inline constraint detection
+  test('V14: ADD COLUMN with DEFAULT detected', () => {
+    const errors = validateSql('ALTER TABLE "T" ADD COLUMN "c" integer DEFAULT 0;');
+    expect(errors.some((e) => e.pattern === 'ADD COLUMN with constraint')).toBe(true);
+  });
+
+  test('V15: ADD COLUMN with NOT NULL detected', () => {
+    const errors = validateSql('ALTER TABLE "T" ADD COLUMN "c" text NOT NULL;');
+    expect(errors.some((e) => e.pattern === 'ADD COLUMN with constraint')).toBe(true);
+  });
+
+  test('V16: plain ADD COLUMN (incl. jsonb) is not flagged', () => {
+    expect(validateSql('ALTER TABLE "T" ADD COLUMN "c" jsonb;')).toHaveLength(0);
+    expect(validateSql('ALTER TABLE "T" ADD COLUMN "priority" text;')).toHaveLength(0);
+  });
+
+  test('V17: CREATE TABLE with inline PRIMARY KEY / NOT NULL / DEFAULT is not flagged', () => {
+    const errors = validateSql(
+      'CREATE TABLE "T" (\n\t"id" uuid PRIMARY KEY,\n\t"title" text NOT NULL,\n\t"status" text DEFAULT \'PENDING\'\n);',
+    );
+    expect(errors).toHaveLength(0);
+  });
+
+  test('V17b: ADD COLUMN with a keyword-named quoted identifier is not flagged', () => {
+    expect(validateSql('ALTER TABLE "T" ADD COLUMN "default" text;')).toHaveLength(0);
+    expect(validateSql('ALTER TABLE "T" ADD COLUMN "unique" text;')).toHaveLength(0);
+    expect(validateSql('ALTER TABLE "T" ADD COLUMN "check" text;')).toHaveLength(0);
+  });
+
+  // C3b: CREATE INDEX ASYNC detection must not false-negative on index names containing "async"
+  test('V18: CREATE INDEX missing ASYNC whose name contains "async" is still flagged', () => {
+    const errors = validateSql('CREATE INDEX "user_async_idx" ON "T" ("c");');
+    expect(errors.some((e) => e.pattern === 'CREATE INDEX without ASYNC')).toBe(true);
+  });
+
+  test('V19: valid CREATE INDEX ASYNC whose name contains "async" is not flagged', () => {
+    const errors = validateSql('CREATE INDEX ASYNC "user_async_idx" ON "T" ("c");');
+    expect(errors.every((e) => e.pattern !== 'CREATE INDEX without ASYNC')).toBe(true);
+  });
 });
 
 describe('validateStatement', () => {
@@ -139,5 +179,11 @@ describe('validateStatement', () => {
 
   test('does not throw on compatible statement', () => {
     expect(() => validateStatement('ALTER TABLE "T" ADD COLUMN "c" text', 'test.sql')).not.toThrow();
+  });
+
+  test('throws on ADD COLUMN with DEFAULT', () => {
+    expect(() => validateStatement('ALTER TABLE "T" ADD COLUMN "c" integer DEFAULT 0', 'test.sql')).toThrow(
+      'ADD COLUMN with constraint',
+    );
   });
 });

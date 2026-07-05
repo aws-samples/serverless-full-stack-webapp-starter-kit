@@ -1,7 +1,8 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import type { Pool, PoolClient } from 'pg';
-import { validateStatement } from './dsql-compat';
+import { transformSql, validateStatement } from './dsql-compat';
+import { isMigrationFile } from './migration-files';
 
 export interface MigrateOptions {
   pool: Pool;
@@ -18,10 +19,7 @@ export async function migrate({ pool, migrationsDir }: MigrateOptions): Promise<
       )
     `);
 
-    const migrationFiles = fs
-      .readdirSync(migrationsDir)
-      .filter((f) => f.endsWith('.sql') || f.endsWith('.ts') || f.endsWith('.mjs'))
-      .sort();
+    const migrationFiles = fs.readdirSync(migrationsDir).filter(isMigrationFile).sort();
 
     for (const file of migrationFiles) {
       const existing = await client.query('SELECT 1 FROM _migrations WHERE name = $1', [file]);
@@ -35,7 +33,7 @@ export async function migrate({ pool, migrationsDir }: MigrateOptions): Promise<
       if (file.endsWith('.sql')) {
         await runSqlMigration(client, path.join(migrationsDir, file), file);
       } else {
-        await runTsMigration(client, path.join(migrationsDir, file));
+        await runModuleMigration(client, path.join(migrationsDir, file));
       }
 
       await client.query('INSERT INTO _migrations (name, executed_at) VALUES ($1, $2)', [file, Date.now()]);
@@ -52,9 +50,13 @@ export async function migrate({ pool, migrationsDir }: MigrateOptions): Promise<
  * Do NOT include blank lines inside a single SQL statement (e.g. within CREATE TABLE).
  * drizzle-kit generate uses `--> statement-breakpoint` which check-dsql-compat.ts
  * transforms to blank lines. Hand-written SQL must follow the same convention.
+ *
+ * transformSql is applied again at runtime (defense-in-depth): SQL that bypassed
+ * `generate` (e.g. hand-written migrations) is still made DSQL-compatible before
+ * validation and execution.
  */
 async function runSqlMigration(client: PoolClient, filePath: string, file: string): Promise<void> {
-  const content = fs.readFileSync(filePath, 'utf8');
+  const content = transformSql(fs.readFileSync(filePath, 'utf8'));
   const statements = content
     .split('\n\n')
     .map((s) => s.trim())
@@ -77,10 +79,10 @@ async function runSqlMigration(client: PoolClient, filePath: string, file: strin
   }
 }
 
-async function runTsMigration(client: PoolClient, filePath: string): Promise<void> {
+async function runModuleMigration(client: PoolClient, filePath: string): Promise<void> {
   const mod = await import(filePath);
   if (typeof mod.default !== 'function') {
-    throw new Error(`TS migration ${filePath} must export a default async function(client: PoolClient)`);
+    throw new Error(`Module migration ${filePath} must export a default async function(client: PoolClient)`);
   }
   try {
     await mod.default(client);

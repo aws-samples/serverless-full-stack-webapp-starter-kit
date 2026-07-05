@@ -131,20 +131,21 @@ describe('migrate', () => {
     );
   });
 
-  test('M7: rejects CREATE INDEX without ASYNC', async () => {
+  test('M7: CREATE INDEX without ASYNC is auto-transformed at runtime (C2b)', async () => {
     vi.mocked(fs.readdirSync).mockReturnValue(['0001.sql'] as unknown as ReturnType<typeof fs.readdirSync>);
     vi.mocked(fs.readFileSync).mockReturnValue('CREATE INDEX "idx" ON "T" ("col");');
-    const { client } = createMockClient();
-    await expect(migrate({ pool: createMockPool(client), migrationsDir: '/migrations' })).rejects.toThrow(
-      'CREATE INDEX',
-    );
+    const { client, queries } = createMockClient();
+    await expect(migrate({ pool: createMockPool(client), migrationsDir: '/migrations' })).resolves.toBeUndefined();
+    // transformSql runs at migration time, so the applied statement carries ASYNC.
+    expect(queries).toContain('CREATE INDEX ASYNC "idx" ON "T" ("col");');
   });
 
-  test('M7a: rejects REFERENCES', async () => {
+  test('M7a: inline REFERENCES is stripped at runtime (C2b)', async () => {
     vi.mocked(fs.readdirSync).mockReturnValue(['0001.sql'] as unknown as ReturnType<typeof fs.readdirSync>);
-    vi.mocked(fs.readFileSync).mockReturnValue('"userId" text NOT NULL REFERENCES "User"("id")');
-    const { client } = createMockClient();
-    await expect(migrate({ pool: createMockPool(client), migrationsDir: '/migrations' })).rejects.toThrow('REFERENCES');
+    vi.mocked(fs.readFileSync).mockReturnValue('ALTER TABLE "T" ADD COLUMN "userId" text REFERENCES "User"("id");');
+    const { client, queries } = createMockClient();
+    await expect(migrate({ pool: createMockPool(client), migrationsDir: '/migrations' })).resolves.toBeUndefined();
+    expect(queries).toContain('ALTER TABLE "T" ADD COLUMN "userId" text;');
   });
 
   test('M7b: rejects ALTER COLUMN TYPE', async () => {
@@ -283,5 +284,14 @@ describe('migrate', () => {
     await migrate({ pool: createMockPool(client), migrationsDir: '/migrations' });
     expect(migrationsTable.has('0001.sql')).toBe(true);
     expect(migrationsTable.has('0003.sql')).toBe(true);
+  });
+
+  test('M14: .ts migration files are ignored (unsupported format)', async () => {
+    vi.mocked(fs.readdirSync).mockReturnValue(['0001.sql', '0002.ts'] as unknown as ReturnType<typeof fs.readdirSync>);
+    vi.mocked(fs.readFileSync).mockReturnValue('CREATE TABLE "X" ("id" text PRIMARY KEY);');
+    const { client, migrationsTable } = createMockClient();
+    await migrate({ pool: createMockPool(client), migrationsDir: '/migrations' });
+    expect(migrationsTable.has('0001.sql')).toBe(true);
+    expect(migrationsTable.has('0002.ts')).toBe(false);
   });
 });

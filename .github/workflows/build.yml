@@ -22,6 +22,18 @@ jobs:
         run: pnpm install --frozen-lockfile
       - name: Check
         run: pnpm -r run check:ci
+      - name: Migration drift check
+        # Fail if schema.ts changed but migrations were not regenerated.
+        # `generate` is DB-less (schema-diff only); stdin is closed so a rename prompt
+        # fails cleanly instead of hanging in non-interactive CI.
+        run: |
+          pnpm --filter @repo/db run generate < /dev/null
+          if [ -n "$(git status --porcelain packages/db/migrations)" ]; then
+            echo "::error::schema.ts changed but migrations were not regenerated. Run 'pnpm --filter @repo/db run generate' and commit the result."
+            git status --porcelain packages/db/migrations
+            git --no-pager diff -- packages/db/migrations
+            exit 1
+          fi
       - name: Test
         run: pnpm -r run test:unit
       - name: Build

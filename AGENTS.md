@@ -54,13 +54,15 @@ DSQL constraints:
 
 - No SERIAL/SEQUENCE — use UUID
 - No FOREIGN KEY — use Drizzle `relations()` for query builder joins
-- No JSON/JSONB — use TEXT
+- JSON: `json`/`jsonb` are supported (stored compressed; 1 MiB compressed-size limit) but **not indexable** — extract fields you filter or sort on into their own columns. Prefer `jsonb`.
 - No TRUNCATE — use `DELETE FROM` instead
 - CREATE INDEX must use ASYNC keyword
 - 1 DDL per transaction
 - ALTER TABLE only supports: ADD COLUMN, RENAME COLUMN/TABLE/CONSTRAINT, SET SCHEMA, OWNER TO, and IDENTITY operations. Everything else (DROP COLUMN, ALTER COLUMN TYPE, SET/DROP NOT NULL, SET/DROP DEFAULT, DROP CONSTRAINT) requires table recreation.
 
 - `db.query.*.findMany()` with `exists()`/`sql` subqueries causes alias errors on DSQL (drizzle-team/drizzle-orm#3068). Use `db.select().from()` instead. `findFirst()` is safe.
+- Drizzle relational queries can't do `_count` or nested `where` on relations. For list views needing cross-table aggregates or per-row flags, batch-fetch by ids (one query per related table) and merge in JS — never per-row queries (N+1).
+- No FK cascade. Delete children explicitly. Default: wrap the deletes in `db.transaction()`. Exception: if a delete can exceed the 3,000-row/transaction limit, batch it in chunks across separate transactions (`DELETE ... WHERE id IN (SELECT id ... LIMIT n)` — DSQL has no `DELETE ... LIMIT`).
 
 ### Database migration
 
@@ -69,8 +71,8 @@ See `packages/db/README.md` for full usage. Key rules:
 - `pnpm --filter @repo/db run generate` — generates and auto-transforms SQL for DSQL.
 - `pnpm --filter @repo/db run migrate` — applies migrations (1 DDL per transaction).
 - Do not use `drizzle-kit push` or `drizzle-kit migrate` — they violate DSQL's 1 DDL/transaction constraint.
-- When `generate` errors on unfixable patterns (DROP COLUMN, ALTER COLUMN TYPE, etc.): run `git checkout -- migrations/`, then `drizzle-kit generate --custom --name=<name>`, and write table recreation SQL or a `.ts` batch migration manually.
-- `.ts` / `.mjs` migrations exist for batch data migrations (e.g. table recreation with >3,000 rows). They `export default async function(client: PoolClient)`.
+- When `generate` errors on unfixable patterns (DROP COLUMN, ALTER COLUMN TYPE, etc.): run `git checkout -- migrations/`, then `drizzle-kit generate --custom --name=<name>`, and write table recreation SQL or a `.mjs` batch migration manually.
+- `.mjs` migrations exist for batch data migrations (e.g. table recreation with >3,000 rows). They `export default async function(client)`. `.ts` is not supported in `migrations/` — the same file must run locally (tsx) and in Lambda (node) without a transpile step.
 - Never hand-create migration files outside the `generate` / `generate --custom` flow — it forks the snapshot chain (duplicate `prevId`) and makes `generate` abort. `check:ci` runs `drizzle-kit check` to catch chain forks and snapshot/`schema.ts` desync.
 
 ### Lambda environment
@@ -105,4 +107,4 @@ Server → client push uses AppSync Events. Server-side: `sendEvent(channelName,
 - Do not hardcode AWS region or account IDs. Use CDK context or environment variables.
 - Do not add `NEXT_PUBLIC_` env vars to `.env.local` for deployed builds — they must be set as CDK build args in `webapp.ts`.
 - Do not use `.references()` in Drizzle schema — DSQL does not support foreign keys. Use `relations()` instead.
-- Do not use `serial`, `json`, or `jsonb` column types — DSQL does not support them.
+- Do not use `serial`, `smallserial`, or `bigserial` column types — DSQL has no sequences. Use `uuid`/`text`. (`json`/`jsonb` are supported.)
