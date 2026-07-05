@@ -19,8 +19,9 @@
     "format:ci": "oxfmt --check .",
     "lint": "oxlint --config ../../oxlintrc.json --fix .",
     "lint:ci": "oxlint --config ../../oxlintrc.json --max-warnings 0 .",
-    "check": "pnpm run lint && pnpm run format",
-    "check:ci": "pnpm run lint:ci && pnpm run format:ci"
+    "check": "pnpm run lint && pnpm run format && pnpm run check:migrations",
+    "check:ci": "pnpm run lint:ci && pnpm run format:ci && pnpm run check:migrations",
+    "check:migrations": "drizzle-kit check"
   },
   "dependencies": {
     "@aws/aurora-dsql-node-postgres-connector": "^0",

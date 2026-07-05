@@ -1,4 +1,5 @@
 # Serverless Full Stack WebApp Starter Kit
+
 [![Build](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/actions/workflows/build.yml/badge.svg)](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/actions/workflows/build.yml)
 [![Release](https://img.shields.io/github/v/release/aws-samples/serverless-full-stack-webapp-starter-kit)](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/releases)
 
@@ -32,27 +33,29 @@ After login, you can add, delete, and manage your todo items. The translate butt
 ## Architecture
 
 <!-- Source: .serverless-full-stack-webapp-starter-kit/docs/imgs/architecture.drawio -->
+
 ![architecture](./.serverless-full-stack-webapp-starter-kit/docs/imgs/architecture.png)
 
-| Service | Role |
-|---------|------|
-| [Aurora DSQL](https://aws.amazon.com/rds/aurora/dsql/) | Serverless distributed SQL database with Drizzle ORM |
-| [Next.js App Router](https://nextjs.org/docs/app) on [Lambda](https://aws.amazon.com/lambda/) | Unified frontend and backend |
-| [CloudFront](https://aws.amazon.com/cloudfront/) + Lambda Function URL | Content delivery with response streaming |
-| [Cognito](https://aws.amazon.com/cognito/) | Authentication (email by default, OIDC federation supported) |
-| [AppSync Events](https://docs.aws.amazon.com/appsync/latest/eventapi/event-api-welcome.html) + Lambda | Async jobs and real-time notifications |
-| [EventBridge](https://aws.amazon.com/eventbridge/) | Scheduled jobs |
-| [CloudWatch](https://aws.amazon.com/cloudwatch/) + S3 | Access logging |
-| [CDK](https://aws.amazon.com/cdk/) | Infrastructure as Code |
+| Service                                                                                               | Role                                                         |
+| ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
+| [Aurora DSQL](https://aws.amazon.com/rds/aurora/dsql/)                                                | Serverless distributed SQL database with Drizzle ORM         |
+| [Next.js App Router](https://nextjs.org/docs/app) on [Lambda](https://aws.amazon.com/lambda/)         | Unified frontend and backend                                 |
+| [CloudFront](https://aws.amazon.com/cloudfront/) + Lambda Function URL                                | Content delivery with response streaming                     |
+| [Cognito](https://aws.amazon.com/cognito/)                                                            | Authentication (email by default, OIDC federation supported) |
+| [AppSync Events](https://docs.aws.amazon.com/appsync/latest/eventapi/event-api-welcome.html) + Lambda | Async jobs and real-time notifications                       |
+| [EventBridge](https://aws.amazon.com/eventbridge/)                                                    | Scheduled jobs                                               |
+| [CloudWatch](https://aws.amazon.com/cloudwatch/) + S3                                                 | Access logging                                               |
+| [CDK](https://aws.amazon.com/cdk/)                                                                    | Infrastructure as Code                                       |
 
 Fully serverless — no VPC required, high cost efficiency, scalability, and minimal operational overhead.
 
 ## Getting started
 
 Prerequisites:
-* [Node.js](https://nodejs.org/) (>= v22)
-* [pnpm](https://pnpm.io/) (>= v10)
-* [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) with a configured IAM profile
+
+- [Node.js](https://nodejs.org/) (>= v22)
+- [pnpm](https://pnpm.io/) (>= v10)
+- [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) with a configured IAM profile
 
 ### 1. Copy the kit
 
@@ -70,6 +73,7 @@ git add -A && git commit -m "Initial commit from serverless-full-stack-webapp-st
 
 - Update the application name (stack name, tags) in [`apps/cdk/bin/cdk.ts`](apps/cdk/bin/cdk.ts)
 - Set a custom domain in `apps/cdk/bin/cdk.ts`
+- Remove `cdk.context.json` from `apps/cdk/.gitignore` and commit it (recommended for your own project)
 
 ### 3. Deploy
 
@@ -127,16 +131,16 @@ This kit follows [Semantic Versioning](https://semver.org/). Since users copy (n
 
 Sample cost breakdown for us-east-1, one month, with cost-optimized configuration:
 
-| Service | Usage Details | Monthly Cost [USD] |
-|---------|--------------|-------------------|
-| Aurora DSQL | 1M read RPUs, 0.5M write RPUs, 1GB storage | 0.65 |
-| Cognito | 100 MAU | 1.50 |
-| AppSync Events | 100 events/month, 10 hours connection/user/month | 0.02 |
-| Lambda | 1024MB × 200ms/request | 0.15 |
-| Lambda@Edge | 128MB × 50ms/request | 0.09 |
-| EventBridge | Scheduler 100 jobs/month | 0.00 |
-| CloudFront | Data transfer 1kB/request | 0.01 |
-| **Total** | | **2.42** |
+| Service        | Usage Details                                    | Monthly Cost [USD] |
+| -------------- | ------------------------------------------------ | ------------------ |
+| Aurora DSQL    | 1M read RPUs, 0.5M write RPUs, 1GB storage       | 0.65               |
+| Cognito        | 100 MAU                                          | 1.50               |
+| AppSync Events | 100 events/month, 10 hours connection/user/month | 0.02               |
+| Lambda         | 1024MB × 200ms/request                           | 0.15               |
+| Lambda@Edge    | 128MB × 50ms/request                             | 0.09               |
+| EventBridge    | Scheduler 100 jobs/month                         | 0.00               |
+| CloudFront     | Data transfer 1kB/request                        | 0.01               |
+| **Total**      |                                                  | **2.42**           |
 
 Assumes 100 users/month, 1000 requests/user. Costs could be further reduced with [Free Tier](https://aws.amazon.com/free/). No VPC or NAT costs — DSQL uses IAM authentication over the public internet.
 
@@ -148,11 +152,13 @@ pnpm exec cdk destroy --force
 ```
 
 ## Maintainers
-* [Kenji Kono (konokenj)](https://github.com/konokenj)
+
+- [Kenji Kono (konokenj)](https://github.com/konokenj)
 
 ### Core contributors
-* [Masashi Tomooka (tmokmss)](https://github.com/tmokmss) — original author
-* [Kazuho Cryer-Shinozuka (badmintoncryer)](https://github.com/badmintoncryer)
+
+- [Masashi Tomooka (tmokmss)](https://github.com/tmokmss) — original author
+- [Kazuho Cryer-Shinozuka (badmintoncryer)](https://github.com/badmintoncryer)
 
 ## Contributing
 
@@ -161,7 +167,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 Contributors (human and AI) **must** read [`.serverless-full-stack-webapp-starter-kit/DESIGN_PRINCIPLES.md`](./.serverless-full-stack-webapp-starter-kit/DESIGN_PRINCIPLES.md) before making changes. It defines the design decisions and constraints that govern this kit.
 
 ## Security
+
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
 
 ## License
+
 This library is licensed under the MIT-0 License. See the LICENSE file.

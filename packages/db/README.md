@@ -15,7 +15,10 @@ pnpm run generate
 # 4. Apply to dev cluster
 pnpm run migrate
 
-# 5. Commit schema + migration + snapshot together
+# 5. Verify snapshot chain integrity (also enforced in CI via check:ci)
+pnpm run check:migrations   # drizzle-kit check — "Everything's fine"
+
+# 6. Commit schema + migration + snapshot together
 ```
 
 `generate` runs `drizzle-kit generate` then auto-transforms the output:
@@ -59,10 +62,18 @@ pnpm run migrate
 After adding a custom migration, always verify the snapshot is in sync:
 
 ```bash
-pnpm run generate    # should print "nothing to migrate"
+pnpm run generate          # should print "nothing to migrate"
+pnpm run check:migrations  # drizzle-kit check — validates the snapshot chain
 ```
 
-If it generates an unexpected `.sql` file, the `meta/` snapshot has diverged from `schema.ts`. To fix:
+`check:migrations` (`drizzle-kit check`) is also run in CI via `check:ci`. It detects a
+**forked snapshot chain** — two snapshots sharing the same `prevId` (a "collision") — which
+aborts `generate` entirely. This happens when custom/hand-authored migrations bypass the
+`generate` / `generate --custom` flow and let the `meta/` chain diverge. If `check` reports a
+collision, relink the offending snapshot's `prevId` to its true parent (the previous
+snapshot's `id`) so the chain is linear again, then confirm both commands above pass.
+
+If `generate` instead generates an unexpected `.sql` file, the `meta/` snapshot has diverged from `schema.ts`. To fix:
 
 1. Keep the generated `meta/NNNN_snapshot.json` — it reflects `schema.ts` accurately
 2. Delete the unwanted `.sql`: `rm migrations/NNNN_xxx.sql`
