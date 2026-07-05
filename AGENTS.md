@@ -81,6 +81,8 @@ See `packages/db/README.md` for full usage. Key rules:
 
 The webapp runs on Lambda behind CloudFront via Lambda Web Adapter (response streaming). `next.config.ts` uses `output: 'standalone'`. Build-time env vars (prefixed `NEXT_PUBLIC_`) are injected via CDK `ContainerImageBuild` build args — they cannot be changed at runtime.
 
+Lambda@Edge function versions (`edge-function.ts`) are retained (`RemovalPolicy.RETAIN`) instead of deleted by CDK, since CloudFront replica deletion is asynchronous and premature deletion causes `DELETE_FAILED`. Retained versions accumulate over deploys and must be deleted manually (via the Lambda console/CLI, after confirming they are no longer replicated to any edge location) if cleanup is needed.
+
 ### Real-time notifications
 
 Server → client push uses AppSync Events. Server-side: `sendEvent(channelName, payload)` with IAM SigV4 signing. Client-side: `useEventBus` hook with Cognito user pool auth. The channel namespace is `event-bus/`.

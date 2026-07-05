@@ -166,6 +166,7 @@ exports[`Snapshot test 1`] = `
       "Type": "AWS::Lambda::Function",
     },
     "SignPayloadHandlerCurrentVersionREDACTED": {
+      "DeletionPolicy": "Retain",
       "Metadata": {
         "aws:cdk:do-not-refactor": true,
       },
@@ -175,6 +176,7 @@ exports[`Snapshot test 1`] = `
         },
       },
       "Type": "AWS::Lambda::Version",
+      "UpdateReplacePolicy": "Retain",
     },
     "SignPayloadHandlerFunctionVersionF9FE430A": {
       "Properties": {

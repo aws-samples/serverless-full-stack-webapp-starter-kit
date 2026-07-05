@@ -1,4 +1,4 @@
-import { Stack } from 'aws-cdk-lib';
+import { RemovalPolicy, Stack } from 'aws-cdk-lib';
 import { PolicyStatement, ServicePrincipal, Role } from 'aws-cdk-lib/aws-iam';
 import { Runtime, IVersion, Version, Architecture } from 'aws-cdk-lib/aws-lambda';
 import { NodejsFunction } from 'aws-cdk-lib/aws-lambda-nodejs';
@@ -26,6 +26,13 @@ export class EdgeFunction extends Construct {
     const handler = new NodejsFunction(this, 'Handler', {
       runtime: Runtime.NODEJS_22_X,
       entry: props.entryPath,
+      // CloudFront replicates Lambda@Edge versions to edge locations asynchronously,
+      // so a version can still be in use at edge locations when CloudFormation tries
+      // to delete it on stack update/destroy, causing DELETE_FAILED. Retain versions
+      // so deploys don't get stuck; stale versions must be cleaned up manually later.
+      currentVersionOptions: {
+        removalPolicy: RemovalPolicy.RETAIN,
+      },
     });
     handler.currentVersion;
     this.functionVersionParameter = new StringParameter(this, 'FunctionVersion', {
