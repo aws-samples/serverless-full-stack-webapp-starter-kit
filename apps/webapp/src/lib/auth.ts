@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { cookies } from 'next/headers';
 import { fetchAuthSession } from 'aws-amplify/auth/server';
 import { runWithAmplifyServerContext } from '@/lib/amplifyServerUtils';
@@ -12,7 +13,12 @@ export class UserNotCreatedError extends Error {
   }
 }
 
-export async function getSession() {
+/**
+ * Get the authenticated session only (no DB access).
+ * Use when only userId/token is needed (e.g. API routes).
+ * Memoized per request via React cache().
+ */
+export const getAuthSession = cache(async () => {
   const session = await runWithAmplifyServerContext({
     nextServerContext: { cookies },
     operation: (contextSpec) => fetchAuthSession(contextSpec),
@@ -25,17 +31,40 @@ export async function getSession() {
   if (typeof email != 'string') {
     throw new Error(`invalid email ${userId}.`);
   }
-  const user = await db.query.users.findFirst({
-    where: eq(users.id, userId),
-  });
-  if (user == null) {
-    throw new UserNotCreatedError(userId);
-  }
-
   return {
-    userId: user.id,
+    userId,
     email,
     accessToken: session.tokens.accessToken.toString(),
+  };
+});
+
+/**
+ * Get the authenticated session, returning null on failure.
+ * Use in API routes to return 401 instead of throwing.
+ */
+export async function tryGetAuthSession() {
+  try {
+    return await getAuthSession();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Get the authenticated session plus the DB user record.
+ * Throws UserNotCreatedError when the user row does not exist yet.
+ * Memoized per request via React cache().
+ */
+export const getSessionWithUser = cache(async () => {
+  const authSession = await getAuthSession();
+  const user = await db.query.users.findFirst({
+    where: eq(users.id, authSession.userId),
+  });
+  if (user == null) {
+    throw new UserNotCreatedError(authSession.userId);
+  }
+  return {
+    ...authSession,
     user,
   };
-}
+});

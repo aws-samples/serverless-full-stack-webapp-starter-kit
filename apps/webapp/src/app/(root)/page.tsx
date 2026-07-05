@@ -1,14 +1,14 @@
 import { db } from '@repo/db/client';
 import { todoItems } from '@repo/db/schema';
 import { eq, desc } from 'drizzle-orm';
-import { getSession } from '@/lib/auth';
+import { getSessionWithUser } from '@/lib/auth';
 import TodoItemComponent from './components/TodoItem';
 import CreateTodoForm from './components/CreateTodoForm';
 import { TodoItemStatus } from './schemas';
 import Header from '@/components/Header';
 
 export default async function Home() {
-  const { userId } = await getSession();
+  const { userId } = await getSessionWithUser();
 
   const todos = await db.query.todoItems.findMany({
     where: eq(todoItems.userId, userId),
