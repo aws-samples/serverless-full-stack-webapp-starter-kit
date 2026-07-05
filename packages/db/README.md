@@ -92,6 +92,10 @@ aborts `generate` entirely. This happens when custom/hand-authored migrations by
 collision, relink the offending snapshot's `prevId` to its true parent (the previous
 snapshot's `id`) so the chain is linear again, then confirm both commands above pass.
 
+CI additionally runs a **migration drift check**: it runs `generate` and fails if
+`packages/db/migrations` changes — catching the case where `schema.ts` was edited but the
+migrations were not regenerated (`generate` is DB-less and runs non-interactively in CI).
+
 If `generate` instead generates an unexpected `.sql` file, the `meta/` snapshot has diverged from `schema.ts`. To fix:
 
 1. Keep the generated `meta/NNNN_snapshot.json` — it reflects `schema.ts` accurately

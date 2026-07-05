@@ -93,11 +93,12 @@ SET SCHEMA new_schema
 
 #### サポートされないデータ型
 
-- `json` / `jsonb` — TEXT に格納（JSON runtime functions はサポート）
 - `SERIAL` / `BIGSERIAL` / `SMALLSERIAL` — IDENTITY 列または UUID を使用
 - 配列型（`TEXT[]` 等）— TEXT に格納（クエリランタイムでは配列型サポート）
 - カスタム型 / ENUM 型
 - PostGIS 等の拡張型
+
+> `json` / `jsonb` は 2026 年に DSQL がサポートを追加したため**利用可能**（自動圧縮・1 MiB 圧縮後上限・**非インデックス**）。検索やソートのキーになる値は独立カラムへ切り出す。半構造化データには `jsonb` を推奨。
 
 #### SEQUENCE / IDENTITY 列の制約
 
@@ -129,17 +130,17 @@ SET SCHEMA new_schema
 
 各層は隣接する層だけに依存し、飛び越えた依存を持たない:
 
-- **コアロジック**（`packages/db/src/migrate.ts`）: `pg.Pool` を受け取り、SQL ファイルを空行（`\n\n`）で分割して1文ずつ `BEGIN`/`COMMIT` で実行。CDK・Lambda・Drizzle への依存なし。任意の ORM やデプロイツールで再利用可能。
+- **コアロジック**（`packages/db/src/migrate.ts`）: `pg.Pool` を受け取り、対象拡張子（`.sql` / `.mjs`）のファイルを名前順に適用。`.sql` は `transformSql` で DSQL 互換に変換してから空行（`\n\n`）で分割し、1文ずつ `BEGIN`/`COMMIT` で実行する（実行時変換は、生成時変換をすり抜けた手書き SQL への多層防御）。`.mjs` は `default` エクスポート関数（`async function(client)`）を呼ぶ。CDK・Lambda・Drizzle への依存なし。任意の ORM やデプロイツールで再利用可能。
 - **Lambda ハンドラー**（`apps/cdk/lib/constructs/dsql-migrator/handler.ts`）: Lambda 環境変数から Pool を生成し `migrate()` を呼ぶ薄いラッパー。
-- **CDK Construct**（`apps/cdk/lib/constructs/dsql-migrator/index.ts`）: `DockerImageFunction` + CDK Trigger で `cdk deploy` 時に自動実行。
+- **CDK Construct**（`apps/cdk/lib/constructs/dsql-migrator/index.ts`）: `DockerImageFunction`（`ContainerImageBuild`）+ CDK Trigger で `cdk deploy` 時に自動実行。`migrations/` ディレクトリ全体の内容ハッシュを `invalidateVersionBasedOn`（Lambda 公開バージョンの無効化）と `Custom::Trigger` プロパティに注入し、マイグレーション変更時に確実に再実行させる（deploy-time build は synth 時にイメージハッシュが不定で CDK の変更検知が効かないため。詳細は [ADR-001](adr-001-dsql-drizzle-migrator.ja.md) の C1）。
 
 この分離により、コアロジックは Drizzle 以外の ORM でも利用可能、Lambda ハンドラーは CDK 以外のデプロイツールでも利用可能、CDK Construct はマイグレーション SQL の生成方法に依存しない。
 
 ### マイグレーション状態管理
 
-`_migrations` テーブル（name, executed_at）で適用状態を管理する。`already exists` エラーは冪等性のためスキップ。
+`_migrations` テーブル（name = フルファイル名, executed_at）で適用状態を管理する。`already exists` エラーは冪等性のためスキップ。1 マイグレーション = 1 ファイル 1 拡張子のため name に曖昧さはない。
 
-hash 検証を不採用にした理由は [ADR-001 の Consequences](adr-001-dsql-drizzle-migrator.ja.md) を参照。
+内容ハッシュによる改竄検知を不採用にした理由（およびデプロイ時再実行用の `migrations/` ディレクトリハッシュとの区別）は [ADR-001 の Consequences](adr-001-dsql-drizzle-migrator.ja.md) を参照。
 
 ### SQL 自動変換
 
@@ -159,27 +160,29 @@ FK 除去が2パターンに分かれる理由: drizzle-kit は FK を2通りの
 
 ランナーは各 SQL 文の実行前に DSQL 非互換パターンを検証する。検出対象:
 
-| パターン                                  | 理由                                  |
-| ----------------------------------------- | ------------------------------------- |
-| `CREATE INDEX` に `ASYNC` がない          | DSQL は同期 INDEX を許可しない        |
-| `REFERENCES` / `FOREIGN KEY`              | DSQL は FK 非サポート                 |
-| `ALTER COLUMN ... TYPE` / `SET DATA TYPE` | ALTER TABLE の公式構文に含まれない    |
-| `DROP COLUMN`                             | ALTER TABLE の公式構文に含まれない    |
-| `SET NOT NULL` / `DROP NOT NULL`          | ALTER TABLE の公式構文に含まれない    |
-| `SET DEFAULT` / `DROP DEFAULT`            | ALTER TABLE の公式構文に含まれない    |
-| `DROP CONSTRAINT`                         | ALTER TABLE の公式構文に含まれない    |
-| `SERIAL` / `BIGSERIAL` / `SMALLSERIAL`    | DSQL 非サポート型                     |
-| `TRUNCATE`                                | DSQL 非サポート。`DELETE FROM` で代替 |
+| パターン                                                           | 理由                                                                               |
+| ------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| `CREATE INDEX` に `ASYNC` がない                                   | DSQL は同期 INDEX を許可しない                                                     |
+| `REFERENCES` / `FOREIGN KEY`                                       | DSQL は FK 非サポート                                                              |
+| `ALTER COLUMN ... TYPE` / `SET DATA TYPE`                          | ALTER TABLE の公式構文に含まれない                                                 |
+| `DROP COLUMN`                                                      | ALTER TABLE の公式構文に含まれない                                                 |
+| `SET NOT NULL` / `DROP NOT NULL`                                   | ALTER TABLE の公式構文に含まれない                                                 |
+| `SET DEFAULT` / `DROP DEFAULT`                                     | ALTER TABLE の公式構文に含まれない                                                 |
+| `DROP CONSTRAINT`                                                  | ALTER TABLE の公式構文に含まれない                                                 |
+| `ADD COLUMN ... DEFAULT`/`NOT NULL`/`CHECK`/`UNIQUE`/`PRIMARY KEY` | DSQL の ADD COLUMN は制約を付けられない（nullable で追加し UPDATE でバックフィル） |
+| `SERIAL` / `BIGSERIAL` / `SMALLSERIAL`                             | DSQL 非サポート型                                                                  |
+| `TRUNCATE`                                                         | DSQL 非サポート。`DELETE FROM` で代替                                              |
 
-### .ts マイグレーション
+### .mjs マイグレーション
 
-テーブル再作成（DROP COLUMN、ALTER COLUMN TYPE 等）で3,000行超のバッチデータ移行が必要な場合に使用する。`export default async function(client: PoolClient)` をエクスポートする。
+テーブル再作成（DROP COLUMN、ALTER COLUMN TYPE 等）や3,000行超のバッチデータ移行が必要な場合に使用する。`export default async function(client)` をエクスポートし、型は JSDoc（`@param {import('pg').PoolClient} client`）で補う。
+
+`migrations/` の正準形式は `.sql` と `.mjs` の2つのみで、`.ts` は非対応。理由は local（tsx/node）と Lambda（node）が**同一ファイルを無変換で実行**するため — トランスパイル工程を挟むと local と deployed でファイルが分岐し、二重実行の温床になる（詳細は [ADR-005](adr-005-migration-file-format.ja.md)）。
 
 制約:
 
 - Lambda 最大実行時間は15分。これを超えるマイグレーションは Step Functions 等の別メカニズムが必要（ランナーのスコープ外）
-- Lambda 環境では `.ts` ファイルは Dockerfile 内で esbuild により `.mjs` に事前トランスパイルが必要
-- CLI 環境では `tsx` が `.ts` を直接実行可能
+- migrator Dockerfile は `migrations/` を生コピーする（トランスパイル工程なし）
 
 ### unfixable パターンのワークフロー
 
@@ -187,16 +190,23 @@ FK 除去が2パターンに分かれる理由: drizzle-kit は FK を2通りの
 
 1. `git checkout -- migrations/` で生成物を元に戻す
 2. `drizzle-kit generate --custom --name=<name>` で空のマイグレーションファイル + 更新されたスナップショットを生成
-3. `.sql`（3,000行以下）または `.ts`（バッチ移行）でテーブル再作成を記述
+3. `.sql`（3,000行以下）または `.mjs`（バッチ移行）でテーブル再作成を記述
 4. `pnpm --filter @repo/db run migrate` で適用
 
 エラー時に自動ロールバックしない理由は [ADR-001 の Consequences](adr-001-dsql-drizzle-migrator.ja.md) を参照。
+
+### マイグレーション整合性の CI 検証
+
+CI（`check:ci`）で2種類の整合性を検証する:
+
+- **チェーン整合**: `drizzle-kit check`（`check:migrations`）が snapshot チェーンのフォーク（重複 `prevId`）や `schema.ts` との乖離を検出する。
+- **generate ドリフト**: `generate` を実行して `migrations/` に差分が出れば失敗させる（`schema.ts` を変更したのに未 generate のケースを検出）。`generate` は DB 接続不要かつ非対話で実行する（stdin を閉じ、rename プロンプトで CI がハングするのを防ぐ）。
 
 ## DSQL 互換性戦略
 
 DSQL 非互換パターンをコーディング時とマイグレーション時の2段階で検出する。
 
-**第1層 — oxlint（スキーマ定義レベル）**: `no-restricted-imports` で `drizzle-orm/pg-core` からの `serial`, `smallserial`, `bigserial`, `json`, `jsonb` の import をブロック。エディタと CI で即座にフィードバック。（`.references()` 用の `no-restricted-syntax` は設定済みだが oxlint v1.56.0 時点で未動作。詳細は [ADR-003](adr-003-oxlint-oxfmt.ja.md) を参照。）
+**第1層 — oxlint（スキーマ定義レベル）**: `no-restricted-imports` で `drizzle-orm/pg-core` からの `serial`, `smallserial`, `bigserial` の import をブロック（`json`/`jsonb` は DSQL がサポートしたため許可）。エディタと CI で即座にフィードバック。（`.references()` 用の `no-restricted-syntax` は設定済みだが oxlint v1.56.0 時点で未動作。詳細は [ADR-003](adr-003-oxlint-oxfmt.ja.md) を参照。）
 
 **第2層 — SQL バリデーション（生成 SQL レベル）**: `check-dsql-compat.ts` が drizzle-kit 出力を自動変換し、自動修正不可能なパターンを検証。
 
