@@ -6,6 +6,8 @@
     "dev": "next dev --turbopack -p 3010",
     "build": "next build",
     "start": "next start",
+    "test:unit": "vitest run --exclude '**/*.integ.test.ts'",
+    "test:watch": "vitest --exclude '**/*.integ.test.ts'",
     "format": "oxfmt --write .",
     "format:ci": "oxfmt --check .",
     "lint": "oxlint --config ../../oxlintrc.json --fix .",
@@ -44,6 +46,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3"
   }
 }
