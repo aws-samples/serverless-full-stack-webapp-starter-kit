@@ -1,10 +1,3 @@
-import { NextResponse } from 'next/server';
-import { tryGetAuthSession } from '@/lib/auth';
+import { withAuth } from '@/lib/api/with-auth';
 
-export async function GET() {
-  const session = await tryGetAuthSession();
-  if (session == null) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-  return NextResponse.json({ accessToken: session.accessToken });
-}
+export const GET = () => withAuth(async (session) => ({ accessToken: session.accessToken }));

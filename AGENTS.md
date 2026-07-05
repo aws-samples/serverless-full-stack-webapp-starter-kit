@@ -34,6 +34,8 @@ cd apps/webapp && pnpm run dev
 
 All server-side mutations must go through `authActionClient` (defined in `lib/safe-action.ts`). It validates the Cognito session via Amplify server-side auth and injects `ctx.userId`. Never call Drizzle directly from a Server Action without this middleware.
 
+API Routes (`app/api/**/route.ts`) must go through `withAuth()` (defined in `lib/api/with-auth.ts`) — the equivalent guardrail for Route Handlers. It resolves the session and returns 401 when unauthenticated; the handler receives the session and its return value is JSON-encoded. Validate inputs with Zod `safeParse`, same as Server Actions.
+
 `proxy.ts` handles route protection (redirect to `/sign-in` for unauthenticated users). It is NOT a Next.js middleware file — it runs inside the Lambda handler. There is no `middleware.ts` in this project.
 
 ### Async jobs
@@ -103,6 +105,7 @@ Server → client push uses AppSync Events. Server-side: `sendEvent(channelName,
 ## Do not
 
 - Do not bypass `authActionClient` for any mutation. No raw Drizzle calls from Server Actions.
+- Do not add an authenticated API Route without going through `withAuth()`.
 - Do not add `middleware.ts`. Route protection is handled by `proxy.ts` inside the Lambda runtime.
 - Do not hardcode AWS region or account IDs. Use CDK context or environment variables.
 - Do not add `NEXT_PUBLIC_` env vars to `.env.local` for deployed builds — they must be set as CDK build args in `webapp.ts`.
