@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { getSession, UserNotCreatedError } from '@/lib/auth';
+import { getSessionWithUser, UserNotCreatedError } from '@/lib/auth';
 import { db } from '@repo/db/client';
 import { users } from '@repo/db/schema';
 
@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function AuthCallbackPage() {
   try {
-    await getSession();
+    await getSessionWithUser();
   } catch (e) {
     console.log(e);
     if (e instanceof UserNotCreatedError) {
