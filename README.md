@@ -151,6 +151,8 @@ cd apps/cdk
 pnpm exec cdk destroy --force
 ```
 
+The Aurora DSQL cluster and Cognito user pool are retained by default (`RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE`) and are not deleted by `cdk destroy`. Delete them manually afterward if they are no longer needed.
+
 ## Maintainers
 
 - [Kenji Kono (konokenj)](https://github.com/konokenj)

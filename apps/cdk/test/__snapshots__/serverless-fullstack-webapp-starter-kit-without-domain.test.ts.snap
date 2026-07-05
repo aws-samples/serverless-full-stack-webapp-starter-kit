@@ -1074,7 +1074,7 @@ exports[`Snapshot test 2`] = `
       "Type": "AWS::IAM::Policy",
     },
     "AuthUserPool8115E87F": {
-      "DeletionPolicy": "Delete",
+      "DeletionPolicy": "RetainExceptOnCreate",
       "Properties": {
         "AccountRecoverySetting": {
           "RecoveryMechanisms": [
@@ -1094,6 +1094,7 @@ exports[`Snapshot test 2`] = `
         "AutoVerifiedAttributes": [
           "email",
         ],
+        "DeletionProtection": "INACTIVE",
         "EmailVerificationMessage": "The verification code to your new account is {####}",
         "EmailVerificationSubject": "Verify your new account",
         "Policies": {
@@ -1116,7 +1117,7 @@ exports[`Snapshot test 2`] = `
         },
       },
       "Type": "AWS::Cognito::UserPool",
-      "UpdateReplacePolicy": "Delete",
+      "UpdateReplacePolicy": "Retain",
     },
     "AuthUserPoolClientC635291F": {
       "Properties": {
