@@ -2793,6 +2793,10 @@ exports[`Snapshot test 2`] = `
                 "X-HTTP-Method-Override",
                 "X-HTTP-Method",
                 "X-Method-Override",
+                "RSC",
+                "Next-Router-Prefetch",
+                "Next-Router-State-Tree",
+                "Next-URL",
               ],
             },
             "QueryStringsConfig": {

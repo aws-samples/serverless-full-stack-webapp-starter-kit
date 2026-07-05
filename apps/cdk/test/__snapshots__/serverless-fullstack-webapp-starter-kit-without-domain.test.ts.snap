@@ -2969,6 +2969,10 @@ exports.handler = async function (event, context) {
                 "X-HTTP-Method-Override",
                 "X-HTTP-Method",
                 "X-Method-Override",
+                "RSC",
+                "Next-Router-Prefetch",
+                "Next-Router-State-Tree",
+                "Next-URL",
               ],
             },
             "QueryStringsConfig": {

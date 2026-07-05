@@ -89,6 +89,13 @@ export class CloudFrontLambdaFunctionUrlService extends Construct {
         'X-HTTP-Method-Override',
         'X-HTTP-Method',
         'X-Method-Override',
+        // Next.js App Router sends these headers on RSC navigation requests.
+        // Without them in the cache key, an RSC payload response could be cached
+        // and served for a plain HTML request (and vice versa), causing cache poisoning.
+        'RSC',
+        'Next-Router-Prefetch',
+        'Next-Router-State-Tree',
+        'Next-URL',
       ),
       defaultTtl: Duration.seconds(0),
       cookieBehavior: CacheCookieBehavior.all(),
