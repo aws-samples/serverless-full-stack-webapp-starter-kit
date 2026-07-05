@@ -24,8 +24,11 @@ describe('proxy (optimistic auth check)', () => {
     const req = requestWithCookie(`CognitoIdentityServiceProvider.${CLIENT_ID}.LastAuthUser=user-abc`);
     const res = proxy(req);
 
-    // NextResponse.next() sets this internal header.
-    expect(res.headers.get('x-middleware-next')).toBe('1');
+    // A pass-through (NextResponse.next()) is observable as a non-redirect
+    // response: status 200 with no Location header. Assert the behavior rather
+    // than Next's internal x-middleware-next header.
+    expect(res.status).toBe(200);
+    expect(res.headers.get('location')).toBeNull();
   });
 
   it('redirects to /sign-in when the cookie is absent', () => {
@@ -58,6 +61,7 @@ describe('proxy (optimistic auth check)', () => {
     delete process.env.USER_POOL_CLIENT_ID;
     const res = proxy(requestWithCookie());
 
-    expect(res.headers.get('x-middleware-next')).toBe('1');
+    expect(res.status).toBe(200);
+    expect(res.headers.get('location')).toBeNull();
   });
 });

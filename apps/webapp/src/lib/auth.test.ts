@@ -1,10 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-// React cache() only memoizes inside a Server Component request; in unit tests
-// we replace it with an identity wrapper so the underlying logic is exercised
-// directly. Per-request deduplication is React's responsibility and is a
-// runtime (RSC) behavior, not verifiable in a plain Node test.
-vi.mock('react', () => ({ cache: <T>(fn: T): T => fn }));
+// React cache() only memoizes inside a server request; in unit tests we override
+// only `cache` with an identity wrapper while preserving the rest of the React
+// module (via importOriginal), so the underlying logic is exercised directly.
+// Per-request deduplication is React's responsibility and is a runtime behavior,
+// not verifiable in a plain Node test.
+vi.mock('react', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('react')>();
+  return { ...actual, cache: <T>(fn: T): T => fn };
+});
 
 // runWithAmplifyServerContext simply invokes the operation with a context spec.
 vi.mock('@/lib/amplifyServerUtils', () => ({
@@ -22,7 +26,13 @@ vi.mock('@repo/db/client', () => ({
 }));
 vi.mock('@repo/db/schema', () => ({ users: { id: 'id' } }));
 
-import { getAuthSession, getSessionWithUser, tryGetAuthSession, UserNotCreatedError } from './auth';
+import {
+  getAuthSession,
+  getSessionWithUser,
+  tryGetAuthSession,
+  UnauthenticatedError,
+  UserNotCreatedError,
+} from './auth';
 
 function validSession(overrides: Record<string, unknown> = {}) {
   return {
@@ -51,18 +61,27 @@ describe('getAuthSession', () => {
     });
   });
 
-  it('throws when tokens are missing', async () => {
+  it('throws UnauthenticatedError when tokens are missing', async () => {
     fetchAuthSession.mockResolvedValue({ userSub: null, tokens: undefined });
 
-    await expect(getAuthSession()).rejects.toThrow('session not found');
+    await expect(getAuthSession()).rejects.toBeInstanceOf(UnauthenticatedError);
   });
 
-  it('throws when the email claim is not a string', async () => {
+  it('throws a non-UnauthenticatedError (propagated as an unexpected failure) for a malformed email claim', async () => {
     fetchAuthSession.mockResolvedValue(
       validSession({ tokens: { idToken: { payload: { email: 123 } }, accessToken: { toString: () => 'x' } } }),
     );
 
-    await expect(getAuthSession()).rejects.toThrow('invalid email');
+    const error = await getAuthSession().then(
+      () => {
+        throw new Error('expected getAuthSession to throw');
+      },
+      (e: unknown) => e,
+    );
+
+    expect(error).toBeInstanceOf(Error);
+    expect(error).not.toBeInstanceOf(UnauthenticatedError);
+    expect((error as Error).message).toContain('invalid email');
   });
 });
 
@@ -73,10 +92,16 @@ describe('tryGetAuthSession', () => {
     await expect(tryGetAuthSession()).resolves.toMatchObject({ userId: 'user-1' });
   });
 
-  it('returns null instead of throwing on failure', async () => {
+  it('returns null when the user is not authenticated', async () => {
     fetchAuthSession.mockResolvedValue({ userSub: null });
 
     await expect(tryGetAuthSession()).resolves.toBeNull();
+  });
+
+  it('re-throws unexpected errors instead of masking them as null (avoids a misleading 401)', async () => {
+    fetchAuthSession.mockRejectedValue(new Error('transient JWKS fetch failure'));
+
+    await expect(tryGetAuthSession()).rejects.toThrow('transient JWKS fetch failure');
   });
 });
 

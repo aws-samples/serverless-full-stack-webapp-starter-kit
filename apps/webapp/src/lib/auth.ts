@@ -14,9 +14,23 @@ export class UserNotCreatedError extends Error {
 }
 
 /**
+ * Thrown when no valid authenticated session exists (missing or expired tokens).
+ * Distinguished from unexpected failures (network, JWKS fetch, misconfiguration) so
+ * that callers can treat "not authenticated" (401) differently from "something broke"
+ * (500) instead of masking every failure as unauthenticated.
+ */
+export class UnauthenticatedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'UnauthenticatedError';
+  }
+}
+
+/**
  * Get the authenticated session only (no DB access).
  * Use when only userId/token is needed (e.g. API routes).
- * Memoized per request via React cache().
+ * Memoized per request via React cache() — shared across Server Components and
+ * Route Handlers within the same request.
  */
 export const getAuthSession = cache(async () => {
   const session = await runWithAmplifyServerContext({
@@ -24,7 +38,7 @@ export const getAuthSession = cache(async () => {
     operation: (contextSpec) => fetchAuthSession(contextSpec),
   });
   if (session.userSub == null || session.tokens?.idToken == null || session.tokens?.accessToken == null) {
-    throw new Error('session not found');
+    throw new UnauthenticatedError('session not found');
   }
   const userId = session.userSub;
   const email = session.tokens.idToken.payload.email;
@@ -39,14 +53,19 @@ export const getAuthSession = cache(async () => {
 });
 
 /**
- * Get the authenticated session, returning null on failure.
- * Use in API routes to return 401 instead of throwing.
+ * Get the authenticated session, returning null only when the user is not
+ * authenticated (see UnauthenticatedError). Unexpected failures (network, JWKS
+ * fetch, misconfiguration) are re-thrown so a transient error is not masked as a
+ * 401. Use in API routes to return 401 on no session.
  */
 export async function tryGetAuthSession() {
   try {
     return await getAuthSession();
-  } catch {
-    return null;
+  } catch (error) {
+    if (error instanceof UnauthenticatedError) {
+      return null;
+    }
+    throw error;
   }
 }
 

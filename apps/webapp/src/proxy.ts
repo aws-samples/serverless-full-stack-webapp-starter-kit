@@ -15,10 +15,17 @@ import type { NextRequest } from 'next/server';
 export function proxy(request: NextRequest) {
   const clientId = process.env.USER_POOL_CLIENT_ID;
   if (!clientId) {
-    // Do not block when misconfigured; the DAL performs the real check.
+    // Misconfiguration, not a bypass: without the client id we cannot name the
+    // cookie. Let the request through so the Data Access Layer surfaces the real
+    // error (getAuthSession / getSessionWithUser throw) instead of silently
+    // redirecting every request to /sign-in.
     return NextResponse.next();
   }
 
+  // Amplify stores the signed-in username under this cookie, readable server-side.
+  // The `CognitoIdentityServiceProvider` prefix is Amplify's AUTH_KEY_PREFIX
+  // constant, which is not part of the public API, so it is inlined here rather
+  // than imported. Verified against @aws-amplify/adapter-nextjs (createTokenCookies).
   const lastAuthUser = request.cookies.get(`CognitoIdentityServiceProvider.${clientId}.LastAuthUser`);
   if (lastAuthUser?.value) {
     return NextResponse.next();
