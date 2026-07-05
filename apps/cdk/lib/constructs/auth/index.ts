@@ -22,6 +22,20 @@ export interface AuthProps {
    * @default No custom domain.
    */
   readonly sharedCertificate?: ICertificate;
+
+  /**
+   * Removal policy for the Cognito user pool.
+   *
+   * @default RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE
+   */
+  readonly removalPolicy?: RemovalPolicy;
+
+  /**
+   * Whether to enable deletion protection.
+   *
+   * @default false
+   */
+  readonly deletionProtectionEnabled?: boolean;
 }
 
 export class Auth extends Construct {
@@ -33,7 +47,11 @@ export class Auth extends Construct {
 
   constructor(scope: Construct, id: string, props: AuthProps) {
     super(scope, id);
-    const { hostedZone } = props;
+    const {
+      hostedZone,
+      removalPolicy = RemovalPolicy.RETAIN_ON_UPDATE_OR_DELETE,
+      deletionProtectionEnabled = false,
+    } = props;
     const subDomain = 'auth';
     let domainPrefix = '';
     if (!hostedZone) {
@@ -76,7 +94,8 @@ export class Auth extends Construct {
         username: false,
         email: true,
       },
-      removalPolicy: RemovalPolicy.DESTROY,
+      removalPolicy,
+      deletionProtection: deletionProtectionEnabled,
     });
 
     const client = userPool.addClient(`Client`, {
