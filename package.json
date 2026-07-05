@@ -1,11 +1,5 @@
 {
   "private": true,
-  "simple-git-hooks": {
-    "pre-commit": "pnpm exec lint-staged && pnpm -r run test:unit"
-  },
-  "lint-staged": {
-    "*.{ts,tsx,js,jsx,mjs,cjs}": ["oxlint --config oxlintrc.json --fix", "oxfmt --write"]
-  },
   "scripts": {
     "prepare": "simple-git-hooks"
   },
@@ -17,7 +11,19 @@
     "oxlint-tsgolint": "^0",
     "simple-git-hooks": "^2.13.1"
   },
-  "packageManager": "pnpm@10.8.1",
+  "simple-git-hooks": {
+    "pre-commit": "pnpm exec lint-staged && pnpm -r run test:unit"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,mjs,cjs}": [
+      "oxlint --config oxlintrc.json --fix",
+      "oxfmt --write"
+    ]
+  },
+  "engines": {
+    "pnpm": ">=10.26"
+  },
+  "packageManager": "pnpm@10.34.4",
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild",
