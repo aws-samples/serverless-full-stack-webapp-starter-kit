@@ -22,7 +22,11 @@
       "error",
       {
         "paths": [
-          { "name": "drizzle-orm/pg-core", "importNames": ["serial", "smallserial", "bigserial", "json", "jsonb"], "message": "DSQL does not support serial types or JSON columns. Use uuid/text instead." }
+          {
+            "name": "drizzle-orm/pg-core",
+            "importNames": ["serial", "smallserial", "bigserial"],
+            "message": "DSQL has no sequences. Use uuid() or text() for IDs. (json/jsonb are supported.)"
+          }
         ]
       }
     ]
@@ -41,13 +45,5 @@
       }
     }
   ],
-  "ignorePatterns": [
-    "node_modules",
-    ".next",
-    "cdk.out",
-    "dist",
-    "*.js",
-    "*.mjs",
-    "*.d.ts"
-  ]
+  "ignorePatterns": ["node_modules", ".next", "cdk.out", "dist", "*.js", "*.mjs", "*.d.ts"]
 }

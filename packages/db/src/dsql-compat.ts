@@ -58,12 +58,23 @@ const UNFIXABLE_PATTERNS: { pattern: RegExp; name: string; message: string }[] =
   { pattern: /\bDROP\s+DEFAULT\b/i, name: 'DROP DEFAULT', message: 'Table recreation required.' },
   { pattern: /DROP\s+CONSTRAINT/i, name: 'DROP CONSTRAINT', message: 'Table recreation required.' },
   { pattern: /\bTRUNCATE\b/i, name: 'TRUNCATE', message: 'Use DELETE FROM instead.' },
+  {
+    // DSQL `ALTER TABLE ADD COLUMN` grammar is `ADD [COLUMN] name data_type [STORAGE ...]` only —
+    // no DEFAULT / NOT NULL / CHECK / UNIQUE / PRIMARY KEY. Anchored to ADD COLUMN so inline
+    // constraints in CREATE TABLE (which DSQL does allow) are not flagged.
+    pattern: /ADD\s+COLUMN\b[^;]*\b(?:DEFAULT|NOT\s+NULL|CHECK|UNIQUE|PRIMARY\s+KEY)\b/i,
+    name: 'ADD COLUMN with constraint',
+    message:
+      'DSQL ADD COLUMN cannot carry DEFAULT/NOT NULL/CHECK/UNIQUE/PRIMARY KEY. Add the column nullable, then backfill via a data migration.',
+  },
 ];
 
 // Post-transform safety checks (should have been fixed by transform)
 const POST_TRANSFORM_CHECKS: { pattern: RegExp; name: string; message: string }[] = [
   {
-    pattern: /CREATE\s+(UNIQUE\s+)?INDEX\s+(?!.*ASYNC)/i,
+    // Lookahead is anchored to the token immediately after INDEX (DSQL syntax: `CREATE INDEX ASYNC name`).
+    // A greedy `(?!.*ASYNC)` would false-negative on an index whose *name* contains "async".
+    pattern: /CREATE\s+(UNIQUE\s+)?INDEX\s+(?!ASYNC\b)/i,
     name: 'CREATE INDEX without ASYNC',
     message: 'CREATE INDEX must use ASYNC keyword.',
   },
@@ -72,13 +83,15 @@ const POST_TRANSFORM_CHECKS: { pattern: RegExp; name: string; message: string }[
 ];
 
 /**
- * Strip SQL comments from a statement to avoid false positives in pattern matching.
- * Removes: line comments (-- ...), block comments, and inline comments.
+ * Normalize SQL for keyword matching: strip comments and double-quoted identifiers so
+ * they can't cause false positives (e.g. a column named `"default"` must not match the
+ * ADD COLUMN DEFAULT check). Removes: block comments, line comments, quoted identifiers.
  */
-function stripComments(sql: string): string {
+function stripForMatching(sql: string): string {
   return sql
     .replace(/\/\*[\s\S]*?\*\//g, '') // block comments /* ... */
     .replace(/--[^\n]*/g, '') // line comments -- ...
+    .replace(/"[^"]*"/g, ' ') // double-quoted identifiers ("default"/"unique"/table names)
     .trim();
 }
 
@@ -94,7 +107,7 @@ export function validateSql(sql: string): ValidationError[] {
     .filter((s) => s.length > 0);
 
   for (const stmt of statements) {
-    const stripped = stripComments(stmt);
+    const stripped = stripForMatching(stmt);
     if (stripped.length === 0) continue;
 
     for (const { pattern, name, message } of [...UNFIXABLE_PATTERNS, ...POST_TRANSFORM_CHECKS]) {
@@ -111,7 +124,7 @@ export function validateSql(sql: string): ValidationError[] {
  * Throws on DSQL-incompatible patterns.
  */
 export function validateStatement(statement: string, file: string): void {
-  const stripped = stripComments(statement);
+  const stripped = stripForMatching(statement);
   if (stripped.length === 0) return;
   const allPatterns = [...UNFIXABLE_PATTERNS, ...POST_TRANSFORM_CHECKS];
   for (const { pattern, name, message } of allPatterns) {

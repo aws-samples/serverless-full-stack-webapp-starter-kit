@@ -6,7 +6,8 @@
   "exports": {
     "./schema": "./src/schema.ts",
     "./client": "./src/client.ts",
-    "./migrate": "./src/migrate.ts"
+    "./migrate": "./src/migrate.ts",
+    "./migration-files": "./src/migration-files.ts"
   },
   "scripts": {
     "generate": "drizzle-kit generate && tsx src/check-dsql-compat.ts",
