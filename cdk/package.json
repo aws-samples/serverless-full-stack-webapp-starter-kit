@@ -20,7 +20,7 @@
     "prettier": "^3.9.5",
     "ts-jest": "^29.4.11",
     "ts-node": "^10.7.0",
-    "typescript": "^5.9.2"
+    "typescript": "^7.0.2"
   },
   "dependencies": {
     "@aws-appsync/utils": "^1.12.0",
