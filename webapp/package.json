@@ -40,7 +40,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "15.3.0",
+    "eslint-config-next": "16.2.10",
     "prettier": "^3.9.5",
     "tailwindcss": "^4",
     "typescript": "^5",
