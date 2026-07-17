@@ -27,7 +27,7 @@
     "@aws-sdk/client-cognito-identity-provider": "^3.1089.0",
     "@types/aws-lambda": "^8.10.162",
     "aws-cdk-lib": "^2.261.0",
-    "cdk-nag": "^2.14.29",
+    "cdk-nag": "^3.0.1",
     "constructs": "^10.7.0",
     "deploy-time-build": "^0.4.10",
     "source-map-support": "^0.5.21"
