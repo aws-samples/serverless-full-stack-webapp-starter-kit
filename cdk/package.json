@@ -14,7 +14,7 @@
     "@types/jest": "^30.0.0",
     "@types/node": "^22.14.1",
     "@types/prettier": "3.0.0",
-    "aws-cdk": "^2.1130.0",
+    "aws-cdk": "^2.1132.0",
     "esbuild": "^0.28.1",
     "jest": "^30.4.2",
     "prettier": "^3.9.5",
@@ -24,11 +24,11 @@
   },
   "dependencies": {
     "@aws-appsync/utils": "^1.12.0",
-    "@aws-sdk/client-cognito-identity-provider": "^3.1084.0",
+    "@aws-sdk/client-cognito-identity-provider": "^3.1089.0",
     "@types/aws-lambda": "^8.10.162",
     "aws-cdk-lib": "^2.261.0",
     "cdk-nag": "^2.14.29",
-    "constructs": "^10.6.0",
+    "constructs": "^10.7.0",
     "deploy-time-build": "^0.4.10",
     "source-map-support": "^0.5.21"
   }
