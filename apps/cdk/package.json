@@ -8,8 +8,8 @@
     "test:unit": "jest",
     "format": "oxfmt --write .",
     "format:ci": "oxfmt --check .",
-    "lint": "oxlint --config ../../oxlintrc.json --fix --ignore-pattern lib/constructs/dsql-migrator/handler.ts .",
-    "lint:ci": "oxlint --config ../../oxlintrc.json --max-warnings 0 --ignore-pattern lib/constructs/dsql-migrator/handler.ts .",
+    "lint": "oxlint --config ../../oxlintrc.json --fix .",
+    "lint:ci": "oxlint --config ../../oxlintrc.json --max-warnings 0 .",
     "check": "pnpm run lint && pnpm run format",
     "check:ci": "pnpm run lint:ci && pnpm run format:ci",
     "cdk": "cdk"

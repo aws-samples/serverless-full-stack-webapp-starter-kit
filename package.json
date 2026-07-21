@@ -16,7 +16,7 @@
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,mjs,cjs}": [
-      "oxlint --config oxlintrc.json --fix --ignore-pattern \"**/dsql-migrator/handler.ts\"",
+      "oxlint --config oxlintrc.json --fix",
       "oxfmt --write"
     ]
   },

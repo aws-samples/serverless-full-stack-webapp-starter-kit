@@ -1,0 +1,20 @@
+{
+  "name": "@repo/db-migrator",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "format": "oxfmt --write .",
+    "format:ci": "oxfmt --check .",
+    "lint": "oxlint --config ../../oxlintrc.json --fix .",
+    "lint:ci": "oxlint --config ../../oxlintrc.json --max-warnings 0 .",
+    "check": "pnpm run lint && pnpm run format",
+    "check:ci": "pnpm run lint:ci && pnpm run format:ci"
+  },
+  "devDependencies": {
+    "@repo/db": "workspace:*",
+    "@types/aws-lambda": "^8.10.149",
+    "@types/node": "^22",
+    "typescript": "^5"
+  }
+}
