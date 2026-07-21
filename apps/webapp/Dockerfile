@@ -1,11 +1,11 @@
-FROM public.ecr.aws/lambda/nodejs:22 AS builder
+FROM public.ecr.aws/lambda/nodejs:24 AS builder
 WORKDIR /build
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY packages/db/package.json packages/db/
 COPY packages/shared-types/package.json packages/shared-types/
 COPY packages/event-utils/package.json packages/event-utils/
 COPY apps/webapp/package.json apps/webapp/
-RUN corepack enable && corepack prepare pnpm@10.8.1 --activate && pnpm install --frozen-lockfile
+RUN npm install -g pnpm@10.34.4 && pnpm install --frozen-lockfile
 COPY packages/ packages/
 COPY apps/webapp/ apps/webapp/
 
@@ -23,7 +23,7 @@ ENV AMPLIFY_APP_ORIGIN=$AMPLIFY_APP_ORIGIN
 ENV COGNITO_DOMAIN=$COGNITO_DOMAIN
 RUN cd apps/webapp && pnpm exec next build
 
-FROM public.ecr.aws/lambda/nodejs:22 AS runner
+FROM public.ecr.aws/lambda/nodejs:24 AS runner
 COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:0.9.0 /lambda-adapter /opt/extensions/lambda-adapter
 ENV AWS_LWA_PORT=3000
 ENV AWS_LWA_READINESS_CHECK_PATH="/api/health"
