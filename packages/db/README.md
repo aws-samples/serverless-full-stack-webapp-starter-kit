@@ -45,18 +45,22 @@ If the generated SQL contains unfixable patterns (e.g. `DROP COLUMN`, `ALTER COL
 
 ## Migration file formats
 
-Only two formats are supported, and both run **identically in local dev (tsx/node) and in the
+The default runner supports two formats, and both run **identically in local dev (tsx/node) and in the
 Lambda migrator (node)** — there is no transpile step, so the file you commit is the file that runs.
 
 - **`.sql`** — Split on blank lines (`\n\n`). Each statement runs in its own `BEGIN`/`COMMIT`.
   `transformSql` is applied at `generate` time and again at runtime (defense-in-depth).
 - **`.mjs`** — Batch data migrations (e.g. table recreation, or backfills exceeding the
-  3,000-row transaction limit). Must `export default async function(client)`. Use JSDoc for types:
+  3,000-row transaction limit). `export default async function(client, context)`. Use JSDoc for types:
 
   ```js
   // migrations/0002_backfill_example.mjs
-  /** @param {import('pg').PoolClient} client */
-  export default async function (client) {
+  /**
+   * @param {import('pg').PoolClient} client
+   * @param {import('../src/migrate').MigrationContext} context
+   */
+  export default async function (client, context) {
+    // context.region is available for constructing AWS SDK clients (e.g. an S3 backup).
     // 1 DDL per transaction; batch DML in <=3,000-row chunks.
     await client.query('BEGIN');
     await client.query(`UPDATE "TodoItem" SET "status" = 'PENDING' WHERE "status" IS NULL`);
@@ -64,8 +68,21 @@ Lambda migrator (node)** — there is no transpile step, so the file you commit 
   }
   ```
 
-`.ts` is intentionally **not** supported for migration files: transpiling for Lambda would make
-the local and deployed files diverge and risk double execution. Write data migrations as `.mjs`.
+The second argument, `context` (`MigrationContext`), is the seam for giving a migration access to AWS
+resources without reading `process.env` ad hoc — e.g. writing a backup to S3 before an irreversible
+change. It is empty by default (the sample app needs nothing). To wire a resource: add a field to
+`MigrationContext` (`src/migrate.ts`), populate it in `migrate-cli.ts` (local) and the migrator handler
+(Lambda), and grant the migrator matching IAM in the `DsqlMigrator` construct. Migrations that don't need
+it ignore the argument (`function(client)` stays valid).
+
+`.ts` is **not** supported by the default runner: it copies `migrations/` verbatim with no transpile
+step, so one committed file runs unchanged both locally and in Lambda, keeping the runner free of
+double-execution hazards. If your data migrations outgrow `.mjs` — large, multi-file, and
+verification-heavy enough that type-safe authoring materially reduces risk — adding `.ts` back is a
+legitimate choice, not an anti-pattern. The safe shape: commit a single `.ts` source, transpile it to
+`.mjs` at Docker build (delete the `.ts` from the image so Lambda runs only `.mjs`), and make the
+`_migrations` ledger key extension-agnostic so the local `.ts` and the deployed `.mjs` are not
+double-applied.
 
 ## When `generate` fails with unfixable errors
 

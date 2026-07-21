@@ -74,7 +74,7 @@ See `packages/db/README.md` for full usage. Key rules:
 - `pnpm --filter @repo/db run migrate` — applies migrations (1 DDL per transaction).
 - Do not use `drizzle-kit push` or `drizzle-kit migrate` — they violate DSQL's 1 DDL/transaction constraint.
 - When `generate` errors on unfixable patterns (DROP COLUMN, ALTER COLUMN TYPE, etc.): run `git checkout -- migrations/`, then `drizzle-kit generate --custom --name=<name>`, and write table recreation SQL or a `.mjs` batch migration manually.
-- `.mjs` migrations exist for batch data migrations (e.g. table recreation with >3,000 rows). They `export default async function(client)`. `.ts` is not supported in `migrations/` — the same file must run locally (tsx) and in Lambda (node) without a transpile step.
+- Data migrations are `.mjs` (`export default async function(client, context)`); the runner does not support `.ts`. The optional `context` injects AWS resources (e.g. an S3 bucket name) into migrations that need them.
 - Never hand-create migration files outside the `generate` / `generate --custom` flow — it forks the snapshot chain (duplicate `prevId`) and makes `generate` abort. `check:ci` runs `drizzle-kit check` to catch chain forks and snapshot/`schema.ts` desync.
 
 ### Lambda environment
