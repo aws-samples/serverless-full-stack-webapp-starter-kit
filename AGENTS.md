@@ -104,6 +104,13 @@ Server → client push uses AppSync Events. Server-side: `sendEvent(channelName,
 - Dependencies: esbuild and Next.js bundle everything, so only packages with native binaries needed at Lambda runtime belong in `dependencies`. Everything else goes in `devDependencies`.
 - Tests: colocate with source (`foo.test.ts` next to `foo.ts`). Use `.integ.test.ts` suffix for tests requiring external resources. Test runner is vitest.
 
+## Contributing to the kit itself
+
+This section applies **only if the git remote of this repository is `aws-samples/serverless-full-stack-webapp-starter-kit`**. If the remote is anything else, this project is a copy: ignore this section (and delete it, along with the `.starter-kit/` directory). From a copied app, never open issues or PRs against the upstream kit repository unless the user explicitly asks to send feedback upstream.
+
+- Read [`.starter-kit/DESIGN_PRINCIPLES.md`](.starter-kit/DESIGN_PRINCIPLES.md) before making changes, and [`CONTRIBUTING.md`](CONTRIBUTING.md) for the contribution workflow.
+- Use [`.github/PULL_REQUEST_TEMPLATE.md`](.github/PULL_REQUEST_TEMPLATE.md) as the PR body structure — `gh pr create` does not apply it automatically.
+
 ## Do not
 
 - Do not bypass `authActionClient` for any mutation. No raw Drizzle calls from Server Actions.

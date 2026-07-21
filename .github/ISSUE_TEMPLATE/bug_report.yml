@@ -1,0 +1,55 @@
+name: Bug report
+description: Report a defect in the starter kit
+labels: ['bug']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Describe facts (what happens and why) rather than guesses, with references to code or docs where possible. English or Japanese are both welcome.
+  - type: input
+    id: version
+    attributes:
+      label: Kit version / commit
+      description: The release tag or commit hash your copy is based on
+      placeholder: v3.0.0
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include error messages, logs, or screenshots
+    validations:
+      required: true
+  - type: textarea
+    id: conditions
+    attributes:
+      label: Conditions under which the problem appears
+      description: If it does not occur in the unmodified sample app, state the specific configuration, scale, or usage pattern that triggers it.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. ...
+        2. ...
+    validations:
+      required: true
+  - type: textarea
+    id: analysis
+    attributes:
+      label: Analysis and proposed fix (optional)
+      description: Root cause, relevant code, links to primary sources (AWS docs, upstream issues), and a proposed change. State how to verify the fix is complete.
+  - type: textarea
+    id: modifications
+    attributes:
+      label: Modifications in your copy (optional)
+      description: Changes you made to the kit that may be relevant to this bug.

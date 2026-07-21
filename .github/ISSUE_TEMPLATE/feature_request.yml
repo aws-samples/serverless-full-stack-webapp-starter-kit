@@ -1,0 +1,31 @@
+name: Feature request
+description: Propose an addition or change to the starter kit
+labels: ['enhancement']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The kit includes only patterns that most serverless full-stack webapps need (see [DESIGN_PRINCIPLES.md](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/blob/main/.starter-kit/DESIGN_PRINCIPLES.md)). App-specific business logic and patterns needed by fewer than half of expected users are out of scope. English or Japanese are both welcome.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is hard, error-prone, or impossible with the kit today? Describe facts, not solutions.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence of general need (optional)
+      description: Have you (or others) independently hit this in real projects built on the kit? Independent occurrences across multiple projects make the strongest case for inclusion.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered (optional)
+      description: Including "add it in your own copy" — why is the kit the right place for this?

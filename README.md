@@ -20,21 +20,21 @@ You can refer to [the blog article](https://tmokmss.github.io/blog/posts/serverl
 
 The kit includes a simple todo app to demonstrate how all components work together.
 
-<img align="left" width="300" src="./.serverless-full-stack-webapp-starter-kit/docs/imgs/signin.png">
+<img align="left" width="300" src="./.starter-kit/docs/imgs/signin.png">
 Sign in/up page redirects to Cognito Managed Login.
 <br clear="left"/>
 
 &nbsp;
 
-<img align="left" width="300" src="./.serverless-full-stack-webapp-starter-kit/docs/imgs/top.png">
+<img align="left" width="300" src="./.starter-kit/docs/imgs/top.png">
 After login, you can add, delete, and manage your todo items. The translate button triggers an async job and pushes a real-time notification to refresh the page.
 <br clear="left"/>
 
 ## Architecture
 
-<!-- Source: .serverless-full-stack-webapp-starter-kit/docs/imgs/architecture.drawio -->
+<!-- Source: .starter-kit/docs/imgs/architecture.drawio -->
 
-![architecture](./.serverless-full-stack-webapp-starter-kit/docs/imgs/architecture.png)
+![architecture](./.starter-kit/docs/imgs/architecture.png)
 
 | Service                                                                                               | Role                                                         |
 | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
@@ -74,6 +74,7 @@ git add -A && git commit -m "Initial commit from serverless-full-stack-webapp-st
 - Update the application name (stack name, tags) in [`apps/cdk/bin/cdk.ts`](apps/cdk/bin/cdk.ts)
 - Set a custom domain in `apps/cdk/bin/cdk.ts`
 - Remove `cdk.context.json` from `apps/cdk/.gitignore` and commit it (recommended for your own project)
+- Delete the `.starter-kit/` directory (kit maintainer docs) and the "Contributing to the kit itself" section in [`AGENTS.md`](AGENTS.md) — they apply only to the upstream kit repository
 
 ### 3. Deploy
 
@@ -166,7 +167,7 @@ The Aurora DSQL cluster and Cognito user pool are retained by default (`RemovalP
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-Contributors (human and AI) **must** read [`.serverless-full-stack-webapp-starter-kit/DESIGN_PRINCIPLES.md`](./.serverless-full-stack-webapp-starter-kit/DESIGN_PRINCIPLES.md) before making changes. It defines the design decisions and constraints that govern this kit.
+Contributors (human and AI) **must** read [`.starter-kit/DESIGN_PRINCIPLES.md`](./.starter-kit/DESIGN_PRINCIPLES.md) before making changes. It defines the design decisions and constraints that govern this kit.
 
 ## Security
 

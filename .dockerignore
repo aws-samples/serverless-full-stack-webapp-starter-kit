@@ -13,7 +13,7 @@ apps/cdk/.cdk.staging
 .playwright-cli
 
 # docs / meta
-.serverless-full-stack-webapp-starter-kit
+.starter-kit
 scripts
 *.md
 LICENSE
