@@ -840,7 +840,11 @@ exports[`Snapshot test 2`] = `
                 "Fn::Join": [
                   "",
                   [
-                    "arn:aws:dsql:us-west-2:123456789012:cluster/",
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":dsql:us-west-2:123456789012:cluster/",
                     {
                       "Fn::GetAtt": [
                         "DatabaseClusterC6094C50",
@@ -1850,7 +1854,11 @@ exports[`Snapshot test 2`] = `
                 "Fn::Join": [
                   "",
                   [
-                    "arn:aws:dsql:us-west-2:123456789012:cluster/",
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":dsql:us-west-2:123456789012:cluster/",
                     {
                       "Fn::GetAtt": [
                         "DatabaseClusterC6094C50",
@@ -2626,7 +2634,11 @@ exports[`Snapshot test 2`] = `
                 "Fn::Join": [
                   "",
                   [
-                    "arn:aws:dsql:us-west-2:123456789012:cluster/",
+                    "arn:",
+                    {
+                      "Ref": "AWS::Partition",
+                    },
+                    ":dsql:us-west-2:123456789012:cluster/",
                     {
                       "Fn::GetAtt": [
                         "DatabaseClusterC6094C50",

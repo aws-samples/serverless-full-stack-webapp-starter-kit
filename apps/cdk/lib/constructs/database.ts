@@ -52,7 +52,11 @@ export class Database extends Construct {
       grantee,
       actions: ['dsql:DbConnectAdmin'],
       resourceArns: [
-        `arn:aws:dsql:${Stack.of(this).region}:${Stack.of(this).account}:cluster/${this.cluster.attrIdentifier}`,
+        Stack.of(this).formatArn({
+          service: 'dsql',
+          resource: 'cluster',
+          resourceName: this.cluster.attrIdentifier,
+        }),
       ],
     });
   }
