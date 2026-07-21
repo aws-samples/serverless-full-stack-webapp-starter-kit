@@ -9,6 +9,7 @@ export const handler: Handler = async () => {
     await migrate({
       pool,
       migrationsDir: path.join(process.env.LAMBDA_TASK_ROOT ?? '.', 'migrations'),
+      context: { region: process.env.AWS_REGION },
     });
     return { statusCode: 200, body: 'Migration complete' };
   } finally {

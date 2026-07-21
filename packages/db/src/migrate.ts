@@ -4,12 +4,27 @@ import type { Pool, PoolClient } from 'pg';
 import { transformSql, validateStatement } from './dsql-compat';
 import { isMigrationFile } from './migration-files';
 
+/**
+ * Injected into `.mjs` data migrations as the second argument, so they can reach
+ * AWS resources without reading `process.env` ad hoc — e.g. writing a backup to S3
+ * before an irreversible table recreation. Empty by default (the sample app needs
+ * nothing here). To wire a resource: add a field, populate it in `migrate-cli.ts`
+ * (local) and the migrator handler (Lambda), and grant the migrator matching IAM
+ * in the `DsqlMigrator` construct. `.mjs` migrations that don't need it ignore the
+ * argument — `export default async function(client)` stays valid.
+ */
+export interface MigrationContext {
+  /** AWS region for constructing SDK clients. Undefined in local unit tests. */
+  readonly region?: string;
+}
+
 export interface MigrateOptions {
   pool: Pool;
   migrationsDir: string;
+  context?: MigrationContext;
 }
 
-export async function migrate({ pool, migrationsDir }: MigrateOptions): Promise<void> {
+export async function migrate({ pool, migrationsDir, context = {} }: MigrateOptions): Promise<void> {
   const client = await pool.connect();
   try {
     await client.query(`
@@ -33,7 +48,7 @@ export async function migrate({ pool, migrationsDir }: MigrateOptions): Promise<
       if (file.endsWith('.sql')) {
         await runSqlMigration(client, path.join(migrationsDir, file), file);
       } else {
-        await runModuleMigration(client, path.join(migrationsDir, file));
+        await runModuleMigration(client, path.join(migrationsDir, file), context);
       }
 
       await client.query('INSERT INTO _migrations (name, executed_at) VALUES ($1, $2)', [file, Date.now()]);
@@ -79,13 +94,13 @@ async function runSqlMigration(client: PoolClient, filePath: string, file: strin
   }
 }
 
-async function runModuleMigration(client: PoolClient, filePath: string): Promise<void> {
+async function runModuleMigration(client: PoolClient, filePath: string, context: MigrationContext): Promise<void> {
   const mod = await import(filePath);
   if (typeof mod.default !== 'function') {
-    throw new Error(`Module migration ${filePath} must export a default async function(client: PoolClient)`);
+    throw new Error(`Module migration ${filePath} must export a default async function(client, context)`);
   }
   try {
-    await mod.default(client);
+    await mod.default(client, context);
   } catch (error) {
     // Safety net: ROLLBACK any open transaction left by user code
     await client.query('ROLLBACK').catch(() => {});

@@ -294,4 +294,32 @@ describe('migrate', () => {
     expect(migrationsTable.has('0001.sql')).toBe(true);
     expect(migrationsTable.has('0002.ts')).toBe(false);
   });
+
+  test('M15: module migration receives the injected context as second argument', async () => {
+    const os = await import('node:os');
+    const pathMod = await import('node:path');
+    const fsMod = await import('node:fs');
+    const tmpDir = fsMod.mkdtempSync(pathMod.join(os.tmpdir(), 'migrate-test-'));
+    // The .mjs echoes context.region into a query so the test can observe it was passed through.
+    fsMod.writeFileSync(
+      pathMod.join(tmpDir, '0001.mjs'),
+      "export default async function(client, context) { await client.query('CTX:' + (context?.region ?? 'none')); };",
+    );
+
+    vi.mocked(fs.readdirSync).mockImplementation(
+      (...args: unknown[]) => fsMod.readdirSync(args[0] as string) as unknown as ReturnType<typeof fs.readdirSync>,
+    );
+    vi.mocked(fs.readFileSync).mockImplementation((...args: unknown[]) =>
+      fsMod.readFileSync(args[0] as string, args[1] as BufferEncoding),
+    );
+
+    const { client, queries } = createMockClient();
+    await migrate({
+      pool: createMockPool(client),
+      migrationsDir: tmpDir,
+      context: { region: 'us-test-1' },
+    });
+    expect(queries).toContain('CTX:us-test-1');
+    fsMod.rmSync(tmpDir, { recursive: true });
+  });
 });
