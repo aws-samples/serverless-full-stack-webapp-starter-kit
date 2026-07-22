@@ -10,6 +10,7 @@ v3 では DB エンジン（Aurora Serverless v2 → Aurora DSQL）、ORM（Pris
 - [ADR-002: pnpm workspaces モノレポ](adr-002-pnpm-workspaces.ja.md)
 - [ADR-003: oxlint + oxfmt](adr-003-oxlint-oxfmt.ja.md)
 - [ADR-004: DSQL admin ロールの維持](adr-004-dsql-admin-role.ja.md)
+- [ADR-006: `ContainerImageBuild` によるデプロイ時イメージビルド](adr-006-deploy-time-image-build.ja.md)
 
 ## ターゲットアーキテクチャ
 
