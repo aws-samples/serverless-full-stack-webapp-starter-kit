@@ -97,7 +97,14 @@ ServerlessWebappStarterKitStack.DatabaseClusterEndpoint = <cluster>.dsql.<region
 
 Open the `FrontendDomainName` URL to try the sample app.
 
-### 4. Add your own features
+### 4. Enroll in the CloudFront Free plan
+
+The kit deploys a WAF Web ACL because CloudFront [flat-rate pricing plans](https://aws.amazon.com/cloudfront/pricing/) require one. In the CloudFront console, open your distribution and choose **Manage subscription → Free plan** (1M requests + 100 GB/month, no extra cost). Plan enrollment is not supported by CDK, so this is a one-time manual step.
+
+> [!WARNING]
+> Until you enroll, the Web ACL is billed at [standard AWS WAF prices](https://aws.amazon.com/waf/pricing/) (~$5/month + $1/month per rule). Enroll in the Free plan to bundle WAF at no extra cost, or [remove the Web ACL](#cloudfront-flat-rate-pricing-plan) if you don't want it.
+
+### 5. Add your own features
 
 See [`AGENTS.md`](./AGENTS.md) for development guide — local development setup, authentication patterns, async job setup, DB migration, and coding conventions.
 
@@ -144,6 +151,17 @@ Sample cost breakdown for us-east-1, one month, with cost-optimized configuratio
 | **Total**      |                                                  | **2.42**           |
 
 Assumes 100 users/month, 1000 requests/user. Costs could be further reduced with [Free Tier](https://aws.amazon.com/free/). No VPC or NAT costs — DSQL uses IAM authentication over the public internet.
+
+### CloudFront flat-rate pricing plan
+
+CloudFront [flat-rate pricing plans](https://aws.amazon.com/cloudfront/pricing/) (Free / Pro / Business / Premium) bundle CDN, AWS WAF, DDoS protection, and CloudWatch Logs at a fixed price; the **Free plan** is $0 for 1M requests + 100 GB/month. Enroll from the console after deploying (see [step 4](#4-enroll-in-the-cloudfront-free-plan)).
+
+The kit is configured for these plans by default:
+
+- Managed cache policies only (custom policies are not allowed): `CACHING_DISABLED` for the default behavior + `CACHING_OPTIMIZED` for `/_next/static/*` — 2 of the 5 allowed cache behaviors.
+- A required WAF Web ACL (`us-east-1`, scope `CLOUDFRONT`) carrying only `KnownBadInputs`. Rate limiting, `AmazonIpReputationList`, and `CommonRuleSet` are omitted to avoid opaque false positives (rate / IP-reputation 403s, blocks on large auth cookies or missing User-Agent).
+
+To opt out of WAF entirely, remove the Web ACL in [`apps/cdk/lib/us-east-1-stack.ts`](apps/cdk/lib/us-east-1-stack.ts) and drop `webAclId` from [`apps/cdk/bin/cdk.ts`](apps/cdk/bin/cdk.ts). The plan covers CloudFront-side usage only — Lambda / Lambda@Edge (dynamic requests are all cache-missed) are billed separately. To restrict access geographically, set `geoRestriction` in `bin/cdk.ts` (e.g. `GeoRestriction.allowlist('JP')`).
 
 ## Clean up
 

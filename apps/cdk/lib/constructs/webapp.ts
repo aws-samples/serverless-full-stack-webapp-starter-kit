@@ -4,6 +4,7 @@ import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
 import { DockerImageFunction, Architecture } from 'aws-cdk-lib/aws-lambda';
 import { Construct } from 'constructs';
 import { CloudFrontLambdaFunctionUrlService } from './cf-lambda-furl-service/service';
+import { GeoRestriction } from 'aws-cdk-lib/aws-cloudfront';
 import { IHostedZone } from 'aws-cdk-lib/aws-route53';
 import { Bucket } from 'aws-cdk-lib/aws-s3';
 import { Database } from './database';
@@ -43,6 +44,21 @@ export interface WebappProps {
    * @default Use root domain
    */
   subDomain?: string;
+
+  /**
+   * ARN of a WAF Web ACL (scope=CLOUDFRONT, us-east-1) to associate with the CloudFront
+   * distribution. Required to enroll in a CloudFront flat-rate pricing plan.
+   *
+   * @default No Web ACL is associated (pay-as-you-go).
+   */
+  webAclId?: string;
+
+  /**
+   * Geographic restriction for the CloudFront distribution.
+   *
+   * @default No geographic restriction.
+   */
+  geoRestriction?: GeoRestriction;
 }
 
 export class Webapp extends Construct {
@@ -96,6 +112,8 @@ export class Webapp extends Construct {
       certificate: props.certificate,
       accessLogBucket: props.accessLogBucket,
       signPayloadHandler: props.signPayloadHandler,
+      webAclId: props.webAclId,
+      geoRestriction: props.geoRestriction,
     });
     this.baseUrl = service.url;
 

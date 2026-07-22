@@ -28,6 +28,7 @@ test('Snapshot test', () => {
     sharedCertificate: virginia.certificate,
     domainName: props.domainName,
     signPayloadHandler: virginia.signPayloadHandler,
+    webAclId: virginia.webAclArn,
   });
   const virginiaTemplate = Template.fromStack(virginia);
   const mainTemplate = Template.fromStack(mainStack);

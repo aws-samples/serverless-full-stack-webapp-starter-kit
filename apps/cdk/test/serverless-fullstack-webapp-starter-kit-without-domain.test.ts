@@ -24,6 +24,7 @@ test('Snapshot test', () => {
     },
     crossRegionReferences: true,
     signPayloadHandler: virginia.signPayloadHandler,
+    webAclId: virginia.webAclArn,
   });
   const virginiaTemplate = Template.fromStack(virginia);
   const mainTemplate = Template.fromStack(mainStack);
