@@ -732,6 +732,36 @@ exports[`Snapshot test 2`] = `
       "Type": "AWS::ECR::Repository",
       "UpdateReplacePolicy": "Delete",
     },
+    "AsyncJobExampleJobB709B294": {
+      "Properties": {
+        "FlexibleTimeWindow": {
+          "Mode": "OFF",
+        },
+        "ScheduleExpression": "cron(0 0 1 * ? *)",
+        "ScheduleExpressionTimezone": "Etc/UTC",
+        "State": "ENABLED",
+        "Target": {
+          "Arn": {
+            "Fn::GetAtt": [
+              "AsyncJobHandler438266BD",
+              "Arn",
+            ],
+          },
+          "Input": "{"type":"example"}",
+          "RetryPolicy": {
+            "MaximumEventAgeInSeconds": 86400,
+            "MaximumRetryAttempts": 5,
+          },
+          "RoleArn": {
+            "Fn::GetAtt": [
+              "SchedulerRoleForTarget44ece2CFC6840F",
+              "Arn",
+            ],
+          },
+        },
+      },
+      "Type": "AWS::Scheduler::Schedule",
+    },
     "AsyncJobHandler438266BD": {
       "DependsOn": [
         "AsyncJobHandlerServiceRoleDefaultPolicy0B2DEDB5",
@@ -947,36 +977,6 @@ exports[`Snapshot test 2`] = `
         ],
       },
       "Type": "AWS::IAM::Role",
-    },
-    "AsyncJobSampleJob3C1EBA2C": {
-      "Properties": {
-        "FlexibleTimeWindow": {
-          "Mode": "OFF",
-        },
-        "ScheduleExpression": "cron(0 0 1 * ? *)",
-        "ScheduleExpressionTimezone": "Etc/UTC",
-        "State": "ENABLED",
-        "Target": {
-          "Arn": {
-            "Fn::GetAtt": [
-              "AsyncJobHandler438266BD",
-              "Arn",
-            ],
-          },
-          "Input": "{"jobType":"SampleJob"}",
-          "RetryPolicy": {
-            "MaximumEventAgeInSeconds": 86400,
-            "MaximumRetryAttempts": 5,
-          },
-          "RoleArn": {
-            "Fn::GetAtt": [
-              "SchedulerRoleForTarget44ece2CFC6840F",
-              "Arn",
-            ],
-          },
-        },
-      },
-      "Type": "AWS::Scheduler::Schedule",
     },
     "AuthBranding34BB87FD": {
       "Properties": {

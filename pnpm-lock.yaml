@@ -68,6 +68,9 @@ importers:
       '@cdklabs/deploy-time-build':
         specifier: ^0.1.1
         version: 0.1.1(aws-cdk-lib@2.244.0(constructs@10.5.1))(constructs@10.5.1)
+      '@repo/shared-types':
+        specifier: workspace:*
+        version: link:../../packages/shared-types
       aws-cdk-lib:
         specifier: ^2.189.1
         version: 2.244.0(constructs@10.5.1)
