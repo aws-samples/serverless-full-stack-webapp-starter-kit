@@ -34,8 +34,7 @@ implementations substantially reduce risk, `.ts` is not prohibited; it is positi
 **Limit the default canonical formats in `migrations/` to two: `.sql` (schema changes) and `.mjs` (batch data migrations).**
 The default runner does not handle `.ts` (see the “Escape Hatch” section for when complexity exceeds `.mjs`).
 
-- Align the runner's target extensions, the CDK migrator's migration content hash, and Docker packaging with
-  `.sql`/`.mjs`. Do not include a transpile step (Docker raw copies `migrations/` and executes `.mjs` as-is).
+- Align the runner's target extensions and zip asset packaging with `.sql`/`.mjs`. Do not include a transpile step: the NodejsFunction bundle copies `migrations/` unchanged and executes `.mjs` as-is.
 - `.mjs` can be imported with `import()` unchanged by either `node` or `tsx`, so local and Lambda execute the same file.
   Provide type completion with JSDoc (`/** @param {import('pg').PoolClient} client */`).
 - **The `.mjs` interface is `export default async function(client, context)`.** The second argument, `context`

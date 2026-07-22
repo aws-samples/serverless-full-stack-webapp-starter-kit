@@ -90,10 +90,10 @@ export async function connectWithRetry(pool: Pool, options: RetryOptions = {}): 
       return client;
     } catch (err) {
       lastErr = err;
-      // Release the client if we got past connect() but SELECT 1 failed.
+      // Destroy a client that failed after connect() so the pool cannot reuse it.
       if (client) {
         try {
-          client.release();
+          client.release(err instanceof Error ? err : true);
         } catch {
           /* ignore */
         }

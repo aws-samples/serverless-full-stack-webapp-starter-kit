@@ -1,12 +1,9 @@
-import { CfnOutput, CfnResource, Duration, IgnoreMode, RemovalPolicy, Stack } from 'aws-cdk-lib';
-import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
-import { Architecture, DockerImageFunction } from 'aws-cdk-lib/aws-lambda';
+import { CfnOutput, Duration, RemovalPolicy, Stack } from 'aws-cdk-lib';
+import { Architecture, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { NodejsFunction, OutputFormat } from 'aws-cdk-lib/aws-lambda-nodejs';
 import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Trigger } from 'aws-cdk-lib/triggers';
-import { ContainerImageBuild } from '@cdklabs/deploy-time-build';
 import { Construct } from 'constructs';
-import { createHash } from 'node:crypto';
-import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { Database } from '../database';
 
@@ -20,30 +17,6 @@ import { Database } from '../database';
 const MIGRATION_RUNNER_TIMEOUT = Duration.minutes(13);
 const TRIGGER_INVOCATION_TIMEOUT = Duration.minutes(14);
 
-/**
- * Hash every file under migrations/ (recursively).
- * `ContainerImageBuild` builds the image at deploy time, so its content hash is unknown
- * at synth — CDK's normal change detection can't see migration changes. Injecting this
- * hash forces a Lambda version bump + Trigger re-fire whenever migrations change.
- *
- * We hash the WHOLE directory rather than a filtered extension set: the files the runner
- * executes (.sql/.mjs, per ADR-005) are always a subset, so the hash can never miss a
- * change to an executed migration (the bug where a newly-added .mjs was left un-hashed
- * and silently skipped). Extra files (e.g. meta/ snapshots) only cause harmless extra
- * invalidation.
- */
-function computeMigrationHash(migrationsDir: string): string {
-  const entries = readdirSync(migrationsDir, { recursive: true, encoding: 'utf-8' }).sort();
-  const hash = createHash('sha256');
-  for (const entry of entries) {
-    const full = join(migrationsDir, entry);
-    if (!statSync(full).isFile()) continue;
-    hash.update(entry);
-    hash.update(readFileSync(full));
-  }
-  return hash.digest('hex');
-}
-
 export interface DsqlMigratorProps {
   readonly database: Database;
 }
@@ -53,16 +26,11 @@ export class DsqlMigrator extends Construct {
     super(scope, id);
 
     const { database } = props;
-
-    const image = new ContainerImageBuild(this, 'Build', {
-      directory: join(__dirname, '..', '..', '..', '..', '..'),
-      platform: Platform.LINUX_ARM64,
-      file: 'apps/db-migrator/Dockerfile',
-      ignoreMode: IgnoreMode.DOCKER,
-    });
-
-    const migrationRunner = new DockerImageFunction(this, 'Handler', {
-      code: image.toLambdaDockerImageCode(),
+    const repoRoot = join(__dirname, '..', '..', '..', '..', '..');
+    const migrationsDir = join(repoRoot, 'packages', 'db', 'migrations');
+    const migrationRunner = new NodejsFunction(this, 'Handler', {
+      entry: join(repoRoot, 'apps', 'db-migrator', 'src', 'handler.ts'),
+      runtime: Runtime.NODEJS_24_X,
       architecture: Architecture.ARM_64,
       timeout: MIGRATION_RUNNER_TIMEOUT,
       environment: {
@@ -73,31 +41,28 @@ export class DsqlMigrator extends Construct {
         retention: RetentionDays.ONE_WEEK,
         removalPolicy: RemovalPolicy.DESTROY,
       }),
+      bundling: {
+        format: OutputFormat.ESM,
+        target: 'node24',
+        platform: 'node',
+        externalModules: ['@aws-sdk/*', 'pg-native'],
+        banner: "import{createRequire}from'module';const require=createRequire(import.meta.url);",
+        commandHooks: {
+          afterBundling: (_inputDir: string, outputDir: string): string[] => [
+            `cp -R "${migrationsDir}" "${join(outputDir, 'migrations')}"`,
+          ],
+          beforeBundling: (): string[] => [],
+          beforeInstall: (): string[] => [],
+        },
+      },
     });
     database.grantConnect(migrationRunner);
-
-    const migrationsDir = join(__dirname, '..', '..', '..', '..', '..', 'packages', 'db', 'migrations');
-    const migrationHash = computeMigrationHash(migrationsDir);
-
-    // Deploy-time image builds hide content changes from CDK. Force a new published
-    // Lambda version whenever migrations change. Because `Trigger`'s `HandlerArn` is
-    // `handler.currentVersion.functionArn`, the Custom Resource implicitly depends on
-    // the new Version — and CFN's `AWS::Lambda::Version` requires `LastUpdateStatus=
-    // Successful` before publishing, so the new image must be fully loaded before the
-    // trigger can invoke it. This is the sync barrier that closes the container-init
-    // race described in issue #229.
-    migrationRunner.invalidateVersionBasedOn(migrationHash);
 
     const trigger = new Trigger(this, 'Trigger', {
       handler: migrationRunner,
       timeout: TRIGGER_INVOCATION_TIMEOUT,
     });
     trigger.node.addDependency(database.cluster);
-
-    // Inject the same hash as a Custom::Trigger property so a migration change is a
-    // property change → the trigger re-fires on redeploy.
-    const triggerResource = trigger.node.findChild('Default').node.defaultChild as CfnResource;
-    triggerResource.addPropertyOverride('MigrationHash', migrationHash);
 
     new CfnOutput(Stack.of(this), 'MigrationFunctionName', { value: migrationRunner.functionName });
     new CfnOutput(Stack.of(this), 'MigrationCommand', {

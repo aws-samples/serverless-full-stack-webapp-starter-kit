@@ -135,8 +135,8 @@ For the rationale, see [ADR-001](adr-001-dsql-drizzle-migrator.md). The followin
 Each layer depends only on adjacent layers, with no dependencies that skip a layer:
 
 - **Core logic** (`packages/db/src/migrate.ts`): Receives `pg.Pool` and applies files with supported extensions (`.sql` / `.mjs`) in name order. For `.sql`, transforms it to DSQL compatibility with `transformSql`, then splits it at blank lines (`\n\n`) and executes one statement at a time with `BEGIN`/`COMMIT` (runtime transformation provides defense in depth for handwritten SQL that bypasses generation-time transformation). For `.mjs`, calls the `default` export function (`async function(client)`). It has no dependency on CDK, Lambda, or Drizzle. It can be reused with any ORM or deployment tool.
-- **Lambda handler** (`apps/cdk/lib/constructs/dsql-migrator/handler.ts`): A thin wrapper that creates a Pool from Lambda environment variables and calls `migrate()`.
-- **CDK Construct** (`apps/cdk/lib/constructs/dsql-migrator/index.ts`): Automatically runs during `cdk deploy` using `DockerImageFunction` (`ContainerImageBuild`) + a CDK Trigger. It injects a content hash for the entire `migrations/` directory into `invalidateVersionBasedOn` (Lambda published-version invalidation) and the `Custom::Trigger` properties, ensuring reruns when migrations change (because deploy-time builds make the image hash indeterminate during synth, preventing CDK change detection. See C1 in [ADR-001](adr-001-dsql-drizzle-migrator.md) for details).
+- **Lambda handler** (`apps/db-migrator/src/handler.ts`): A thin wrapper that creates a Pool from Lambda environment variables and calls `migrate()`.
+- **CDK Construct** (`apps/cdk/lib/constructs/dsql-migrator/index.ts`): Automatically runs during `cdk deploy` using a zip-packaged `NodejsFunction` + a CDK Trigger. esbuild bundles the handler and copies the entire `migrations/` directory to the asset root, so the standard asset hash captures migration changes. A changed asset creates a new Lambda `currentVersion`, whose version `HandlerArn` makes the Trigger rerun (see C1 in [ADR-001](adr-001-dsql-drizzle-migrator.md)).
 
 This separation lets the core logic work with ORMs other than Drizzle, the Lambda handler work with deployment tools other than CDK, and the CDK Construct remain independent of how migration SQL is generated.
 
@@ -144,7 +144,7 @@ This separation lets the core logic work with ORMs other than Drizzle, the Lambd
 
 The `_migrations` table (name = full file name, executed_at) tracks application state. Skip `already exists` errors for idempotency. Because one migration is one file with one extension, there is no ambiguity in name.
 
-For why content-hash-based tampering detection was rejected (and how it differs from the `migrations/` directory hash used to rerun at deployment), see [Consequences in ADR-001](adr-001-dsql-drizzle-migrator.md).
+For why content-hash-based tampering detection was rejected (and how it differs from the zip asset hash that reruns deployments), see [Consequences in ADR-001](adr-001-dsql-drizzle-migrator.md).
 
 ### Automatic SQL transformation
 
@@ -222,7 +222,7 @@ For the rationale, see [ADR-002](adr-002-pnpm-workspaces.md). The following desc
 
 ### Remote builds with ContainerImageBuild
 
-Build all container images (webapp, async-job, dsql-migrator) with `ContainerImageBuild` from `@cdklabs/deploy-time-build`. Do not use `DockerImageCode.fromImageAsset` (local Docker builds).
+Build the webapp and async-job container images with `ContainerImageBuild` from `@cdklabs/deploy-time-build`. The dsql-migrator is a zip-packaged `NodejsFunction`; do not use `DockerImageCode.fromImageAsset` (local Docker builds).
 
 Motivation: eliminate local Docker as a deployment-time dependency. This removes the need to set up Docker Desktop on Windows or Docker-in-Docker in CI environments, so Docker can be removed from Prerequisites.
 

@@ -396,14 +396,15 @@ describe('connectWithRetry', () => {
     expect(sleepFn).toHaveBeenCalledTimes(2);
   });
 
-  test('R3: retries on wake-up error surfaced by SELECT 1 (post-connect wake path)', async () => {
+  test('R3: destroys a client that fails SELECT 1 and retries with a fresh connection', async () => {
     const { client: goodClient } = createMockClient();
+    const wakeUpError = new Error('unable to accept connection, waking up cluster, please retry later');
 
     let attempt = 0;
     // First client succeeds on connect but fails on SELECT 1; second client is fully healthy.
     const failingClient = {
       query: vi.fn(async () => {
-        throw new Error('unable to accept connection, waking up cluster, please retry later');
+        throw wakeUpError;
       }),
       release: vi.fn(),
     } as unknown as PoolClient;
@@ -420,9 +421,11 @@ describe('connectWithRetry', () => {
     const result = await connectWithRetry(pool, { sleepFn });
 
     expect(result).toBe(goodClient);
-    // Failing client must be released so we don't leak pool slots.
+    // Passing the error destroys the failed connection instead of returning it to the idle pool.
     // eslint-disable-next-line @typescript-eslint/unbound-method
-    expect(failingClient.release).toHaveBeenCalled();
+    expect(failingClient.release).toHaveBeenCalledWith(wakeUpError);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(pool.connect).toHaveBeenCalledTimes(2);
     expect(sleepFn).toHaveBeenCalledTimes(1);
   });
 
