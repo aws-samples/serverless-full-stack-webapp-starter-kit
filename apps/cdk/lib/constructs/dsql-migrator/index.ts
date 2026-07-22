@@ -46,7 +46,7 @@ export class DsqlMigrator extends Construct {
     const image = new ContainerImageBuild(this, 'Build', {
       directory: join(__dirname, '..', '..', '..', '..', '..'),
       platform: Platform.LINUX_ARM64,
-      file: 'apps/cdk/lib/constructs/dsql-migrator/Dockerfile',
+      file: 'apps/db-migrator/Dockerfile',
       ignoreMode: IgnoreMode.DOCKER,
     });
 

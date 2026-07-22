@@ -10,6 +10,7 @@ v3 では DB エンジン（Aurora Serverless v2 → Aurora DSQL）、ORM（Pris
 - [ADR-002: pnpm workspaces モノレポ](adr-002-pnpm-workspaces.ja.md)
 - [ADR-003: oxlint + oxfmt](adr-003-oxlint-oxfmt.ja.md)
 - [ADR-004: DSQL admin ロールの維持](adr-004-dsql-admin-role.ja.md)
+- [ADR-005: マイグレーションファイル形式の単一化（`.ts` 廃止・`.sql` + `.mjs`）](adr-005-migration-file-format.ja.md)
 - [ADR-006: `ContainerImageBuild` によるデプロイ時イメージビルド](adr-006-deploy-time-image-build.ja.md)
 - [ADR-007: CloudFront flat-rate 料金プランへの適合](adr-007-cloudfront-flat-rate.ja.md)
 
@@ -25,17 +26,18 @@ apps/
 packages/
   db/                             # Drizzle スキーマ、クライアント、マイグレーション SQL、ランナー
   shared-types/                   # ジョブペイロード型（Zod スキーマ）
+  event-utils/                    # AppSync Events への SigV4 署名付き送信ユーティリティ
 ```
 
 依存関係の方向:
 
 ```
-apps/webapp       → @repo/shared-types → @repo/db
-apps/async-job    → @repo/shared-types → @repo/db
+apps/webapp       → @repo/db, @repo/shared-types, @repo/event-utils
+apps/async-job    → @repo/db, @repo/shared-types, @repo/event-utils
 apps/cdk          （直接依存なし — Docker ビルドパスのみ参照）
 ```
 
-アプリ同士は相互に依存しない。内部パッケージのスコープは `@repo/`。
+アプリ同士は相互に依存しない。内部パッケージ同士も相互に依存しない。内部パッケージのスコープは `@repo/`。
 
 ## Aurora DSQL
 
@@ -172,7 +174,7 @@ FK 除去が2パターンに分かれる理由: drizzle-kit は FK を2通りの
 | `SET DEFAULT` / `DROP DEFAULT`                                     | ALTER TABLE の公式構文に含まれない                                                 |
 | `DROP CONSTRAINT`                                                  | ALTER TABLE の公式構文に含まれない                                                 |
 | `ADD COLUMN ... DEFAULT`/`NOT NULL`/`CHECK`/`UNIQUE`/`PRIMARY KEY` | DSQL の ADD COLUMN は制約を付けられない（nullable で追加し UPDATE でバックフィル） |
-| `SERIAL` / `BIGSERIAL` / `SMALLSERIAL`                             | DSQL 非サポート型                                                                  |
+| `SERIAL`                                                           | DSQL 非サポート型                                                                  |
 | `TRUNCATE`                                                         | DSQL 非サポート。`DELETE FROM` で代替                                              |
 
 ### .mjs マイグレーション
@@ -199,10 +201,10 @@ FK 除去が2パターンに分かれる理由: drizzle-kit は FK を2通りの
 
 ### マイグレーション整合性の CI 検証
 
-CI（`check:ci`）で2種類の整合性を検証する:
+CI で2種類の整合性を検証する:
 
-- **チェーン整合**: `drizzle-kit check`（`check:migrations`）が snapshot チェーンのフォーク（重複 `prevId`）や `schema.ts` との乖離を検出する。
-- **generate ドリフト**: `generate` を実行して `migrations/` に差分が出れば失敗させる（`schema.ts` を変更したのに未 generate のケースを検出）。`generate` は DB 接続不要かつ非対話で実行する（stdin を閉じ、rename プロンプトで CI がハングするのを防ぐ）。
+- **チェーン整合**（`packages/db` の `check:ci` に含まれる `check:migrations` = `drizzle-kit check`）: snapshot チェーンのフォーク（重複 `prevId`）や `schema.ts` との乖離を検出する。
+- **generate ドリフト**（`.github/workflows/build.yml` の独立 step）: `generate` を実行して `migrations/` に差分が出れば失敗させる（`schema.ts` を変更したのに未 generate のケースを検出）。`generate` は DB 接続不要かつ非対話で実行する（stdin を閉じ、rename プロンプトで CI がハングするのを防ぐ）。
 
 ## DSQL 互換性戦略
 

@@ -21,5 +21,5 @@
     "typeRoots": ["./node_modules/@types"],
     "types": ["node", "jest"]
   },
-  "exclude": ["node_modules", "cdk.out", "lib/constructs/dsql-migrator/handler.ts"]
+  "exclude": ["node_modules", "cdk.out"]
 }
