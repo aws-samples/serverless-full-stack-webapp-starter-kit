@@ -39,9 +39,10 @@ If the generated SQL contains unfixable patterns (e.g. `DROP COLUMN`, `ALTER COL
 
 - `ALTER COLUMN TYPE`, `DROP COLUMN`, `SET/DROP NOT NULL`, `SET/DROP DEFAULT`, `DROP CONSTRAINT`, `SERIAL`, `TRUNCATE`, `ADD COLUMN` with `DEFAULT`/`NOT NULL`/`CHECK`/`UNIQUE`/`PRIMARY KEY`
 
-**At migration runtime** (validateStatement, after `transformSql`):
+**At migration runtime — `.sql` files only** (validateStatement, after `transformSql`):
 
-- All of the above, plus `CREATE INDEX` without `ASYNC`, `REFERENCES`, `FOREIGN KEY`
+- All of the above, plus `CREATE INDEX` without `ASYNC`, `REFERENCES`, `FOREIGN KEY`.
+- `.mjs` migrations bypass `transformSql` and `validateStatement` — they invoke `pg` client APIs directly and are responsible for their own DSQL-compatible SQL.
 
 ## Migration file formats
 
@@ -138,8 +139,10 @@ export default async function (client) {
   if (rows[0].n === 0) return;
 
   // 2. Create the new table with the desired shape (its own DDL transaction).
+  //    IF NOT EXISTS so a re-run after a mid-migration failure (before step 5's
+  //    RENAME) does not fail on the pre-existing _v2 table.
   await client.query('BEGIN');
-  await client.query(`CREATE TABLE "TodoItem_v2" (/* ...new shape... */)`);
+  await client.query(`CREATE TABLE IF NOT EXISTS "TodoItem_v2" (/* ...new shape... */)`);
   await client.query('COMMIT');
 
   // 3. Copy rows in <=3,000-row batches. WHERE NOT EXISTS makes each batch resumable.
