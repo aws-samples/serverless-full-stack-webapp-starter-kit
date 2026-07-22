@@ -188,16 +188,24 @@ describe('validateStatement', () => {
   });
 });
 
-// The DSQL foreign-key invariant is enforced authoritatively here (generated-DDL
-// layer), not at the TypeScript source layer. The kit previously carried a
-// no-restricted-syntax oxlint override that was silently no-op — see ADR-003.
-// These tests lock in the actual guarantees the DDL layer must provide:
-//   (1) transformSql removes every FK generation path from drizzle-kit output,
-//       preserving the column definition itself.
+// FK-ban invariant regression tests (see ADR-003 Consequences).
+//
+// The pipeline is: schema.ts (Drizzle DSL) → drizzle-kit generate → `.sql`
+// migration → runner (transformSql + validateStatement) → DSQL. Under
+// ADR-005 the runner executes only `.sql` and `.mjs`, so the generated
+// `.sql` is the single point every FK generation path funnels through —
+// whether the source is `.references()`, `foreignKey()`, or hand-written
+// SQL. The kit does NOT check FK syntax on the Drizzle DSL source; the
+// authority is here in dsql-compat, on the generated SQL.
+//
+// These tests lock the guarantees dsql-compat.ts must provide at that
+// funnel point:
+//   (1) transformSql removes every FK shape drizzle-kit or hand-written
+//       SQL can produce, preserving the column definition.
 //   (2) validateSql / validateStatement reject any residual REFERENCES /
-//       FOREIGN KEY that slipped past transformSql (defence-in-depth).
-//   (3) The end-to-end pipeline (transform then validate) accepts drizzle-kit
-//       output that started with an FK and produces FK-free, DSQL-valid DDL.
+//       FOREIGN KEY that slips past transformSql (defence-in-depth).
+//   (3) The end-to-end transform → validate pipeline yields FK-free,
+//       DSQL-valid DDL for a drizzle-kit generated FK.
 describe('dsql-compat: FK / REFERENCES removal (invariants for ADR-003)', () => {
   test('FK1: transformSql removes inline REFERENCES and preserves the column definition', () => {
     // Typical shape drizzle-kit emits from `.references(() => users.id)`.
