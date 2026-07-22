@@ -89,3 +89,16 @@ BREAKING CHANGE: ORM has been replaced. See [migration guide](docs/v3.0.0/migrat
 ```
 
 release-please will carry this into the Breaking Changes section of the GitHub Release.
+
+### Release notes vs. migration prompt
+
+Release notes and the migration prompt are both published at release time, but they serve different audiences and must not be conflated:
+
+- **Release notes** — the CHANGELOG that release-please generates from Conventional Commits, plus the GitHub Release page — are the **selective-adoption guide** for downstream owners who copied the kit. They read the release notes to decide, one change at a time, which changes to port into their own app. Therefore **one Conventional Commit = one adoption decision**. Split commits accordingly: a bug fix should not be entangled with a refactor, and an infrastructure default change and its app-side follow-up should appear as separate entries so the reader can accept or reject them independently.
+- **The migration prompt** is the **whole-version-jump guide for AI agents** moving a downstream app from vN.x to v(N+1).x in one operation. It encodes knowledge that only emerges during implementation (dependency ordering, VPC ENI cleanup timing, ESM evaluation order, and similar). It is not a per-change checklist and should not be linked to as one.
+
+Because release notes are the selective-adoption guide, every adoption decision must surface as its own entry. The branching and merge workflow exists to guarantee this:
+
+- **Normal flow** — PRs target `main` directly and are squash-merged: one PR = one squash commit = one release-notes entry. Do not create long-lived integration branches.
+- **Major-version exception** — only for large breaking work that cannot ship incrementally (a new major version), use a `dev/*` branch. Changes land on `dev/*` through squash-merged PRs as well — never direct commits — so every adoption decision keeps a reviewable anchor (PR description, review discussion, CI run, verification record).
+- **Merging `dev/*` into `main`** — squash-merge the release PR, and restore per-change granularity with a `BEGIN_COMMIT_OVERRIDE` block in the PR body that enumerates the individual Conventional Commits (blank-line separated). release-please parses the block into individual CHANGELOG entries instead of the single squash commit. Reference each entry's original PR in the entry text (for historical direct commits, reference the commit instead).

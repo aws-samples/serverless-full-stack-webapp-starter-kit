@@ -11,6 +11,8 @@ v3 では DB エンジン（Aurora Serverless v2 → Aurora DSQL）、ORM（Pris
 - [ADR-003: oxlint + oxfmt](adr-003-oxlint-oxfmt.ja.md)
 - [ADR-004: DSQL admin ロールの維持](adr-004-dsql-admin-role.ja.md)
 - [ADR-005: マイグレーションファイル形式の単一化（`.ts` 廃止・`.sql` + `.mjs`）](adr-005-migration-file-format.ja.md)
+- [ADR-006: `ContainerImageBuild` によるデプロイ時イメージビルド](adr-006-deploy-time-image-build.ja.md)
+- [ADR-007: CloudFront flat-rate 料金プランへの適合](adr-007-cloudfront-flat-rate.ja.md)
 
 ## ターゲットアーキテクチャ
 
