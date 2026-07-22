@@ -10,9 +10,9 @@ export function onSubscribe(ctx) {
   if (ctx.info.channel.path.startsWith(`/event-bus/public`)) {
     return;
   }
-  if (ctx.info.channel.path.startsWith(`/event-bus/user/${ctx.identity.username}`)) {
+  if (ctx.info.channel.path.startsWith(`/event-bus/user/${ctx.identity.sub}`)) {
     return;
   }
-  console.log(`user ${ctx.identity.username} tried connecting to wrong channel: ${ctx.channel}`);
+  console.log(`user sub ${ctx.identity.sub} tried connecting to wrong channel: ${ctx.channel}`);
   util.unauthorized();
 }
