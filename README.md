@@ -97,6 +97,16 @@ ServerlessWebappStarterKitStack.DatabaseClusterEndpoint = <cluster>.dsql.<region
 
 Open the `FrontendDomainName` URL to try the sample app.
 
+> [!NOTE]
+> If the first deploy fails with `UPDATE_ROLLBACK_FAILED` on the migration Custom Resource (for example, `Lambda is initializing your function` or DSQL "waking up cluster"), retry once:
+>
+> ```sh
+> aws cloudformation continue-update-rollback --stack-name ServerlessWebappStarterKitStack
+> pnpm exec cdk deploy --all
+> ```
+>
+> This can happen when the container-image Lambda has not finished initialising or the DSQL cluster is still waking up. The migrator and its trigger both retry transparently on subsequent deploys; this recovery path is only needed if the very first attempt lost the race.
+
 ### 4. Enroll in the CloudFront Free plan
 
 The kit deploys a WAF Web ACL because CloudFront [flat-rate pricing plans](https://aws.amazon.com/cloudfront/pricing/) require one. In the CloudFront console, open your distribution and choose **Manage subscription → Free plan** (1M requests + 100 GB/month, no extra cost). Plan enrollment is not supported by CDK, so this is a one-time manual step.

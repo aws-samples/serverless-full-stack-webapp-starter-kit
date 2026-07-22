@@ -1,14 +1,24 @@
 import { CfnOutput, CfnResource, Duration, IgnoreMode, RemovalPolicy, Stack } from 'aws-cdk-lib';
-import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Platform } from 'aws-cdk-lib/aws-ecr-assets';
-import { DockerImageFunction, Architecture } from 'aws-cdk-lib/aws-lambda';
-import { Construct } from 'constructs';
+import { Architecture, DockerImageFunction } from 'aws-cdk-lib/aws-lambda';
+import { LogGroup, RetentionDays } from 'aws-cdk-lib/aws-logs';
 import { Trigger } from 'aws-cdk-lib/triggers';
-import { Database } from '../database';
-import { join } from 'path';
 import { ContainerImageBuild } from '@cdklabs/deploy-time-build';
+import { Construct } from 'constructs';
 import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { join } from 'node:path';
+import { Database } from '../database';
+
+/**
+ * Timeout tiering. AWS Lambda's max per-invocation timeout is 15 minutes; the CDK
+ * Trigger provider Lambda uses that as its own ceiling. We leave 1 minute of headroom
+ * per layer so inner errors always surface before outer layers time out — otherwise
+ * a hung migration would surface only as "custom resource timed out", swallowing the
+ * real cause.
+ */
+const MIGRATION_RUNNER_TIMEOUT = Duration.minutes(13);
+const TRIGGER_INVOCATION_TIMEOUT = Duration.minutes(14);
 
 /**
  * Hash every file under migrations/ (recursively).
@@ -17,9 +27,10 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
  * hash forces a Lambda version bump + Trigger re-fire whenever migrations change.
  *
  * We hash the WHOLE directory rather than a filtered extension set: the files the runner
- * executes (.sql/.mjs) are always a subset, so the hash can never miss a change to an
- * executed migration (the bug where a newly-added .mjs was left un-hashed and silently
- * skipped). Extra files (e.g. meta/ snapshots) only cause harmless extra invalidation.
+ * executes (.sql/.mjs, per ADR-005) are always a subset, so the hash can never miss a
+ * change to an executed migration (the bug where a newly-added .mjs was left un-hashed
+ * and silently skipped). Extra files (e.g. meta/ snapshots) only cause harmless extra
+ * invalidation.
  */
 function computeMigrationHash(migrationsDir: string): string {
   const entries = readdirSync(migrationsDir, { recursive: true, encoding: 'utf-8' }).sort();
@@ -53,7 +64,7 @@ export class DsqlMigrator extends Construct {
     const migrationRunner = new DockerImageFunction(this, 'Handler', {
       code: image.toLambdaDockerImageCode(),
       architecture: Architecture.ARM_64,
-      timeout: Duration.minutes(15),
+      timeout: MIGRATION_RUNNER_TIMEOUT,
       environment: {
         DSQL_ENDPOINT: database.endpoint,
       },
@@ -69,11 +80,17 @@ export class DsqlMigrator extends Construct {
     const migrationHash = computeMigrationHash(migrationsDir);
 
     // Deploy-time image builds hide content changes from CDK. Force a new published
-    // Lambda version whenever migrations change so the Trigger runs the latest code.
+    // Lambda version whenever migrations change. Because `Trigger`'s `HandlerArn` is
+    // `handler.currentVersion.functionArn`, the Custom Resource implicitly depends on
+    // the new Version — and CFN's `AWS::Lambda::Version` requires `LastUpdateStatus=
+    // Successful` before publishing, so the new image must be fully loaded before the
+    // trigger can invoke it. This is the sync barrier that closes the container-init
+    // race described in issue #229.
     migrationRunner.invalidateVersionBasedOn(migrationHash);
 
     const trigger = new Trigger(this, 'Trigger', {
       handler: migrationRunner,
+      timeout: TRIGGER_INVOCATION_TIMEOUT,
     });
     trigger.node.addDependency(database.cluster);
 

@@ -18,14 +18,102 @@ export interface MigrationContext {
   readonly region?: string;
 }
 
+/**
+ * Exponential-backoff retry for the initial DSQL connection.
+ *
+ * DSQL clusters go idle after inactivity. The first connect after idle returns
+ * `unable to accept connection, waking up cluster, please retry later` — this is
+ * documented transient behaviour, not a real failure. The same message can also
+ * come from transient network errors (ECONNRESET/ETIMEDOUT) during token exchange.
+ *
+ * Production apps with steady traffic rarely see this because their DSQL cluster
+ * stays warm. The kit is different: a starter template can sit idle for weeks
+ * between deploys, so the wake-up path is guaranteed to hit the first migration
+ * of the day. Defaults spread ~30 s across the 5 sleeps between 6 attempts
+ * (1s + 2s + 4s + 8s + 15s), plus attempt latency.
+ */
+export interface RetryOptions {
+  readonly maxAttempts?: number;
+  readonly initialDelayMs?: number;
+  readonly maxDelayMs?: number;
+  /** Injectable for tests. Defaults to `setTimeout`. */
+  readonly sleepFn?: (ms: number) => Promise<void>;
+}
+
 export interface MigrateOptions {
   pool: Pool;
   migrationsDir: string;
   context?: MigrationContext;
+  connectRetry?: RetryOptions;
 }
 
-export async function migrate({ pool, migrationsDir, context = {} }: MigrateOptions): Promise<void> {
-  const client = await pool.connect();
+const DEFAULT_MAX_ATTEMPTS = 6;
+const DEFAULT_INITIAL_DELAY_MS = 1_000;
+const DEFAULT_MAX_DELAY_MS = 15_000;
+
+// Node network error codes that surface as transient failures during IAM-authed connect.
+const TRANSIENT_ERROR_CODES = new Set(['ECONNRESET', 'ECONNREFUSED', 'ETIMEDOUT', 'ENETUNREACH', 'EAI_AGAIN', 'EPIPE']);
+
+// Matches DSQL's documented wake-up response. Case-insensitive; DSQL currently returns
+// `error: unable to accept connection, waking up cluster, please retry later` verbatim.
+const TRANSIENT_MESSAGE_PATTERNS = [/waking up cluster/i, /unable to accept connection/i, /please retry later/i];
+
+export function isTransientConnectError(err: unknown): boolean {
+  if (!(err instanceof Error)) return false;
+  const code = (err as NodeJS.ErrnoException).code;
+  if (code !== undefined && TRANSIENT_ERROR_CODES.has(code)) return true;
+  return TRANSIENT_MESSAGE_PATTERNS.some((p) => p.test(err.message));
+}
+
+const defaultSleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Connect to DSQL with exponential-backoff retry on transient errors.
+ * Runs a lightweight `SELECT 1` after connect to surface wake-up errors that
+ * some pool implementations return only on the first query rather than at connect.
+ * The primed client is returned so the caller can proceed directly.
+ */
+export async function connectWithRetry(pool: Pool, options: RetryOptions = {}): Promise<PoolClient> {
+  const maxAttempts = options.maxAttempts ?? DEFAULT_MAX_ATTEMPTS;
+  const initialDelayMs = options.initialDelayMs ?? DEFAULT_INITIAL_DELAY_MS;
+  const maxDelayMs = options.maxDelayMs ?? DEFAULT_MAX_DELAY_MS;
+  const sleep = options.sleepFn ?? defaultSleep;
+
+  let lastErr: unknown;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    let client: PoolClient | undefined;
+    try {
+      client = await pool.connect();
+      // Prime the connection: DSQL can accept the socket but reject the first query
+      // during wake-up, so probe here rather than let CREATE TABLE surface the failure.
+      await client.query('SELECT 1');
+      return client;
+    } catch (err) {
+      lastErr = err;
+      // Release the client if we got past connect() but SELECT 1 failed.
+      if (client) {
+        try {
+          client.release();
+        } catch {
+          /* ignore */
+        }
+      }
+      if (!isTransientConnectError(err) || attempt === maxAttempts) {
+        throw err;
+      }
+      const delayMs = Math.min(maxDelayMs, initialDelayMs * 2 ** (attempt - 1));
+      const message = err instanceof Error ? err.message : String(err);
+      console.log(
+        `DSQL connect attempt ${attempt}/${maxAttempts} failed with transient error: ${message}. Retrying in ${delayMs}ms.`,
+      );
+      await sleep(delayMs);
+    }
+  }
+  throw lastErr;
+}
+
+export async function migrate({ pool, migrationsDir, context = {}, connectRetry }: MigrateOptions): Promise<void> {
+  const client = await connectWithRetry(pool, connectRetry);
   try {
     await client.query(`
       CREATE TABLE IF NOT EXISTS _migrations (
