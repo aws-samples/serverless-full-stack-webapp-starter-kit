@@ -1747,7 +1747,7 @@ exports[`Snapshot test 2`] = `
             "Arn",
           ],
         },
-        "buildCommand": "docker buildx build --file apps/cdk/lib/constructs/dsql-migrator/Dockerfile --platform linux/arm64 --output type=docker,name=artifact:$imageTag --provenance=false .",
+        "buildCommand": "docker buildx build --file apps/db-migrator/Dockerfile --platform linux/arm64 --output type=docker,name=artifact:$imageTag --provenance=false .",
         "codeBuildProjectName": {
           "Ref": "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64C13E3549",
         },
