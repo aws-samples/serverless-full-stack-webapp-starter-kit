@@ -44,7 +44,12 @@ export class UsEast1Stack extends cdk.Stack {
       // > Its parent domain must have a valid DNS A record. You can assign any value to this record.
       new ARecord(this, 'Record', {
         zone: hostedZone,
-        target: RecordTarget.fromIpAddresses('8.8.8.8'),
+        // Cognito custom domain requires the parent zone to have a valid A record — the
+        // value itself is not resolved during OAuth. Use TEST-NET-1 (RFC 5737), the
+        // documentation range for sample values, so this record cannot accidentally
+        // point real traffic at any live host.
+        // https://docs.aws.amazon.com/cognito/latest/developerguide/cognito-user-pools-add-custom-domain.html#cognito-user-pools-add-custom-domain-adding
+        target: RecordTarget.fromIpAddresses('192.0.2.1'),
       });
 
       const cert = new Certificate(this, 'CertificateV2', {
