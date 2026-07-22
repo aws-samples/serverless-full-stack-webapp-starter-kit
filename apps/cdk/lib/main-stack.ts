@@ -6,6 +6,7 @@ import { Auth } from './constructs/auth/';
 import { Database } from './constructs/database';
 import { HostedZone } from 'aws-cdk-lib/aws-route53';
 import { ICertificate } from 'aws-cdk-lib/aws-certificatemanager';
+import { GeoRestriction } from 'aws-cdk-lib/aws-cloudfront';
 import { Webapp } from './constructs/webapp';
 import { EdgeFunction } from './constructs/cf-lambda-furl-service/edge-function';
 import { EventBus } from './constructs/event-bus/';
@@ -26,6 +27,21 @@ interface MainStackProps extends StackProps {
    * @default No custom domain.
    */
   readonly sharedCertificate?: ICertificate;
+
+  /**
+   * ARN of a WAF Web ACL (scope=CLOUDFRONT, created in us-east-1) to associate with the
+   * CloudFront distribution. Required to enroll in a CloudFront flat-rate pricing plan.
+   *
+   * @default No Web ACL is associated (pay-as-you-go).
+   */
+  readonly webAclId?: string;
+
+  /**
+   * Geographic restriction for the CloudFront distribution.
+   *
+   * @default No geographic restriction.
+   */
+  readonly geoRestriction?: GeoRestriction;
 }
 
 export class MainStack extends Stack {
@@ -72,6 +88,8 @@ export class MainStack extends Stack {
       eventBus,
       asyncJob,
       subDomain: 'web',
+      webAclId: props.webAclId,
+      geoRestriction: props.geoRestriction,
     });
 
     new DsqlMigrator(this, 'DsqlMigrator', { database });

@@ -3,11 +3,9 @@ import { Aws, Duration } from 'aws-cdk-lib';
 import { FunctionUrlAuthType, Function, InvokeMode, CfnPermission } from 'aws-cdk-lib/aws-lambda';
 import {
   AllowedMethods,
-  CacheCookieBehavior,
-  CacheHeaderBehavior,
   CachePolicy,
-  CacheQueryStringBehavior,
   Distribution,
+  GeoRestriction,
   LambdaEdgeEventType,
   OriginRequestPolicy,
   SecurityPolicyProtocol,
@@ -55,6 +53,25 @@ export interface CloudFrontLambdaFunctionUrlServiceProps {
   certificate?: ICertificate;
   signPayloadHandler: EdgeFunction;
   accessLogBucket: Bucket;
+
+  /**
+   * ARN of a WAF Web ACL (scope=CLOUDFRONT, must be created in us-east-1) to associate
+   * with the distribution.
+   *
+   * Required to enroll the distribution in a CloudFront flat-rate pricing plan
+   * (Free/Pro/Business/Premium), which mandates an associated Web ACL. Leave unset for
+   * the default pay-as-you-go setup (no Web ACL is associated).
+   *
+   * @default No Web ACL is associated (pay-as-you-go).
+   */
+  webAclId?: string;
+
+  /**
+   * Geographic restriction for the distribution (e.g. `GeoRestriction.allowlist('JP')`).
+   *
+   * @default No geographic restriction.
+   */
+  geoRestriction?: GeoRestriction;
 }
 
 export class CloudFrontLambdaFunctionUrlService extends Construct {
@@ -64,7 +81,17 @@ export class CloudFrontLambdaFunctionUrlService extends Construct {
 
   constructor(scope: Construct, id: string, props: CloudFrontLambdaFunctionUrlServiceProps) {
     super(scope, id);
-    const { handler, serviceName, subDomain, hostedZone, certificate, accessLogBucket, signPayloadHandler } = props;
+    const {
+      handler,
+      serviceName,
+      subDomain,
+      hostedZone,
+      certificate,
+      accessLogBucket,
+      signPayloadHandler,
+      webAclId,
+      geoRestriction,
+    } = props;
     let domainName = '';
     if (hostedZone) {
       domainName = subDomain ? `${subDomain}.${hostedZone.zoneName}` : hostedZone.zoneName;
@@ -79,43 +106,59 @@ export class CloudFrontLambdaFunctionUrlService extends Construct {
       readTimeout: Duration.seconds(60),
     });
 
-    const cachePolicy = new CachePolicy(this, 'SharedCachePolicy', {
-      queryStringBehavior: CacheQueryStringBehavior.all(),
-      headerBehavior: CacheHeaderBehavior.allowList(
-        // CachePolicy.USE_ORIGIN_CACHE_CONTROL_HEADERS_QUERY_STRINGS contains Host header here,
-        // making it impossible to use with API Gateway
-        'authorization',
-        'Origin',
-        'X-HTTP-Method-Override',
-        'X-HTTP-Method',
-        'X-Method-Override',
-      ),
-      defaultTtl: Duration.seconds(0),
-      cookieBehavior: CacheCookieBehavior.all(),
-      enableAcceptEncodingBrotli: true,
-      enableAcceptEncodingGzip: true,
-    });
+    // CloudFront flat-rate pricing plan (Free/Pro) compatibility: custom cache policies are
+    // only available on Business/Premium, so we use AWS managed cache policies only.
+    //
+    // Default behavior uses CachePolicy.CACHING_DISABLED (min/max/default TTL = 0):
+    //   - CloudFront never caches dynamic responses, so there is no cross-user cache pollution
+    //     risk; Cookie/Authorization need not be part of the cache key. This also structurally
+    //     resolves the Next.js App Router RSC payload cache pollution issue (nothing to pollute).
+    //   - Requests (headers/cookies/query string/body) are still forwarded to the origin via
+    //     OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER, so request handling is unchanged.
+    //   - App-level compression (gzip/brotli) is handled at the origin by Lambda Web Adapter +
+    //     Next.js, so CloudFront's automatic compression on this behavior is unnecessary.
+    //
+    // /_next/static/* uses CachePolicy.CACHING_OPTIMIZED so immutable, content-hashed build
+    // assets are cached at the edge instead of hitting the Lambda origin on every request. These
+    // assets are public and vary only by path, so the managed policy's cache key (no cookies, no
+    // query strings) is safe; Next.js serves them with `Cache-Control: public, max-age=31536000,
+    // immutable`. The origin-request signer runs only on cache misses. This is a second cache
+    // behavior (flat-rate Free allows up to 5).
+    const edgeLambdas = [
+      {
+        functionVersion: signPayloadHandler.versionArn(this),
+        eventType: LambdaEdgeEventType.ORIGIN_REQUEST,
+        includeBody: true,
+      },
+    ];
 
     const distribution = new Distribution(this, 'Resource', {
       comment: `CloudFront for ${serviceName}`,
       defaultBehavior: {
         origin,
-        cachePolicy,
+        cachePolicy: CachePolicy.CACHING_DISABLED,
         allowedMethods: AllowedMethods.ALLOW_ALL,
         originRequestPolicy: OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
-        edgeLambdas: [
-          {
-            functionVersion: signPayloadHandler.versionArn(this),
-            eventType: LambdaEdgeEventType.ORIGIN_REQUEST,
-            includeBody: true,
-          },
-        ],
+        edgeLambdas,
+      },
+      additionalBehaviors: {
+        '/_next/static/*': {
+          origin,
+          cachePolicy: CachePolicy.CACHING_OPTIMIZED,
+          allowedMethods: AllowedMethods.ALLOW_GET_HEAD,
+          originRequestPolicy: OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+          edgeLambdas,
+        },
       },
       // errorResponses: [{ httpStatus: 404, responsePagePath: '/', responseHttpStatus: 200 }],
       logBucket: accessLogBucket,
       logFilePrefix: `${serviceName}/`,
 
       ...(hostedZone ? { certificate: certificate, domainNames: [domainName] } : {}),
+
+      // Associate a WAF Web ACL / geo restriction only when provided (required for flat-rate plans).
+      ...(webAclId ? { webAclId } : {}),
+      ...(geoRestriction ? { geoRestriction } : {}),
 
       minimumProtocolVersion: SecurityPolicyProtocol.TLS_V1_2_2021,
     });

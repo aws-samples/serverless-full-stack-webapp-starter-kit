@@ -120,6 +120,12 @@ exports[`Snapshot test 1`] = `
         },
         "WriterProps": {
           "exports": {
+            "/cdk/exports/ServerlessWebappStarterKitStack/ServerlessWebappStarterKitUsEast1Stackuseast1FnGetAttWebAclArn95310D3C": {
+              "Fn::GetAtt": [
+                "WebAcl",
+                "Arn",
+              ],
+            },
             "/cdk/exports/ServerlessWebappStarterKitStack/ServerlessWebappStarterKitUsEast1Stackuseast1RefCertificateV29EE77EAF5C85697F": {
               "Ref": "CertificateV29EE77EAF",
             },
@@ -224,6 +230,40 @@ exports[`Snapshot test 1`] = `
         ],
       },
       "Type": "AWS::IAM::Role",
+    },
+    "WebAcl": {
+      "Properties": {
+        "DefaultAction": {
+          "Allow": {},
+        },
+        "Rules": [
+          {
+            "Name": "AWSManagedKnownBadInputs",
+            "OverrideAction": {
+              "None": {},
+            },
+            "Priority": 1,
+            "Statement": {
+              "ManagedRuleGroupStatement": {
+                "Name": "AWSManagedRulesKnownBadInputsRuleSet",
+                "VendorName": "AWS",
+              },
+            },
+            "VisibilityConfig": {
+              "CloudWatchMetricsEnabled": true,
+              "MetricName": "KnownBadInputs",
+              "SampledRequestsEnabled": true,
+            },
+          },
+        ],
+        "Scope": "CLOUDFRONT",
+        "VisibilityConfig": {
+          "CloudWatchMetricsEnabled": true,
+          "MetricName": "WebappWebAcl",
+          "SampledRequestsEnabled": true,
+        },
+      },
+      "Type": "AWS::WAFv2::WebACL",
     },
   },
   "Rules": {
@@ -1974,6 +2014,7 @@ exports[`Snapshot test 2`] = `
       "Properties": {
         "ReaderProps": {
           "imports": {
+            "/cdk/exports/ServerlessWebappStarterKitStack/ServerlessWebappStarterKitUsEast1Stackuseast1FnGetAttWebAclArn95310D3C": "{{resolve:ssm:/cdk/exports/ServerlessWebappStarterKitStack/ServerlessWebappStarterKitUsEast1Stackuseast1FnGetAttWebAclArn95310D3C}}",
             "/cdk/exports/ServerlessWebappStarterKitStack/ServerlessWebappStarterKitUsEast1Stackuseast1RefCertificateV29EE77EAF5C85697F": "{{resolve:ssm:/cdk/exports/ServerlessWebappStarterKitStack/ServerlessWebappStarterKitUsEast1Stackuseast1RefCertificateV29EE77EAF5C85697F}}",
             "/cdk/exports/ServerlessWebappStarterKitStack/ServerlessWebappStarterKitUsEast1Stackuseast1RefSignPayloadHandlerFunctionVersionF9FE430A3006B9FA": "{{resolve:ssm:/cdk/exports/ServerlessWebappStarterKitStack/ServerlessWebappStarterKitUsEast1Stackuseast1RefSignPayloadHandlerFunctionVersionF9FE430A3006B9FA}}",
           },
@@ -2157,6 +2198,32 @@ exports[`Snapshot test 2`] = `
           "Aliases": [
             "web.example.com",
           ],
+          "CacheBehaviors": [
+            {
+              "AllowedMethods": [
+                "GET",
+                "HEAD",
+              ],
+              "CachePolicyId": "658327ea-f89d-4fab-a63d-7e88639e58f6",
+              "Compress": true,
+              "LambdaFunctionAssociations": [
+                {
+                  "EventType": "origin-request",
+                  "IncludeBody": true,
+                  "LambdaFunctionARN": {
+                    "Fn::GetAtt": [
+                      "LookupVersionArnc8730278af02f875114ca902814c77b68f19b0087110E04D0A",
+                      "Parameter.Value",
+                    ],
+                  },
+                },
+              ],
+              "OriginRequestPolicyId": "b689b0a8-53d0-40ab-baf2-68738e2966ac",
+              "PathPattern": "/_next/static/*",
+              "TargetOriginId": "ServerlessWebappStarterKitStackWebappOrigin1D7B867FF",
+              "ViewerProtocolPolicy": "allow-all",
+            },
+          ],
           "Comment": "CloudFront for Webapp",
           "DefaultCacheBehavior": {
             "AllowedMethods": [
@@ -2168,9 +2235,7 @@ exports[`Snapshot test 2`] = `
               "POST",
               "DELETE",
             ],
-            "CachePolicyId": {
-              "Ref": "WebappSharedCachePolicy14FEE4A0",
-            },
+            "CachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
             "Compress": true,
             "LambdaFunctionAssociations": [
               {
@@ -2244,6 +2309,12 @@ exports[`Snapshot test 2`] = `
             },
             "MinimumProtocolVersion": "TLSv1.2_2021",
             "SslSupportMethod": "sni-only",
+          },
+          "WebACLId": {
+            "Fn::GetAtt": [
+              "ExportsReader8B249524",
+              "/cdk/exports/ServerlessWebappStarterKitStack/ServerlessWebappStarterKitUsEast1Stackuseast1FnGetAttWebAclArn95310D3C",
+            ],
           },
         },
       },
@@ -2786,37 +2857,6 @@ exports[`Snapshot test 2`] = `
         "Type": "A",
       },
       "Type": "AWS::Route53::RecordSet",
-    },
-    "WebappSharedCachePolicy14FEE4A0": {
-      "Properties": {
-        "CachePolicyConfig": {
-          "DefaultTTL": 0,
-          "MaxTTL": 31536000,
-          "MinTTL": 0,
-          "Name": "ServerlessWebappStarterKitStackWebappSharedCachePolicy211E133B-us-west-2",
-          "ParametersInCacheKeyAndForwardedToOrigin": {
-            "CookiesConfig": {
-              "CookieBehavior": "all",
-            },
-            "EnableAcceptEncodingBrotli": true,
-            "EnableAcceptEncodingGzip": true,
-            "HeadersConfig": {
-              "HeaderBehavior": "whitelist",
-              "Headers": [
-                "authorization",
-                "Origin",
-                "X-HTTP-Method-Override",
-                "X-HTTP-Method",
-                "X-Method-Override",
-              ],
-            },
-            "QueryStringsConfig": {
-              "QueryStringBehavior": "all",
-            },
-          },
-        },
-      },
-      "Type": "AWS::CloudFront::CachePolicy",
     },
   },
   "Rules": {

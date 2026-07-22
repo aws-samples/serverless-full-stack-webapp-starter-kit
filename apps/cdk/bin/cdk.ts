@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
+import { GeoRestriction } from 'aws-cdk-lib/aws-cloudfront';
 import { MainStack } from '../lib/main-stack';
 import { UsEast1Stack } from '../lib/us-east-1-stack';
 
@@ -18,11 +19,20 @@ interface EnvironmentProps {
    * and uses the CloudFront default domain (e.g., d1234567890.cloudfront.net) for the webapp.
    */
   domainName?: string;
+
+  /**
+   * Geographic restriction for the CloudFront distribution
+   * (e.g. `GeoRestriction.allowlist('JP')` or `GeoRestriction.denylist('CN')`).
+   *
+   * @default No geographic restriction.
+   */
+  geoRestriction?: GeoRestriction;
 }
 
 const props: EnvironmentProps = {
   account: process.env.CDK_DEFAULT_ACCOUNT!,
   // domainName: 'FIXME.example.com',
+  // geoRestriction: GeoRestriction.allowlist('JP'),
 };
 
 const virginia = new UsEast1Stack(app, 'ServerlessWebappStarterKitUsEast1Stack', {
@@ -42,6 +52,8 @@ new MainStack(app, 'ServerlessWebappStarterKitStack', {
   sharedCertificate: virginia.certificate,
   domainName: props.domainName,
   signPayloadHandler: virginia.signPayloadHandler,
+  webAclId: virginia.webAclArn,
+  geoRestriction: props.geoRestriction,
 });
 
 cdk.Tags.of(app).add('Application', 'ServerlessFullStackWebappStarterKit');
