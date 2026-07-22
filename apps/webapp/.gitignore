@@ -41,3 +41,8 @@ next-env.d.ts
 dist
 
 !.env.local.example
+
+# Playwright E2E artifacts
+/e2e/.auth/
+/playwright-report/
+/test-results/

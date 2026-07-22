@@ -146,7 +146,10 @@ export default function TodoItemComponent({ todo }: TodoItemProps) {
   }
 
   return (
+    // The article role labels each todo for assistive technology and enables scoped E2E locators.
     <div
+      role="article"
+      aria-labelledby={`todo-title-${todo.id}`}
       className={`border p-4 rounded-md shadow-sm mb-4 ${todo.status === TodoItemStatus.COMPLETED ? 'bg-gray-50' : 'bg-white'}`}
     >
       <div className="flex items-start justify-between">
@@ -160,6 +163,7 @@ export default function TodoItemComponent({ todo }: TodoItemProps) {
           />
           <div className="ml-3">
             <h3
+              id={`todo-title-${todo.id}`}
               className={`text-lg font-medium ${todo.status === TodoItemStatus.COMPLETED ? 'line-through text-gray-500' : 'text-gray-900'}`}
             >
               {todo.title}
