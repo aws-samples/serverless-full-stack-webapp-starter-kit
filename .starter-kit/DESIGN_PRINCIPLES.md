@@ -85,7 +85,7 @@ To surface the migration guide in release notes, include a link in the `BREAKING
 ```
 feat!: replace ORM from Prisma to Drizzle
 
-BREAKING CHANGE: ORM has been replaced. See [migration guide](docs/v3.0.0/migration-prompt.ja.md) for details.
+BREAKING CHANGE: ORM has been replaced. See [migration guide](docs/v3.0.0/migration-prompt.md) for details.
 ```
 
 release-please will carry this into the Breaking Changes section of the GitHub Release.
