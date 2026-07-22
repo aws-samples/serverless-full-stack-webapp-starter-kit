@@ -17,7 +17,8 @@ Replace ESLint + Prettier with oxlint + oxfmt. oxlint runs the required `no-rest
 Configured DSQL-specific rules:
 
 - `no-restricted-imports`: blocks `serial`, `smallserial`, `bigserial` from `drizzle-orm/pg-core`
-- `no-restricted-syntax`: blocks `.references()` calls in schema files (configured but non-functional — see Consequences)
+
+The DSQL foreign-key ban is enforced by `packages/db/src/dsql-compat.ts` at the generated-DDL layer — see "Consequences" for why the source-level lint approach was dropped.
 
 ### Rejected alternatives
 
@@ -26,5 +27,6 @@ Configured DSQL-specific rules:
 
 ## Consequences
 
-- **`no-restricted-syntax` unsupported**: As of oxlint v1.56.0, `no-restricted-syntax` is unimplemented. The `.references()` call restriction is configured in `oxlintrc.json` but inactive. It is automatically enabled when oxlint adds support. Until then, SQL-level validation in `check-dsql-compat.ts` (detecting `REFERENCES`/`FOREIGN KEY` in generated SQL) is the fallback.
+- **`no-restricted-syntax` is not supported and is not planned.** oxlint accepts unknown rule names silently in 1.56 (the version this kit was originally set up on), and rejects them explicitly from 1.74 onwards (`Rule 'no-restricted-syntax' not found in plugin 'eslint'`). The oxc project has stated it does not plan to add new Rust-native rules — arbitrary-AST constraints are the intended job of ESLint-compatible JavaScript plugins ([oxc.rs/docs/contribute/linter/adding-rules](https://oxc.rs/docs/contribute/linter/adding-rules)). We do not adopt a JS plugin for this: the invariant we care about is that FK DDL never reaches DSQL, and that is a property of the generated SQL, not of the TypeScript source (`foreignKey()` and hand-written SQL are equally valid ways to produce the same forbidden DDL).
+- **FK ban authority lives at the DDL layer.** `packages/db/src/dsql-compat.ts` strips `REFERENCES` and `FOREIGN KEY` from every statement passed to the migrator and rejects any that still contain them. `packages/db/src/dsql-compat.test.ts` covers the regression with dedicated cases `FK1`–`FK8`: inline `REFERENCES` stripping (`FK1`), `CONSTRAINT ... FOREIGN KEY` line removal (`FK2`), non-`CONSTRAINT` `FOREIGN KEY` line removal (`FK3`), `ON DELETE` / `ON UPDATE` action stripping (`FK4`), `validateSql` catching surviving `REFERENCES` / `FOREIGN KEY` (`FK5`, `FK6`), `validateStatement` throwing on residual `REFERENCES` (`FK7`), and the end-to-end `transform → validate` pipeline yielding FK-free valid DDL (`FK8`). Removing the non-functional source-level ban avoids the false sense of safety that a silently-accepted, never-triggered rule provides.
 - **Smaller rule ecosystem**: oxlint supports fewer rules than ESLint. Coverage is sufficient for the kit's needs (Next.js plugin, TypeScript, import restrictions). Users who need additional ESLint rules can add ESLint alongside oxlint.

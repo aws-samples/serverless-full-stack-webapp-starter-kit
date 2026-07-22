@@ -31,19 +31,5 @@
       }
     ]
   },
-  "overrides": [
-    {
-      "files": ["**/schema.ts", "**/schema/*.ts"],
-      "rules": {
-        "no-restricted-syntax": [
-          "error",
-          {
-            "selector": "CallExpression > MemberExpression > Identifier[name='references']",
-            "message": "DSQL does not support foreign keys. Use Drizzle relations() instead of .references()."
-          }
-        ]
-      }
-    }
-  ],
   "ignorePatterns": ["node_modules", ".next", "cdk.out", "dist", "*.js", "*.mjs", "*.d.ts"]
 }

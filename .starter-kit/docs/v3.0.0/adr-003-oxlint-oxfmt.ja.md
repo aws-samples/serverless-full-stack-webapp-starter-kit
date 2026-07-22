@@ -17,7 +17,8 @@ ESLint + Prettier を oxlint + oxfmt に置き換え。oxlint は必要な `no-r
 設定済みの DSQL 固有ルール:
 
 - `no-restricted-imports`: `drizzle-orm/pg-core` からの `serial`, `smallserial`, `bigserial` をブロック
-- `no-restricted-syntax`: スキーマファイルでの `.references()` 呼び出しをブロック（設定済みだが未動作 — 結果を参照）
+
+DSQL の外部キー禁止は `packages/db/src/dsql-compat.ts` が生成 DDL レイヤーで強制する — ソース構文レベルの lint を採らない理由は「結果」を参照。
 
 ### 却下した代替案
 
@@ -26,5 +27,6 @@ ESLint + Prettier を oxlint + oxfmt に置き換え。oxlint は必要な `no-r
 
 ## 結果
 
-- **`no-restricted-syntax` 未サポート**: oxlint v1.56.0 時点で `no-restricted-syntax` は未実装。`.references()` 呼び出し制限は `oxlintrc.json` に設定済みだが無効。oxlint がサポートを追加した時点で自動的に有効化される。それまでは `check-dsql-compat.ts` の SQL レベルバリデーション（生成 SQL 内の `REFERENCES`/`FOREIGN KEY` 検出）がフォールバック。
+- **`no-restricted-syntax` は未対応で、ネイティブ追加予定もない。** oxlint 1.56（本キットが最初に導入したバージョン）は未知ルール名を黙って受理し、1.74 以降は `Rule 'no-restricted-syntax' not found in plugin 'eslint'` として明示的に拒否する。oxc プロジェクトは新規 Rust 製ルールを追加する予定はないと表明しており、任意 AST 制約は ESLint 互換の JavaScript プラグインで書くのが公式の道である（[oxc.rs/docs/contribute/linter/adding-rules](https://oxc.rs/docs/contribute/linter/adding-rules)）。本キットは JS プラグインを採らない — 守るべき不変条件は「DSQL に FK DDL が到達しないこと」であり、これは生成 SQL の性質であって TypeScript ソースの性質ではない（`foreignKey()` や手書き SQL も同じ禁止 DDL を生成しうる）。
+- **FK 禁止の権威は DDL レイヤーに一本化する。** `packages/db/src/dsql-compat.ts` がマイグレータに渡される全ステートメントから `REFERENCES` / `FOREIGN KEY` を除去し、残っていれば拒否する。回帰保護は `packages/db/src/dsql-compat.test.ts` の `FK1`〜`FK8` で明示カバー: inline `REFERENCES` 除去（`FK1`）、`CONSTRAINT ... FOREIGN KEY` 行除去（`FK2`）、非 `CONSTRAINT` の `FOREIGN KEY` 行除去（`FK3`）、`ON DELETE` / `ON UPDATE` アクションの剥がし（`FK4`）、`validateSql` が残存 `REFERENCES` / `FOREIGN KEY` を検出（`FK5`, `FK6`）、`validateStatement` が `REFERENCES` を throw（`FK7`）、`transform → validate` 全体パスが FK-free で valid になる（`FK8`）。動作しないソース構文レベルのガードを削除することで、「黙って受理される、決して発火しないルール」による誤った安心感を排除する。
 - **ルールエコシステムの縮小**: oxlint は ESLint より少ないルールをサポート。キットのニーズ（Next.js プラグイン、TypeScript、import 制限）にはカバレッジ十分。追加の ESLint ルールが必要なユーザーは oxlint と並行して ESLint を追加可能。

@@ -187,3 +187,111 @@ describe('validateStatement', () => {
     );
   });
 });
+
+// The DSQL foreign-key invariant is enforced authoritatively here (generated-DDL
+// layer), not at the TypeScript source layer. The kit previously carried a
+// no-restricted-syntax oxlint override that was silently no-op — see ADR-003.
+// These tests lock in the actual guarantees the DDL layer must provide:
+//   (1) transformSql removes every FK generation path from drizzle-kit output,
+//       preserving the column definition itself.
+//   (2) validateSql / validateStatement reject any residual REFERENCES /
+//       FOREIGN KEY that slipped past transformSql (defence-in-depth).
+//   (3) The end-to-end pipeline (transform then validate) accepts drizzle-kit
+//       output that started with an FK and produces FK-free, DSQL-valid DDL.
+describe('dsql-compat: FK / REFERENCES removal (invariants for ADR-003)', () => {
+  test('FK1: transformSql removes inline REFERENCES and preserves the column definition', () => {
+    // Typical shape drizzle-kit emits from `.references(() => users.id)`.
+    const input = [
+      'CREATE TABLE "t" (',
+      '\t"id" text PRIMARY KEY NOT NULL,',
+      '\t"userId" text NOT NULL REFERENCES "users"("id")',
+      ');',
+    ].join('\n');
+
+    const result = transformSql(input);
+
+    expect(result).not.toMatch(/REFERENCES/i);
+    // Column definition itself is preserved.
+    expect(result).toContain('"userId" text NOT NULL');
+  });
+
+  test('FK2: transformSql removes a standalone CONSTRAINT ... FOREIGN KEY line', () => {
+    const input = [
+      'CREATE TABLE "t" (',
+      '\t"id" text PRIMARY KEY NOT NULL,',
+      '\t"userId" text NOT NULL,',
+      '\tCONSTRAINT "t_userId_users_id_fk" FOREIGN KEY ("userId") REFERENCES "users"("id")',
+      ');',
+    ].join('\n');
+
+    const result = transformSql(input);
+
+    expect(result).not.toMatch(/FOREIGN\s+KEY/i);
+    expect(result).not.toMatch(/REFERENCES/i);
+    expect(result).toContain('"userId" text NOT NULL');
+  });
+
+  test('FK3: transformSql removes a FOREIGN KEY line without the CONSTRAINT keyword', () => {
+    // drizzle-kit's `foreignKey()` helper can emit FOREIGN KEY lines without a
+    // preceding CONSTRAINT clause. Covered by a separate regex branch in
+    // dsql-compat.ts; regression tested here.
+    const input = [
+      'CREATE TABLE "t" (',
+      '\t"id" text PRIMARY KEY NOT NULL,',
+      '\t"userId" text NOT NULL,',
+      '\tFOREIGN KEY ("userId") REFERENCES "users"("id")',
+      ');',
+    ].join('\n');
+
+    const result = transformSql(input);
+
+    expect(result).not.toMatch(/FOREIGN\s+KEY/i);
+    expect(result).not.toMatch(/REFERENCES/i);
+  });
+
+  test('FK4: transformSql strips ON DELETE / ON UPDATE actions attached to inline REFERENCES', () => {
+    const input = 'ALTER TABLE "t" ADD COLUMN "userId" text NOT NULL REFERENCES "users"("id") ON DELETE CASCADE;';
+    const result = transformSql(input);
+    expect(result).not.toMatch(/REFERENCES/i);
+    expect(result).not.toMatch(/ON\s+DELETE/i);
+    expect(result).toContain('"userId" text NOT NULL');
+  });
+
+  test('FK5: validateSql flags surviving REFERENCES as DSQL-incompatible', () => {
+    // If a hand-written migration bypasses transformSql (or transformSql regresses),
+    // the post-transform check must still catch REFERENCES so we never send FK DDL
+    // to DSQL.
+    const sql = 'CREATE TABLE "t" (\n\t"userId" text NOT NULL REFERENCES "users"("id")\n);';
+    const errors = validateSql(sql);
+    expect(errors.map((e) => e.pattern)).toContain('REFERENCES');
+  });
+
+  test('FK6: validateSql flags surviving FOREIGN KEY as DSQL-incompatible', () => {
+    const sql = 'CREATE TABLE "t" (\n\tFOREIGN KEY ("userId") REFERENCES "users"("id")\n);';
+    const errors = validateSql(sql);
+    const patterns = errors.map((e) => e.pattern);
+    expect(patterns).toContain('FOREIGN KEY');
+  });
+
+  test('FK7: validateStatement throws on a statement that still contains REFERENCES', () => {
+    const stmt = 'CREATE TABLE "t" (\n\t"userId" text NOT NULL REFERENCES "users"("id")\n);';
+    expect(() => validateStatement(stmt, 'test.sql')).toThrow(/REFERENCES|FOREIGN KEY/i);
+  });
+
+  test('FK8: full generate path (transform then validate) yields FK-free, valid DDL', () => {
+    // End-to-end assertion: drizzle-kit output containing an FK survives
+    // transform + validate to produce zero errors and no FK residue.
+    const generated = [
+      'CREATE TABLE "t" (',
+      '\t"id" text PRIMARY KEY NOT NULL,',
+      '\t"userId" text NOT NULL REFERENCES "users"("id")',
+      ');',
+    ].join('\n');
+
+    const transformed = transformSql(generated);
+    const errors = validateSql(transformed);
+
+    expect(errors).toHaveLength(0);
+    expect(transformed).not.toMatch(/REFERENCES|FOREIGN\s+KEY/i);
+  });
+});
