@@ -34,5 +34,14 @@ export async function sendEvent(channelName: string, payload: unknown) {
 
   const signed = await signer.sign(requestToBeSigned);
   const res = await fetch(new Request(endpoint, signed));
-  console.log(await res.text());
+  const body = await res.text();
+  // fetch() does not reject on 4xx/5xx. Without this guard, an AppSync auth
+  // failure or throttle would return silently and the client would never
+  // receive the "job done" event — breaking the documented async-job →
+  // real-time notification contract. Throw so the Lambda invocation
+  // surfaces the failure in logs / retries instead.
+  if (!res.ok) {
+    throw new Error(`sendEvent failed: ${res.status} ${res.statusText} ${body}`);
+  }
+  console.log(body);
 }
