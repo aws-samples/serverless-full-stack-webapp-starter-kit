@@ -1,9 +1,27 @@
 const response = require('cfn-response');
 const crypto = require('crypto');
 
+// Log only fields that are safe to appear in CloudWatch Logs.
+// Notably, the full CloudFormation custom-resource event includes ResponseURL,
+// a pre-signed S3 URL that anyone with the URL can PUT to and forge a CFn
+// response. Never log the raw event object.
+function logSafeEvent(event) {
+  console.log(
+    JSON.stringify({
+      RequestType: event.RequestType,
+      LogicalResourceId: event.LogicalResourceId,
+      PhysicalResourceId: event.PhysicalResourceId,
+      RequestId: event.RequestId,
+      StackId: event.StackId,
+      ResourceType: event.ResourceType,
+      ResourceProperties: event.ResourceProperties,
+    }),
+  );
+}
+
 exports.handler = async function (event, context) {
   try {
-    console.log(event);
+    logSafeEvent(event);
     if (event.RequestType == 'Delete') {
       return await response.send(event, context, response.SUCCESS);
     }
