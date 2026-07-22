@@ -13,15 +13,16 @@ cd apps/webapp && pnpm run lint
 
 # cdk
 cd apps/cdk && pnpm run build
-cd apps/cdk && pnpm run test
+cd apps/cdk && pnpm run test:unit
 cd apps/cdk && pnpm exec cdk deploy --all
 cd apps/cdk && pnpm exec cdk diff
 
 # db migration (requires DSQL cluster)
 pnpm --filter @repo/db run migrate
 
-# lint (from root)
-pnpm run lint
+# lint / test across all workspaces (from root)
+pnpm -r run lint
+pnpm -r run test:unit
 
 # local development (requires DSQL cluster)
 pnpm --filter @repo/db run cluster create   # create dev DSQL cluster
@@ -34,7 +35,7 @@ cd apps/webapp && pnpm run dev
 
 All server-side mutations must go through `authActionClient` (defined in `lib/safe-action.ts`). It validates the Cognito session via Amplify server-side auth and injects `ctx.userId`. Never call Drizzle directly from a Server Action without this middleware.
 
-API Routes (`app/api/**/route.ts`) must go through `withAuth()` (defined in `lib/api/with-auth.ts`) — the equivalent guardrail for Route Handlers. It resolves the session and returns 401 when unauthenticated; the handler receives the session and its return value is JSON-encoded. Validate inputs with Zod `safeParse`, same as Server Actions.
+API Routes (`app/api/**/route.ts`) that require authentication must go through `withAuth()` (defined in `lib/api/with-auth.ts`) — the equivalent guardrail for Route Handlers. It resolves the session and returns 401 when unauthenticated; the handler receives the session and its return value is JSON-encoded. Validate inputs with Zod `safeParse`, same as Server Actions. Public routes (LWA readiness at `api/health/`, Cognito auth callbacks at `api/auth/[slug]/`) are the intentional exceptions and do not use `withAuth()`.
 
 `proxy.ts` handles route protection (redirect to `/sign-in` for unauthenticated users). It is NOT a Next.js middleware file — it runs inside the Lambda handler. There is no `middleware.ts` in this project.
 
@@ -73,7 +74,7 @@ See `packages/db/README.md` for full usage. Key rules:
 - `pnpm --filter @repo/db run generate` — generates and auto-transforms SQL for DSQL.
 - `pnpm --filter @repo/db run migrate` — applies migrations (1 DDL per transaction).
 - Do not use `drizzle-kit push` or `drizzle-kit migrate` — they violate DSQL's 1 DDL/transaction constraint.
-- When `generate` errors on unfixable patterns (DROP COLUMN, ALTER COLUMN TYPE, etc.): run `git checkout -- migrations/`, then `drizzle-kit generate --custom --name=<name>`, and write table recreation SQL or a `.mjs` batch migration manually.
+- When `generate` errors on unfixable patterns (DROP COLUMN, ALTER COLUMN TYPE, etc.): run `git checkout -- migrations/`, then `pnpm --filter @repo/db exec drizzle-kit generate --custom --name=<name>`, and write table recreation SQL or a `.mjs` batch migration manually.
 - Data migrations are `.mjs` (`export default async function(client, context)`); the runner does not support `.ts`. The optional `context` injects AWS resources (e.g. an S3 bucket name) into migrations that need them.
 - Never hand-create migration files outside the `generate` / `generate --custom` flow — it forks the snapshot chain (duplicate `prevId`) and makes `generate` abort. `check:ci` runs `drizzle-kit check` to catch chain forks and snapshot/`schema.ts` desync.
 
@@ -102,7 +103,7 @@ Server → client push uses AppSync Events. Server-side: `sendEvent(channelName,
 - UI components: use [shadcn/ui](https://ui.shadcn.com/). Do not introduce alternative component libraries.
 - Logs: use JSON structured output.
 - Dependencies: esbuild and Next.js bundle everything, so only packages with native binaries needed at Lambda runtime belong in `dependencies`. Everything else goes in `devDependencies`.
-- Tests: colocate with source (`foo.test.ts` next to `foo.ts`). Use `.integ.test.ts` suffix for tests requiring external resources. Test runner is vitest.
+- Tests: colocate with source (`foo.test.ts` next to `foo.ts`). Use `.integ.test.ts` suffix for tests requiring external resources. Test runner is vitest for `apps/webapp` and `packages/db`; `apps/cdk` uses Jest (`test:unit`) for CDK snapshot/template tests kept under `apps/cdk/test/`.
 
 ## Contributing to the kit itself
 
@@ -116,7 +117,7 @@ This section applies **only if the git remote of this repository is `aws-samples
 - Do not bypass `authActionClient` for any mutation. No raw Drizzle calls from Server Actions.
 - Do not add an authenticated API Route without going through `withAuth()`.
 - Do not add `middleware.ts`. Route protection is handled by `proxy.ts` inside the Lambda runtime.
-- Do not hardcode AWS region or account IDs. Use CDK context or environment variables.
+- Do not hardcode AWS region or account IDs in application code. Use CDK context or environment variables. Exception: CloudFront-adjacent resources (WAF Web ACL with `CLOUDFRONT` scope, Lambda@Edge) must be created in `us-east-1` — the dedicated `UsEast1Stack` and `EdgeFunction` construct hardcode this by design.
 - Do not add `NEXT_PUBLIC_` env vars to `.env.local` for deployed builds — they must be set as CDK build args in `webapp.ts`.
 - Do not use `.references()` in Drizzle schema — DSQL does not support foreign keys. Use `relations()` instead.
 - Do not use `serial`, `smallserial`, or `bigserial` column types — DSQL has no sequences. Use `uuid`/`text`. (`json`/`jsonb` are supported.)

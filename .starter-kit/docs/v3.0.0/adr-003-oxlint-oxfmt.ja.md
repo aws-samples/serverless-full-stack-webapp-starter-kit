@@ -6,7 +6,7 @@
 
 ## コンテキスト
 
-キットにはコーディング時に DSQL 非互換パターンを検出するリントルールが必要 — 具体的には `drizzle-orm/pg-core` からの `serial`, `json`, `jsonb` import をブロックする `no-restricted-imports`。
+キットにはコーディング時に DSQL 非互換パターンを検出するリントルールが必要 — 具体的には `drizzle-orm/pg-core` からの `serial` / `smallserial` / `bigserial` import をブロックする `no-restricted-imports`。
 
 また、キットは AI コーディングエージェントとの併用を前提としており、ファイル書き込みごとに lint + format を実行する post-write hook を推奨している（README「Agentic coding」セクション参照）。このワークフローでは、リンターとフォーマッターが体感できない速度で完了することが必須条件となる。
 
@@ -16,7 +16,7 @@ ESLint + Prettier を oxlint + oxfmt に置き換え。oxlint は必要な `no-r
 
 設定済みの DSQL 固有ルール:
 
-- `no-restricted-imports`: `drizzle-orm/pg-core` からの `serial`, `smallserial`, `bigserial`, `json`, `jsonb` をブロック
+- `no-restricted-imports`: `drizzle-orm/pg-core` からの `serial`, `smallserial`, `bigserial` をブロック
 - `no-restricted-syntax`: スキーマファイルでの `.references()` 呼び出しをブロック（設定済みだが未動作 — 結果を参照）
 
 ### 却下した代替案
