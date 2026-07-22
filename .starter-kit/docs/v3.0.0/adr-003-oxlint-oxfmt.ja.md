@@ -18,7 +18,7 @@ ESLint + Prettier を oxlint + oxfmt に置き換え。oxlint は必要な `no-r
 
 - `no-restricted-imports`: `drizzle-orm/pg-core` からの `serial`, `smallserial`, `bigserial` をブロック
 
-DSQL の外部キー禁止は `packages/db/src/dsql-compat.ts` が生成 DDL レイヤーで強制する — ソース構文レベルの lint を採らない理由は「結果」を参照。
+DSQL の外部キー禁止は `packages/db/src/dsql-compat.ts` が生成後の SQL に対して強制する — 詳細は「結果」を参照。
 
 ### 却下した代替案
 
@@ -27,6 +27,6 @@ DSQL の外部キー禁止は `packages/db/src/dsql-compat.ts` が生成 DDL レ
 
 ## 結果
 
-- **`no-restricted-syntax` は未対応で、ネイティブ追加予定もない。** oxlint 1.56（本キットが最初に導入したバージョン）は未知ルール名を黙って受理し、1.74 以降は `Rule 'no-restricted-syntax' not found in plugin 'eslint'` として明示的に拒否する。oxc プロジェクトは新規 Rust 製ルールを追加する予定はないと表明しており、任意 AST 制約は ESLint 互換の JavaScript プラグインで書くのが公式の道である（[oxc.rs/docs/contribute/linter/adding-rules](https://oxc.rs/docs/contribute/linter/adding-rules)）。本キットは JS プラグインを採らない — 守るべき不変条件は「DSQL に FK DDL が到達しないこと」であり、これは生成 SQL の性質であって TypeScript ソースの性質ではない（`foreignKey()` や手書き SQL も同じ禁止 DDL を生成しうる）。
-- **FK 禁止の権威は DDL レイヤーに一本化する。** `packages/db/src/dsql-compat.ts` がマイグレータに渡される全ステートメントから `REFERENCES` / `FOREIGN KEY` を除去し、残っていれば拒否する。回帰保護は `packages/db/src/dsql-compat.test.ts` の `FK1`〜`FK8` で明示カバー: inline `REFERENCES` 除去（`FK1`）、`CONSTRAINT ... FOREIGN KEY` 行除去（`FK2`）、非 `CONSTRAINT` の `FOREIGN KEY` 行除去（`FK3`）、`ON DELETE` / `ON UPDATE` アクションの剥がし（`FK4`）、`validateSql` が残存 `REFERENCES` / `FOREIGN KEY` を検出（`FK5`, `FK6`）、`validateStatement` が `REFERENCES` を throw（`FK7`）、`transform → validate` 全体パスが FK-free で valid になる（`FK8`）。動作しないソース構文レベルのガードを削除することで、「黙って受理される、決して発火しないルール」による誤った安心感を排除する。
+- **`no-restricted-syntax` は oxlint に未実装**で、追加予定もない。oxlint 1.56 は未知ルール名を黙って受理するが実行はしない。1.74 以降は `Rule 'no-restricted-syntax' not found in plugin 'eslint'` として明示的に拒否する。oxc プロジェクトは新規 Rust 製ルールを追加する予定はないと表明している（[oxc.rs/docs/contribute/linter/adding-rules](https://oxc.rs/docs/contribute/linter/adding-rules)）。Drizzle スキーマ DSL の `.references()` をブロックする目的で置いていた `**/schema.ts` override は、ESLint 互換 JS プラグインでの代替を採らず削除した。
+- **FK 禁止の権威は `packages/db/src/dsql-compat.ts`（生成 SQL レイヤー）**。キットのマイグレーションパイプラインは `schema.ts` → `drizzle-kit generate` → `.sql` migration → ランナー。ADR-005 によりランナーが実行するのは `.sql`（`transformSql` + `validateStatement` を通す）と `.mjs` のみで、`.sql` は `.references()` / `foreignKey()` / 手書き SQL のいずれから生成されても必ず通る合流点になる。`transformSql` が inline `REFERENCES` / `CONSTRAINT ... FOREIGN KEY` / 単独 `FOREIGN KEY` 行を全ステートメントから除去し、`validateSql` / `validateStatement` が残存を拒否する（defence-in-depth）。回帰は `packages/db/src/dsql-compat.test.ts` の `FK1`〜`FK8` が保護する: drizzle-kit が emit しうる各 FK 形状、`ON DELETE` / `ON UPDATE` アクション、post-transform leak 検出、`transform → validate` end-to-end。
 - **ルールエコシステムの縮小**: oxlint は ESLint より少ないルールをサポート。キットのニーズ（Next.js プラグイン、TypeScript、import 制限）にはカバレッジ十分。追加の ESLint ルールが必要なユーザーは oxlint と並行して ESLint を追加可能。
