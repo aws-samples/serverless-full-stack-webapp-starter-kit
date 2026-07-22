@@ -10,6 +10,7 @@ import { join } from 'path';
 import { Schedule, ScheduleExpression, ScheduleTargetInput } from 'aws-cdk-lib/aws-scheduler';
 import { LambdaInvoke } from 'aws-cdk-lib/aws-scheduler-targets';
 import { ContainerImageBuild } from '@cdklabs/deploy-time-build';
+import type { JobPayloadProps } from '@repo/shared-types/job-payload';
 
 export interface AsyncJobProps {
   readonly database: Database;
@@ -60,18 +61,27 @@ export class AsyncJob extends Construct {
     new CfnOutput(this, 'HandlerArn', { value: handler.functionArn });
     this.handler = handler;
 
-    // you can add scheduled jobs here.
+    // Example scheduled job — runs on the 1st of every month at 00:00 UTC.
+    // Replace or remove when adding your own scheduled jobs.
     this.addSchedule(
-      'SampleJob',
+      'ExampleJob',
       ScheduleExpression.cron({ minute: '0', hour: '0', day: '1', timeZone: TimeZone.ETC_UTC }),
+      { type: 'example' },
     );
   }
 
-  public addSchedule(jobType: string, schedule: ScheduleExpression, payload?: any) {
-    return new Schedule(this, jobType, {
+  /**
+   * Add an EventBridge Scheduler entry that invokes the async-job Lambda with `payload`.
+   * `payload` must satisfy `jobPayloadPropsSchema` in `@repo/shared-types/job-payload`
+   * (a Zod discriminated union on `type`); the handler parses it at runtime and
+   * dispatches to the matching job. The Schedule construct id (`scheduleId`) becomes
+   * part of the CFN logical id, so choose a stable name.
+   */
+  public addSchedule(scheduleId: string, schedule: ScheduleExpression, payload: JobPayloadProps) {
+    return new Schedule(this, scheduleId, {
       schedule,
       target: new LambdaInvoke(this.handler, {
-        input: ScheduleTargetInput.fromObject({ jobType, payload }),
+        input: ScheduleTargetInput.fromObject(payload),
         retryAttempts: 5,
       }),
     });

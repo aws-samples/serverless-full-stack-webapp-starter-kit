@@ -19,7 +19,10 @@
     "noEmit": true,
     "strictPropertyInitialization": false,
     "typeRoots": ["./node_modules/@types"],
-    "types": ["node", "jest"]
+    "types": ["node", "jest"],
+    "paths": {
+      "@repo/shared-types/*": ["../../packages/shared-types/src/*"]
+    }
   },
   "exclude": ["node_modules", "cdk.out"]
 }

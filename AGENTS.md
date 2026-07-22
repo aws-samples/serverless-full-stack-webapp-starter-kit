@@ -37,7 +37,7 @@ All server-side mutations must go through `authActionClient` (defined in `lib/sa
 
 API Routes (`app/api/**/route.ts`) that require authentication must go through `withAuth()` (defined in `lib/api/with-auth.ts`) — the equivalent guardrail for Route Handlers. It resolves the session and returns 401 when unauthenticated; the handler receives the session and its return value is JSON-encoded. Validate inputs with Zod `safeParse`, same as Server Actions. Public routes (LWA readiness at `api/health/`, Cognito auth callbacks at `api/auth/[slug]/`) are the intentional exceptions and do not use `withAuth()`.
 
-`proxy.ts` handles route protection (redirect to `/sign-in` for unauthenticated users). It is NOT a Next.js middleware file — it runs inside the Lambda handler. There is no `middleware.ts` in this project.
+`proxy.ts` handles route protection (redirect to `/sign-in` for unauthenticated users). It is the Next.js 16 [proxy file convention](https://nextjs.org/docs/app/api-reference/file-conventions/proxy) — the rename of `middleware.ts`, which was deprecated in Next.js 16. Under Lambda Web Adapter it runs inside the Node.js Lambda runtime (same process as the request handler), so there is no separate Edge worker. Do not create `middleware.ts`; it is superseded by `proxy.ts`.
 
 ### Async jobs
 
@@ -116,7 +116,7 @@ This section applies **only if the git remote of this repository is `aws-samples
 
 - Do not bypass `authActionClient` for any mutation. No raw Drizzle calls from Server Actions.
 - Do not add an authenticated API Route without going through `withAuth()`.
-- Do not add `middleware.ts`. Route protection is handled by `proxy.ts` inside the Lambda runtime.
+- Do not add `middleware.ts`. It is deprecated in Next.js 16; route protection lives in `proxy.ts` (the renamed file convention), which runs in the Node.js Lambda runtime.
 - Do not hardcode AWS region or account IDs in application code. Use CDK context or environment variables. Exception: CloudFront-adjacent resources (WAF Web ACL with `CLOUDFRONT` scope, Lambda@Edge) must be created in `us-east-1` — the dedicated `UsEast1Stack` and `EdgeFunction` construct hardcode this by design.
 - Do not add `NEXT_PUBLIC_` env vars to `.env.local` for deployed builds — they must be set as CDK build args in `webapp.ts`.
 - Do not use `.references()` in Drizzle schema — DSQL does not support foreign keys. Use `relations()` instead.
