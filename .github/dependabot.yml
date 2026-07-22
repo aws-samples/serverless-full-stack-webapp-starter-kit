@@ -1,0 +1,23 @@
+version: 2
+updates:
+  # pnpm workspace packages: root package.json plus every workspace under apps/* and packages/*.
+  # pnpm resolves everything through the root pnpm-lock.yaml, but dependabot still needs each
+  # package.json listed so declared deps in each workspace get updates.
+  - package-ecosystem: npm
+    directories:
+      - /
+      - /apps/*
+      - /packages/*
+    schedule:
+      interval: weekly
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    open-pull-requests-limit: 10
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ['*']

@@ -1,5 +1,3 @@
-import Link from 'next/link';
-
 export default function SignInPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
@@ -15,15 +13,18 @@ export default function SignInPage() {
               Please sign in with your Cognito account to continue
             </p>
 
-            <Link
+            {/* Use <a> instead of <Link> to trigger a full-page navigation.
+                The sign-in route returns a 302 redirect to Cognito, which
+                would cause a CORS error if fetched via client-side navigation. */}
+            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+            <a
               href="/api/auth/sign-in"
               // you can add a query string to change the locale of cognito managed login page.
               // href="/api/auth/sign-in?lang=ja"
               className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              prefetch={false} // prevent CORS error
             >
               Sign in with Cognito
-            </Link>
+            </a>
           </div>
         </div>
       </div>
