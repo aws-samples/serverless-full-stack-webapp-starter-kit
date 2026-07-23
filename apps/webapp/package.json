@@ -40,7 +40,7 @@
     "sonner": "^2.0.3",
     "tailwind-merge": "^3.2.0",
     "tw-animate-css": "^1.2.5",
-    "zod": "^3.24.2"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@aws-sdk/client-cognito-identity-provider": "3.995.0",
