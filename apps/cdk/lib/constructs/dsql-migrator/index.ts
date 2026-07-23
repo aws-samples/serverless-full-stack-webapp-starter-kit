@@ -41,6 +41,16 @@ export class DsqlMigrator extends Construct {
         retention: RetentionDays.ONE_WEEK,
         removalPolicy: RemovalPolicy.DESTROY,
       }),
+      // Every dependency is inlined by esbuild on purpose — do not move packages to
+      // `bundling.nodeModules`. That option installs them into the asset output, letting
+      // package-manager metadata (absolute paths, install-time values) into the OUTPUT
+      // asset hash: the known unstable-hash-in-CI class (aws/aws-cdk#15023). With full
+      // inlining the staged output is only index.mjs + migrations/, hashed by content
+      // (mtime-independent), verified byte-identical across fresh installs. `pg` is pure
+      // JS; its optional native binding `pg-native` is externalized and absent at runtime.
+      // Do not pass `assetHash` either: a curated input list can silently miss
+      // runtime-relevant changes (the failure class that led to removing the former
+      // migrations-hash machinery).
       bundling: {
         format: OutputFormat.ESM,
         target: 'node24',
