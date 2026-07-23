@@ -6,7 +6,7 @@
 
 ## コンテキスト
 
-キットは 3 種類の Docker イメージ（`webapp`、`async-job`、`dsql-migrator`）を Lambda 用に構築する。
+キットは `webapp` と `async-job` の Lambda 用 Docker イメージを構築する。`dsql-migrator` は zip パッケージの NodejsFunction という例外である。
 標準的な選択肢は CDK 組み込みの `DockerImageCode.fromImageAsset` — synth 時にローカルの Docker CLI が
 イメージをビルドし、ECR にプッシュする — だが、これは以下の課題を持ち込む:
 
@@ -26,10 +26,10 @@
 
 ## 決定
 
-全 3 イメージを **`@cdklabs/deploy-time-build` パッケージの `ContainerImageBuild` construct** で
+`webapp` と `async-job` の 2 イメージを **`@cdklabs/deploy-time-build` パッケージの `ContainerImageBuild` construct** で
 ビルドする。`DockerImageCode.fromImageAsset` は使用しない。
 
-- 実装: `apps/cdk/lib/constructs/{webapp,async-job,dsql-migrator/index}.ts` にて
+- 実装: `apps/cdk/lib/constructs/{webapp,async-job}/index.ts` にて
   `new ContainerImageBuild(this, 'Build', { directory: <repo-root>, platform: Platform.LINUX_ARM64,
 file: 'apps/*/Dockerfile', ignoreMode: IgnoreMode.DOCKER })` を生成し、
   `image.toLambdaDockerImageCode()` を `DockerImageFunction` に渡す。
@@ -42,6 +42,7 @@ file: 'apps/*/Dockerfile', ignoreMode: IgnoreMode.DOCKER })` を生成し、
   渡される。
 - 前身の `deploy-time-build` パッケージから公式後継である `@cdklabs/deploy-time-build`
   （cdklabs スコープ配下）にも同時に移行した。
+- **`dsql-migrator` の例外**: migrator は deploy-time image build ではなく zip パッケージの `NodejsFunction` とする。CloudFormation はこれをデプロイ中に同期呼び出しする一方、container-image version には初期化 window があり、container-only の `CodeArtifactUserPendingException` が発生しうるためである。`webapp` と `async-job` は引き続き deploy-time build の image とする。
 
 ### 却下した代替案
 
@@ -73,7 +74,7 @@ file: 'apps/*/Dockerfile', ignoreMode: IgnoreMode.DOCKER })` を生成し、
   起動しない。「触っていないスタックの CodeBuild が毎回走ってコストがかさむ」ということ
   はない。
 - **CodeBuild の同時実行 quota**: ARM/Small の同時実行 quota はデフォルトで 1
-  （AWS アカウント全体）。同一スタック内の 3 イメージは `SingletonProject` により
+  （AWS アカウント全体）。同一スタック内の 2 イメージは `SingletonProject` により
   1 プロジェクトを共有するので直列実行になる。他スタックや他プロジェクトが同時に
   ARM/Small CodeBuild を使う場合はキューイングされる。頻繁に問題になる場合は
   Service Quotas で引き上げ可能（AWS Support 経由）。
@@ -94,12 +95,4 @@ file: 'apps/*/Dockerfile', ignoreMode: IgnoreMode.DOCKER })` を生成し、
   数円〜十数円のオーダー）。開発中の反復デプロイでは無視できない額に達しうるが、
   上記のとおり入力変更のないデプロイでは CodeBuild が起動しないため、通常運用では
   影響は小さい。
-- **`dsql-migrator` の「変更検知が効かない」問題（C1）**: `ContainerImageBuild` の
-  イメージ内容ハッシュは CDK synth 時に確定しないため、`migrations/` の変更を CDK/
-  CloudFormation の標準変更検知が捉えられない。migrator Construct は
-  `migrations/` ディレクトリ全体の内容ハッシュを計算し、
-  (1) `Function.invalidateVersionBasedOn(hash)` で Lambda 公開バージョンを無効化し、
-  (2) CDK Trigger の `Custom::Trigger` プロパティに `MigrationHash` として注入する
-  ことでこの穴を埋める（実装: `apps/cdk/lib/constructs/dsql-migrator/index.ts`）。
-  この対応の詳細と設計判断（拡張子リスト共有ではなくディレクトリ全体ハッシュを選んだ
-  理由）は [ADR-001 の C1](adr-001-dsql-drizzle-migrator.ja.md) を参照。
+- **`dsql-migrator` の例外**: migrator は deploy-time image build ではなく zip パッケージの `NodejsFunction` とする。CloudFormation はこれをデプロイ中に同期呼び出しする一方、container-image version には初期化 window があり、container-only の `CodeArtifactUserPendingException` が発生しうるためである。`webapp` と `async-job` は引き続き deploy-time build の image とする。

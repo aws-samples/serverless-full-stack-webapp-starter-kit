@@ -1,5 +1,5 @@
 import { describe, expect, test, vi, beforeEach } from 'vitest';
-import { migrate } from './migrate';
+import { migrate, connectWithRetry, isTransientConnectError } from './migrate';
 import type { Pool, PoolClient } from 'pg';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -41,6 +41,9 @@ function createMockClient() {
 function createMockPool(client: PoolClient): Pool {
   return { connect: vi.fn(async () => client) } as unknown as Pool;
 }
+
+/** Zero-delay sleep for retry tests; production defaults would blow up unit-test wall time. */
+const zeroSleep = () => Promise.resolve();
 
 vi.mock('node:fs', async (importOriginal) => {
   const actual = await importOriginal<typeof import('node:fs')>();
@@ -321,5 +324,210 @@ describe('migrate', () => {
     });
     expect(queries).toContain('CTX:us-test-1');
     fsMod.rmSync(tmpDir, { recursive: true });
+  });
+});
+
+describe('isTransientConnectError', () => {
+  test('T1: identifies DSQL wake-up message as transient', () => {
+    expect(
+      isTransientConnectError(new Error('error: unable to accept connection, waking up cluster, please retry later')),
+    ).toBe(true);
+  });
+
+  test('T2: identifies ECONNRESET as transient', () => {
+    const err = Object.assign(new Error('socket hang up'), { code: 'ECONNRESET' });
+    expect(isTransientConnectError(err)).toBe(true);
+  });
+
+  test('T3: identifies ETIMEDOUT as transient', () => {
+    const err = Object.assign(new Error('timeout'), { code: 'ETIMEDOUT' });
+    expect(isTransientConnectError(err)).toBe(true);
+  });
+
+  test('T4: does NOT flag auth errors (IAM token expired) as transient', () => {
+    expect(isTransientConnectError(new Error('password authentication failed'))).toBe(false);
+  });
+
+  test('T5: does NOT flag DDL errors as transient', () => {
+    expect(isTransientConnectError(new Error('relation "foo" already exists'))).toBe(false);
+  });
+
+  test('T6: safely handles non-Error values', () => {
+    expect(isTransientConnectError('some string')).toBe(false);
+    expect(isTransientConnectError(null)).toBe(false);
+    expect(isTransientConnectError(undefined)).toBe(false);
+  });
+});
+
+describe('connectWithRetry', () => {
+  test('R1: succeeds on first attempt without retry', async () => {
+    const { client } = createMockClient();
+    const pool = createMockPool(client);
+
+    const result = await connectWithRetry(pool, { sleepFn: zeroSleep });
+
+    expect(result).toBe(client);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(pool.connect).toHaveBeenCalledTimes(1);
+    // Priming SELECT 1 should have been issued
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(client.query).toHaveBeenCalledWith('SELECT 1');
+  });
+
+  test('R2: retries on DSQL wake-up error at connect() and eventually succeeds', async () => {
+    const { client } = createMockClient();
+    let attempt = 0;
+    const pool = {
+      connect: vi.fn(async () => {
+        attempt++;
+        if (attempt <= 2) {
+          throw new Error('error: unable to accept connection, waking up cluster, please retry later');
+        }
+        return client;
+      }),
+    } as unknown as Pool;
+
+    const sleepFn = vi.fn(zeroSleep);
+    const result = await connectWithRetry(pool, { sleepFn });
+
+    expect(result).toBe(client);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(pool.connect).toHaveBeenCalledTimes(3);
+    expect(sleepFn).toHaveBeenCalledTimes(2);
+  });
+
+  test('R3: destroys a client that fails SELECT 1 and retries with a fresh connection', async () => {
+    const { client: goodClient } = createMockClient();
+    const wakeUpError = new Error('unable to accept connection, waking up cluster, please retry later');
+
+    let attempt = 0;
+    // First client succeeds on connect but fails on SELECT 1; second client is fully healthy.
+    const failingClient = {
+      query: vi.fn(async () => {
+        throw wakeUpError;
+      }),
+      release: vi.fn(),
+    } as unknown as PoolClient;
+
+    const pool = {
+      connect: vi.fn(async () => {
+        attempt++;
+        if (attempt === 1) return failingClient;
+        return goodClient;
+      }),
+    } as unknown as Pool;
+
+    const sleepFn = vi.fn(zeroSleep);
+    const result = await connectWithRetry(pool, { sleepFn });
+
+    expect(result).toBe(goodClient);
+    // Passing the error destroys the failed connection instead of returning it to the idle pool.
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(failingClient.release).toHaveBeenCalledWith(wakeUpError);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(pool.connect).toHaveBeenCalledTimes(2);
+    expect(sleepFn).toHaveBeenCalledTimes(1);
+  });
+
+  test('R4: retries on transient network error (ECONNRESET)', async () => {
+    const { client } = createMockClient();
+    let attempt = 0;
+    const pool = {
+      connect: vi.fn(async () => {
+        attempt++;
+        if (attempt === 1) {
+          throw Object.assign(new Error('socket hang up'), { code: 'ECONNRESET' });
+        }
+        return client;
+      }),
+    } as unknown as Pool;
+
+    const sleepFn = vi.fn(zeroSleep);
+    const result = await connectWithRetry(pool, { sleepFn });
+
+    expect(result).toBe(client);
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(pool.connect).toHaveBeenCalledTimes(2);
+  });
+
+  test('R5: throws immediately on non-transient error (does not retry auth failure)', async () => {
+    const pool = {
+      connect: vi.fn(async () => {
+        throw new Error('password authentication failed for user "admin"');
+      }),
+    } as unknown as Pool;
+
+    const sleepFn = vi.fn(zeroSleep);
+    await expect(connectWithRetry(pool, { sleepFn })).rejects.toThrow('password authentication failed');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(pool.connect).toHaveBeenCalledTimes(1);
+    expect(sleepFn).not.toHaveBeenCalled();
+  });
+
+  test('R6: gives up after maxAttempts and rethrows the last transient error', async () => {
+    const pool = {
+      connect: vi.fn(async () => {
+        throw new Error('waking up cluster, please retry later');
+      }),
+    } as unknown as Pool;
+
+    const sleepFn = vi.fn(zeroSleep);
+    await expect(connectWithRetry(pool, { maxAttempts: 3, sleepFn })).rejects.toThrow('waking up cluster');
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(pool.connect).toHaveBeenCalledTimes(3);
+    // Between 3 attempts we expect 2 sleeps (one is skipped after the terminal failure).
+    expect(sleepFn).toHaveBeenCalledTimes(2);
+  });
+
+  test('R7: applies exponential backoff capped at maxDelayMs', async () => {
+    const pool = {
+      connect: vi.fn(async () => {
+        throw new Error('waking up cluster');
+      }),
+    } as unknown as Pool;
+
+    const delays: number[] = [];
+    const sleepFn = vi.fn(async (ms: number) => {
+      delays.push(ms);
+    });
+
+    await expect(
+      connectWithRetry(pool, {
+        maxAttempts: 6,
+        initialDelayMs: 1000,
+        maxDelayMs: 15000,
+        sleepFn,
+      }),
+    ).rejects.toThrow('waking up cluster');
+
+    // 1s, 2s, 4s, 8s, 15s (cap kicks in at attempt 5)
+    expect(delays).toEqual([1000, 2000, 4000, 8000, 15000]);
+  });
+
+  test('R8: migrate() reuses connectWithRetry — first connect fails then succeeds', async () => {
+    // Verifies that migrate() honours the retry path end-to-end.
+    vi.mocked(fs.readdirSync).mockReturnValue([] as unknown as ReturnType<typeof fs.readdirSync>);
+    const { client } = createMockClient();
+    let attempt = 0;
+    const pool = {
+      connect: vi.fn(async () => {
+        attempt++;
+        if (attempt === 1) {
+          throw new Error('unable to accept connection, waking up cluster, please retry later');
+        }
+        return client;
+      }),
+    } as unknown as Pool;
+
+    await expect(
+      migrate({
+        pool,
+        migrationsDir: '/migrations',
+        connectRetry: { sleepFn: zeroSleep },
+      }),
+    ).resolves.toBeUndefined();
+
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    expect(pool.connect).toHaveBeenCalledTimes(2);
   });
 });

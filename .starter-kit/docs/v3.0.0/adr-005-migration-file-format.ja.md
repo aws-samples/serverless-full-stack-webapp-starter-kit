@@ -34,9 +34,7 @@ v3 初期のマイグレーションランナーは `migrations/` 配下で `.sq
 `migrations/` の**既定の正準形式を `.sql`（スキーマ変更）と `.mjs`（バッチデータ移行）の 2 つに限定**する。
 既定のランナーは `.ts` を扱わない（`.mjs` を超える複雑さに達した場合の逃げ道は「逃げ道」節を参照）。
 
-- ランナーの対象拡張子、CDK migrator のマイグレーション内容ハッシュ、Docker への同梱を、すべて
-  `.sql`/`.mjs` に揃える。トランスパイル工程は持たない（Docker は `migrations/` を生コピーし、`.mjs` を
-  そのまま実行）。
+- ランナーの対象拡張子と zip asset への同梱を、すべて `.sql`/`.mjs` に揃える。トランスパイル工程は持たない。NodejsFunction bundle は `migrations/` を無変換でコピーし、`.mjs` をそのまま実行する。
 - `.mjs` は `node`/`tsx` のいずれでも無変換で `import()` でき、ローカルと Lambda が同一ファイルを実行する。
   型補完は JSDoc（`/** @param {import('pg').PoolClient} client */`）で確保する。
 - **`.mjs` のインタフェースは `export default async function(client, context)`。** 第 2 引数の `context`

@@ -135,8 +135,8 @@ SET SCHEMA new_schema
 各層は隣接する層だけに依存し、飛び越えた依存を持たない:
 
 - **コアロジック**（`packages/db/src/migrate.ts`）: `pg.Pool` を受け取り、対象拡張子（`.sql` / `.mjs`）のファイルを名前順に適用。`.sql` は `transformSql` で DSQL 互換に変換してから空行（`\n\n`）で分割し、1文ずつ `BEGIN`/`COMMIT` で実行する（実行時変換は、生成時変換をすり抜けた手書き SQL への多層防御）。`.mjs` は `default` エクスポート関数（`async function(client)`）を呼ぶ。CDK・Lambda・Drizzle への依存なし。任意の ORM やデプロイツールで再利用可能。
-- **Lambda ハンドラー**（`apps/cdk/lib/constructs/dsql-migrator/handler.ts`）: Lambda 環境変数から Pool を生成し `migrate()` を呼ぶ薄いラッパー。
-- **CDK Construct**（`apps/cdk/lib/constructs/dsql-migrator/index.ts`）: `DockerImageFunction`（`ContainerImageBuild`）+ CDK Trigger で `cdk deploy` 時に自動実行。`migrations/` ディレクトリ全体の内容ハッシュを `invalidateVersionBasedOn`（Lambda 公開バージョンの無効化）と `Custom::Trigger` プロパティに注入し、マイグレーション変更時に確実に再実行させる（deploy-time build は synth 時にイメージハッシュが不定で CDK の変更検知が効かないため。詳細は [ADR-001](adr-001-dsql-drizzle-migrator.ja.md) の C1）。
+- **Lambda ハンドラー**（`apps/db-migrator/src/handler.ts`）: Lambda 環境変数から Pool を生成し `migrate()` を呼ぶ薄いラッパー。
+- **CDK Construct**（`apps/cdk/lib/constructs/dsql-migrator/index.ts`）: zip パッケージの `NodejsFunction` + CDK Trigger で `cdk deploy` 時に自動実行。esbuild が handler を bundle し、`migrations/` ディレクトリ全体を asset root にコピーするため、標準 asset hash が migration の変更を捉える。変更された asset は新しい Lambda `currentVersion` を生成し、その version `HandlerArn` により Trigger が再実行される（詳細は [ADR-001](adr-001-dsql-drizzle-migrator.ja.md) の C1）。
 
 この分離により、コアロジックは Drizzle 以外の ORM でも利用可能、Lambda ハンドラーは CDK 以外のデプロイツールでも利用可能、CDK Construct はマイグレーション SQL の生成方法に依存しない。
 
@@ -144,7 +144,7 @@ SET SCHEMA new_schema
 
 `_migrations` テーブル（name = フルファイル名, executed_at）で適用状態を管理する。`already exists` エラーは冪等性のためスキップ。1 マイグレーション = 1 ファイル 1 拡張子のため name に曖昧さはない。
 
-内容ハッシュによる改竄検知を不採用にした理由（およびデプロイ時再実行用の `migrations/` ディレクトリハッシュとの区別）は [ADR-001 の Consequences](adr-001-dsql-drizzle-migrator.ja.md) を参照。
+内容ハッシュによる改竄検知を不採用にした理由（およびデプロイ時再実行を駆動する zip asset hash との区別）は [ADR-001 の Consequences](adr-001-dsql-drizzle-migrator.ja.md) を参照。
 
 ### SQL 自動変換
 
@@ -222,7 +222,7 @@ DSQL 非互換パターンをコーディング時とマイグレーション時
 
 ### ContainerImageBuild によるリモートビルド
 
-全コンテナイメージ（webapp、async-job、dsql-migrator）を `@cdklabs/deploy-time-build` の `ContainerImageBuild` でビルドする。`DockerImageCode.fromImageAsset`（ローカル Docker ビルド）は使用しない。
+webapp と async-job のコンテナイメージを `@cdklabs/deploy-time-build` の `ContainerImageBuild` でビルドする。dsql-migrator は zip パッケージの `NodejsFunction` とし、`DockerImageCode.fromImageAsset`（ローカル Docker ビルド）は使用しない。
 
 動機: デプロイ時のローカル Docker 依存を排除する。Windows での Docker Desktop セットアップや CI 環境での Docker-in-Docker が不要になり、Prerequisites から Docker を削除できる。
 

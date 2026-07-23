@@ -1470,34 +1470,6 @@ exports[`Snapshot test 2`] = `
                 ],
               },
             },
-            {
-              "Action": [
-                "ecr:BatchCheckLayerAvailability",
-                "ecr:GetDownloadUrlForLayer",
-                "ecr:BatchGetImage",
-                "ecr:CompleteLayerUpload",
-                "ecr:UploadLayerPart",
-                "ecr:InitiateLayerUpload",
-                "ecr:PutImage",
-              ],
-              "Effect": "Allow",
-              "Resource": {
-                "Fn::GetAtt": [
-                  "DsqlMigratorBuildRepository4B532ABC",
-                  "Arn",
-                ],
-              },
-            },
-            {
-              "Action": "ecr:DescribeImages",
-              "Effect": "Allow",
-              "Resource": {
-                "Fn::GetAtt": [
-                  "DsqlMigratorBuildRepository4B532ABC",
-                  "Arn",
-                ],
-              },
-            },
           ],
           "Version": "2012-10-17",
         },
@@ -1733,105 +1705,6 @@ exports[`Snapshot test 2`] = `
       },
       "Type": "AWS::IAM::Policy",
     },
-    "DsqlMigratorBuild29B30DEC": {
-      "DeletionPolicy": "Delete",
-      "DependsOn": [
-        "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64C13E3549",
-        "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64RoleDefaultPolicy2316728F",
-        "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64RoleC5F7BBFE",
-      ],
-      "Properties": {
-        "ServiceToken": {
-          "Fn::GetAtt": [
-            "DeployTimeBuildCustomResourceHandlerdb740fd554364a848a09e6dfcd01f4f306AEFF37",
-            "Arn",
-          ],
-        },
-        "buildCommand": "docker buildx build --file apps/db-migrator/Dockerfile --platform linux/arm64 --output type=docker,name=artifact:$imageTag --provenance=false .",
-        "codeBuildProjectName": {
-          "Ref": "ContainerImageBuildArm64e83729feb1564e709bec452b15847a30amd64C13E3549",
-        },
-        "repositoryUri": {
-          "Fn::Join": [
-            "",
-            [
-              {
-                "Fn::Select": [
-                  4,
-                  {
-                    "Fn::Split": [
-                      ":",
-                      {
-                        "Fn::GetAtt": [
-                          "DsqlMigratorBuildRepository4B532ABC",
-                          "Arn",
-                        ],
-                      },
-                    ],
-                  },
-                ],
-              },
-              ".dkr.ecr.",
-              {
-                "Fn::Select": [
-                  3,
-                  {
-                    "Fn::Split": [
-                      ":",
-                      {
-                        "Fn::GetAtt": [
-                          "DsqlMigratorBuildRepository4B532ABC",
-                          "Arn",
-                        ],
-                      },
-                    ],
-                  },
-                ],
-              },
-              ".",
-              {
-                "Ref": "AWS::URLSuffix",
-              },
-              "/",
-              {
-                "Ref": "DsqlMigratorBuildRepository4B532ABC",
-              },
-            ],
-          ],
-        },
-        "sourceS3Url": "s3://cdk-hnb659fds-assets-123456789012-us-west-2/REDACTED",
-        "type": "ContainerImageBuild",
-      },
-      "Type": "Custom::CDKContainerImageBuild",
-      "UpdateReplacePolicy": "Delete",
-    },
-    "DsqlMigratorBuildRepository4B532ABC": {
-      "DeletionPolicy": "Delete",
-      "Properties": {
-        "EmptyOnDelete": true,
-        "ImageScanningConfiguration": {
-          "ScanOnPush": true,
-        },
-        "RepositoryPolicyText": {
-          "Statement": [
-            {
-              "Action": [
-                "ecr:BatchCheckLayerAvailability",
-                "ecr:GetDownloadUrlForLayer",
-                "ecr:BatchGetImage",
-              ],
-              "Effect": "Allow",
-              "Principal": {
-                "Service": "lambda.amazonaws.com",
-              },
-            },
-          ],
-          "Version": "2012-10-17",
-        },
-      },
-      "Type": "AWS::ECR::Repository",
-      "UpdateReplacePolicy": "Delete",
-    },
     "DsqlMigratorHandler3F1F561A": {
       "DependsOn": [
         "DsqlMigratorHandlerServiceRoleDefaultPolicy7D95EFB2",
@@ -1842,61 +1715,8 @@ exports[`Snapshot test 2`] = `
           "arm64",
         ],
         "Code": {
-          "ImageUri": {
-            "Fn::Join": [
-              "",
-              [
-                {
-                  "Fn::Select": [
-                    4,
-                    {
-                      "Fn::Split": [
-                        ":",
-                        {
-                          "Fn::GetAtt": [
-                            "DsqlMigratorBuildRepository4B532ABC",
-                            "Arn",
-                          ],
-                        },
-                      ],
-                    },
-                  ],
-                },
-                ".dkr.ecr.",
-                {
-                  "Fn::Select": [
-                    3,
-                    {
-                      "Fn::Split": [
-                        ":",
-                        {
-                          "Fn::GetAtt": [
-                            "DsqlMigratorBuildRepository4B532ABC",
-                            "Arn",
-                          ],
-                        },
-                      ],
-                    },
-                  ],
-                },
-                ".",
-                {
-                  "Ref": "AWS::URLSuffix",
-                },
-                "/",
-                {
-                  "Ref": "DsqlMigratorBuildRepository4B532ABC",
-                },
-                ":",
-                {
-                  "Fn::GetAtt": [
-                    "DsqlMigratorBuild29B30DEC",
-                    "ImageTag",
-                  ],
-                },
-              ],
-            ],
-          },
+          "S3Bucket": "cdk-hnb659fds-assets-123456789012-us-west-2",
+          "S3Key": "REDACTED",
         },
         "Environment": {
           "Variables": {
@@ -1908,20 +1728,21 @@ exports[`Snapshot test 2`] = `
             },
           },
         },
+        "Handler": "index.handler",
         "LoggingConfig": {
           "LogGroup": {
             "Ref": "DsqlMigratorLogsD0AD5027",
           },
         },
         "MemorySize": 2048,
-        "PackageType": "Image",
         "Role": {
           "Fn::GetAtt": [
             "DsqlMigratorHandlerServiceRole911689B1",
             "Arn",
           ],
         },
-        "Timeout": 900,
+        "Runtime": "nodejs24.x",
+        "Timeout": 780,
       },
       "Type": "AWS::Lambda::Function",
     },
@@ -2024,14 +1845,13 @@ exports[`Snapshot test 2`] = `
           "Ref": "DsqlMigratorHandlerCurrentVersionREDACTED",
         },
         "InvocationType": "RequestResponse",
-        "MigrationHash": "96b4516a41f11c54c2903a0e9680282e459f73436246f47b82729695bff6f7b2",
         "ServiceToken": {
           "Fn::GetAtt": [
             "AWSCDKTriggerCustomResourceProviderCustomResourceProviderHandler97BECD91",
             "Arn",
           ],
         },
-        "Timeout": "120000",
+        "Timeout": "840000",
       },
       "Type": "Custom::Trigger",
       "UpdateReplacePolicy": "Delete",
