@@ -10,21 +10,21 @@ export const createTodoSchema = z.object({
 });
 
 export const updateTodoSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   title: z.string().min(1, 'Title is required'),
   description: z.string().min(1, 'Description is required'),
   status: todoItemStatusSchema,
 });
 
 export const deleteTodoSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
 });
 
 export const updateTodoStatusSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
   status: todoItemStatusSchema,
 });
 
 export const runTranslateJobSchema = z.object({
-  id: z.string().uuid(),
+  id: z.uuid(),
 });

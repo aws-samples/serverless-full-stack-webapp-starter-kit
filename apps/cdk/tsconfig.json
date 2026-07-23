@@ -5,6 +5,7 @@
     "lib": ["es2018"],
     "declaration": true,
     "strict": true,
+    "skipLibCheck": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
     "noImplicitThis": true,
@@ -19,7 +20,7 @@
     "noEmit": true,
     "strictPropertyInitialization": false,
     "typeRoots": ["./node_modules/@types"],
-    "types": ["node", "jest"],
+    "types": ["node"],
     "paths": {
       "@repo/shared-types/*": ["../../packages/shared-types/src/*"]
     }
