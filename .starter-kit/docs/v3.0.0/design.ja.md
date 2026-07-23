@@ -246,7 +246,7 @@ pre-commit フックは `simple-git-hooks` + `lint-staged` で構成し、ステ
 
 strict モードでの Docker ビルドには4つの罠がある（詳細は [ADR-002 の Consequences](adr-002-pnpm-workspaces.ja.md) を参照）:
 
-1. pnpm のデフォルトの isolated `node_modules` は各パッケージで宣言した依存関係だけを公開するため、bundler（`esbuild`/`next build`）は完全な推移的グラフをディスクから解決する必要がある → `--filter` を付けずに `pnpm install --frozen-lockfile` でワークスペース全体をインストールする。
+1. Docker の `pnpm install` は絞らない: `--filter` なしの `pnpm install --frozen-lockfile` で workspace 全体をインストールする。これは _install_ に限った話で、タスク実行を絞る `pnpm --filter <pkg> run <script>` は通常どおり使う。pnpm の isolated `node_modules` は宣言した依存だけを公開するため、`esbuild` / `next build` は完全な推移的グラフをディスク上で必要とする。install を絞ると推移的依存を取りこぼす恐れがあり、しかも builder の `node_modules` は破棄され runtime イメージはバンドルのみをコピーするため利点もない。
 2. CDK の Docker イメージ asset は `.dockerignore` を読み取り `cdk.out` を自動除外するが、デフォルトでは除外パターンを GLOB semantics で解釈する。リポジトリルートをビルドコンテキストとする場合、`.dockerignore` を Docker semantics で解釈し、深い pnpm `node_modules` ツリーがステージングされないように `ignoreMode: IgnoreMode.DOCKER` を設定する（`ContainerImageBuild` / `DockerImageAsset` に適用）。
 3. esbuild `--format=esm` の出力は Lambda で `.mjs` 拡張子が必要
 4. `--external:@aws-sdk/*` は `@aws/*` パッケージを除外しない

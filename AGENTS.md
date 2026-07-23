@@ -53,8 +53,6 @@ To add a new job:
 
 The project uses Aurora DSQL with Drizzle ORM. Schema is defined in `packages/db/src/schema.ts`.
 
-> **Note:** The DSQL constraints below are a point-in-time snapshot. Aurora DSQL continues to relax its limits (for example, `json`/`jsonb` were unsupported at launch and added in 2026), so verify the current constraints against the [Aurora DSQL documentation](https://docs.aws.amazon.com/aurora-dsql/) or the `dsql` agent skill before relying on them.
-
 DSQL constraints:
 
 - No SERIAL/SEQUENCE — use UUID

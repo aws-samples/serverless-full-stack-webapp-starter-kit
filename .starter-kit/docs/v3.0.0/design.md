@@ -246,7 +246,7 @@ The pre-commit hook uses `simple-git-hooks` + `lint-staged`: it runs oxlint/oxfm
 
 Docker builds in strict mode have four pitfalls (see [Consequences in ADR-002](adr-002-pnpm-workspaces.md) for details):
 
-1. pnpm's default isolated `node_modules` exposes only each package's declared dependencies, so a bundler (`esbuild`/`next build`) must resolve the full transitive graph from disk → install the entire workspace with `pnpm install --frozen-lockfile` without `--filter`.
+1. The Docker `pnpm install` is unfiltered: install the whole workspace with `pnpm install --frozen-lockfile` (no `--filter`). This concerns the _install_ only — `pnpm --filter <pkg> run <script>` for task scoping is used normally. pnpm's isolated `node_modules` exposes only declared deps, so `esbuild` / `next build` need the full transitive graph on disk; a scoped install can miss transitive deps and gains nothing because the builder's `node_modules` is discarded (the runtime image copies only the bundle).
 2. CDK's Docker image asset does read `.dockerignore` and auto-excludes `cdk.out`, but by default interprets exclude patterns with GLOB semantics; with the repo root as build context, set `ignoreMode: IgnoreMode.DOCKER` so `.dockerignore` is interpreted with Docker semantics and the deep pnpm `node_modules` tree is not staged (applies to `ContainerImageBuild` / `DockerImageAsset`).
 3. esbuild output using `--format=esm` requires a `.mjs` extension in Lambda.
 4. `--external:@aws-sdk/*` does not exclude `@aws/*` packages.
