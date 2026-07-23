@@ -1,5 +1,25 @@
 # Changelog
 
+## [3.0.0](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/compare/v2.1.0...v3.0.0) (2026-07-23)
+
+
+### ⚠ BREAKING CHANGES
+
+* CloudFront distribution replaces custom cache policy with managed policies and now requires a WAF Web ACL. Manual Free-plan enrollment is required to avoid WAF charges. See README section 4 and .starter-kit/docs/v3.0.0/adr-007-cloudfront-flat-rate.md.
+
+### Features
+
+* **cdk:** expose removalPolicy and deletionProtection on the Auth construct ([#184](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/issues/184)) ([c8552e1](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/commit/c8552e16e0eb72bfed2059d02801736155e12966))
+* migrate to pnpm workspaces monorepo with Aurora DSQL and Drizzle ORM — migration guide: .starter-kit/docs/v3.0.0/migration-prompt.md ([c8552e1](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/commit/c8552e16e0eb72bfed2059d02801736155e12966))
+* **webapp:** add withAuth() API Route authentication helper and migrate cognito-token ([#186](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/issues/186)) ([c8552e1](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/commit/c8552e16e0eb72bfed2059d02801736155e12966))
+
+
+### Bug Fixes
+
+* **cdk:** retain Lambda@Edge versions to avoid DELETE_FAILED on redeploy ([#185](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/issues/185)) ([c8552e1](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/commit/c8552e16e0eb72bfed2059d02801736155e12966))
+* **webapp:** add /api/health readiness route and upgrade Lambda Web Adapter to 1.0.1 ([c8552e1](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/commit/c8552e16e0eb72bfed2059d02801736155e12966))
+* **webapp:** set httpOnly, secure, and sameSite on Amplify server auth cookies ([#182](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/issues/182)) ([c8552e1](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/commit/c8552e16e0eb72bfed2059d02801736155e12966))
+
 ## [2.1.0](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/compare/v2.0.0...v2.1.0) (2026-03-22)
 
 
