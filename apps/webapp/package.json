@@ -53,7 +53,7 @@
     "@types/react-dom": "^19",
     "tailwindcss": "^4",
     "tsx": "4.19.0",
-    "typescript": "^5",
+    "typescript": "^7",
     "vitest": "^3"
   }
 }
