@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.0.1](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/compare/v3.0.0...v3.0.1) (2026-07-23)
+
+
+### Bug Fixes
+
+* **ci:** scope dependabot npm updates to root and repair pnpm lockfile ([#269](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/issues/269)) ([c34d5dc](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/commit/c34d5dced04271fae1be944ff2bcf0baa192ae1c))
+
 ## [3.0.0](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/compare/v2.1.0...v3.0.0) (2026-07-23)
 
 
