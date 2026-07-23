@@ -18,7 +18,7 @@ The standard option is CDK's built-in `DockerImageCode.fromImageAsset` — it bu
 
 Meanwhile, `webapp` must inject `NEXT_PUBLIC_*` build-time env values from CDK context as
 `buildArgs` (the Amplify SDK requires static values at build time rather than runtime — see the
-[design doc](design.md#lambda-environment) for details). This one location requires a mechanism
+[design doc](design.md#remote-builds-with-containerimagebuild) for details). This one location requires a mechanism
 that passes values determined at synth time as build arguments. Although the standard `fromImageAsset` accepts
 `buildArgs`, it also has the issues in 1 and 2 above.
 
@@ -27,7 +27,7 @@ that passes values determined at synth time as build arguments. Although the sta
 Build both Docker images with the **`ContainerImageBuild` construct from the `@cdklabs/deploy-time-build` package**.
 Do not use `DockerImageCode.fromImageAsset`.
 
-- Implementation: In `apps/cdk/lib/constructs/{webapp,async-job}/index.ts`, create
+- Implementation: In `apps/cdk/lib/constructs/webapp.ts` and `apps/cdk/lib/constructs/async-job.ts` (single files), create
   `new ContainerImageBuild(this, 'Build', { directory: <repo-root>, platform: Platform.LINUX_ARM64,
 file: 'apps/*/Dockerfile', ignoreMode: IgnoreMode.DOCKER })`, then pass
   `image.toLambdaDockerImageCode()` to `DockerImageFunction`.

@@ -5,6 +5,8 @@ COPY packages/db/package.json packages/db/
 COPY packages/shared-types/package.json packages/shared-types/
 COPY packages/event-utils/package.json packages/event-utils/
 COPY apps/webapp/package.json apps/webapp/
+# No --filter: esbuild/next need the full transitive dependency graph, and this
+# builder stage's node_modules is discarded (only the bundle ships to the runner).
 RUN npm install -g pnpm@10.34.4 && pnpm install --frozen-lockfile
 COPY packages/ packages/
 COPY apps/webapp/ apps/webapp/

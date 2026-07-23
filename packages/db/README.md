@@ -31,6 +31,8 @@ If the generated SQL contains unfixable patterns (e.g. `DROP COLUMN`, `ALTER COL
 
 ## DSQL constraints enforced
 
+> **Note:** These DSQL constraints are a point-in-time snapshot. Aurora DSQL continues to relax its limits (for example, `json`/`jsonb` were unsupported at launch and added in 2026), so verify the current constraints against the [Aurora DSQL documentation](https://docs.aws.amazon.com/aurora-dsql/) or the `dsql` agent skill before relying on them.
+
 **At lint time** (oxlint):
 
 - `serial`, `smallserial`, `bigserial` imports from `drizzle-orm/pg-core` are blocked (DSQL has no sequences — use `uuid`/`text`). `json`/`jsonb` are allowed (compressed, 1 MiB compressed-size limit, **not indexable** — extract filtered/sorted fields into their own columns; prefer `jsonb`).
@@ -189,7 +191,7 @@ export default async function (client) {
 
 - Lambda execution limit is 15 minutes. Migrations exceeding this need Step Functions (out of scope).
 - DSQL transaction limit is 3,000 rows. Batch inserts/updates/deletes must commit in chunks.
-- The migrator Dockerfile copies `migrations/` verbatim (`.sql` + `.mjs`); there is no transpile step.
+- The zip-packaged `NodejsFunction` uses an esbuild `afterBundling` hook to copy `migrations/` verbatim (`.sql` + `.mjs`); there is no transpile step.
 
 ## oxlint limitation
 

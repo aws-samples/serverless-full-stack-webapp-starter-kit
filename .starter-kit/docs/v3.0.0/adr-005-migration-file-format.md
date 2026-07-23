@@ -91,8 +91,7 @@ on most users (`.sql`-centric with rare `.mjs`).
   breaking changes, to be implemented as `.mjs` without changing the file format.** Migration safety (format-independent
   idempotency, verification before swap, and external backups) is provided by this seam and how each migration is
   written, not by the file format.
-- Documentation (`packages/db/README.md`, `AGENTS.md`) and the implementation (the fact that the Dockerfile raw copies)
-  are aligned.
+- Documentation (`packages/db/README.md`, `AGENTS.md`) and the implementation are aligned: the migrator is a zip-packaged `NodejsFunction` whose esbuild `afterBundling` hook copies `migrations/` verbatim, with no transpilation step.
 
 ### Breaking change: Migration Steps for Existing v3 Users
 

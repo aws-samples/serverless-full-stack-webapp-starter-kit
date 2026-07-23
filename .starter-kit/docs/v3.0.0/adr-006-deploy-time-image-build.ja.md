@@ -19,7 +19,7 @@
    指定と emulation（QEMU）が必要で、ビルド時間と信頼性を損なう。
 
 一方、`webapp` は `NEXT_PUBLIC_*` build-time env（Amplify SDK が実行時ではなくビルド時に静的な
-値を要求する — 詳細は [design doc](design.ja.md#lambda-環境) を参照）を CDK context から
+値を要求する — 詳細は [design doc](design.ja.md#containerimagebuild-によるリモートビルド) を参照）を CDK context から
 `buildArgs` として注入する必要がある。この一箇所だけ「synth 時に決まる値をビルド引数として渡す」
 仕組みが必要になり、標準の `fromImageAsset` は `buildArgs` を受けるものの、上記 1/2 の課題を
 併せ持つ。
@@ -29,7 +29,7 @@
 `webapp` と `async-job` の 2 イメージを **`@cdklabs/deploy-time-build` パッケージの `ContainerImageBuild` construct** で
 ビルドする。`DockerImageCode.fromImageAsset` は使用しない。
 
-- 実装: `apps/cdk/lib/constructs/{webapp,async-job}/index.ts` にて
+- 実装: `apps/cdk/lib/constructs/webapp.ts` と `apps/cdk/lib/constructs/async-job.ts`（単一ファイル）にて
   `new ContainerImageBuild(this, 'Build', { directory: <repo-root>, platform: Platform.LINUX_ARM64,
 file: 'apps/*/Dockerfile', ignoreMode: IgnoreMode.DOCKER })` を生成し、
   `image.toLambdaDockerImageCode()` を `DockerImageFunction` に渡す。

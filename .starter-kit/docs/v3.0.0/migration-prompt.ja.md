@@ -273,7 +273,7 @@ pnpm --filter @repo/db run check:migrations
 
 - `import { prisma } from '@/lib/prisma'` → `import { db } from '@repo/db/client'`
 - `import { ... } from '@prisma/client'` → `import { ... } from '@repo/db/schema'`
-- v2 の `prisma.ts`（リトライ拡張付き PrismaClient）は削除。DSQL は IAM 認証で接続し、Aurora v2 のコールドスタート・idle timeout 問題がないためリトライロジックは不要
+- v2 の `prisma.ts`（リトライ拡張付き PrismaClient）は削除。DSQL は IAM 認証で接続し、Aurora v2 のコールドスタート・idle timeout 問題がないため、Prisma 形式のアプリケーション層リトライ拡張は移植しない。（マイグレーションランナー自体は、指数バックオフによる DSQL wake-up リトライを実装している。）
 - `next.config.ts` に `transpilePackages: ['@repo/db', '@repo/shared-types', '@repo/event-utils']` を追加（ユーザーの既存設定を保持しつつマージ）。`@repo/event-utils` は v3 で `apps/webapp/src/lib/events.ts` から抽出された workspace パッケージ（`e9f4a4c`）
 - **`sendEvent` の import パス変更**: v2 では `apps/webapp/src/lib/events.ts` / `apps/async-job/src/events.ts` から呼んでいたが、v3 では `@repo/event-utils/send-event` に集約。派生アプリで `sendEvent` を呼んでいる箇所は import パスの一括更新が必要
 - **Json カラムの全使用箇所を洗い出す**（`rg 'Json|\.json\b' --type ts` でスキーマ定義と読み書き箇所を特定）。Prisma は Json 型を自動で parse/stringify するが、Drizzle の `text()` は手動変換が必要。読み出し時に `JSON.parse()`、書き込み時に `JSON.stringify()` を追加すること
@@ -416,9 +416,7 @@ pnpm -r run test:unit   # CDK テストがある場合
 docker build --platform linux/arm64 -f apps/async-job/Dockerfile -t test-async-job:local .
 docker run --rm --entrypoint /bin/sh test-async-job:local -c "ls -la /var/task/"
 
-# db-migrator（handler は apps/db-migrator/ workspace にあり、CDK Construct は apps/cdk/lib/constructs/dsql-migrator/index.ts に残る）
-docker build --platform linux/arm64 -f apps/db-migrator/Dockerfile -t test-migrator:local .
-docker run --rm --entrypoint /bin/sh test-migrator:local -c "ls -la /var/task/ && cat /var/task/migrations/*.sql"
+# db-migrator は zip パッケージの `NodejsFunction` であり（Dockerfile なし）、その `migrations/` のコピーはローカルの `docker build` ではなく、`cdk synth` と CDK unit test で検証する。
 
 # webapp（CodeBuild で実行されるため手元では省略可。ただし Dockerfile の構文エラーは確認できる）
 docker build --platform linux/arm64 -f apps/webapp/Dockerfile -t test-webapp:local .
@@ -428,7 +426,7 @@ docker build --platform linux/arm64 -f apps/webapp/Dockerfile -t test-webapp:loc
 
 - esbuild の出力が `.mjs` 拡張子であること
 - `@aws/aurora-dsql-node-postgres-connector` がバンドルに含まれていること（`--external:@aws-sdk/*` で除外されないこと。`@aws/*` と `@aws-sdk/*` は名前空間が別）
-- migrations/ ディレクトリが正しくコピーされていること（db-migrator）
+- `migrations/` ディレクトリが db-migrator の CDK asset に正しくコピーされていること（`cdk synth` で確認）
 
 CDK と同じビルドプロセスを再現する場合は `cdk synth` 後に `cdk.out/manifest.json` → `dockerImages` でアセットハッシュを取得し、`cd cdk.out/asset.<hash> && docker build --platform linux/arm64 -f <Dockerfile相対パス> -t test:local .` でビルドできる。
 

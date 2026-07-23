@@ -68,7 +68,7 @@ If the downstream app contains modifications, merge only the v3 changes; do not 
 | `apps/webapp/src/proxy.ts`                        | Optimistic authorization check (checks only for the presence of the Amplify `LastAuthUser` cookie). This is **not** Next.js `middleware.ts` (it runs inside the Lambda handler)                                                                                                                                                          |
 | `apps/webapp/vitest.config.ts`                    | vitest configuration for the webapp (added in `e62704a`; runs `auth.test.ts` / `proxy.test.ts`)                                                                                                                                                                                                                                          |
 | `apps/cdk/lib/constructs/database.ts`             | DSQL CfnCluster + IAM authentication. The default `removalPolicy` is `RETAIN_ON_UPDATE_OR_DELETE`                                                                                                                                                                                                                                        |
-| `apps/cdk/lib/constructs/dsql-migrator/index.ts`  | Zip-packaged `NodejsFunction` + `Trigger`; esbuild copies `migrations/` into the asset, so normal asset hashing drives version and Trigger updates. The handler lives in `apps/db-migrator/`.                                                                                                                   |
+| `apps/cdk/lib/constructs/dsql-migrator/index.ts`  | Zip-packaged `NodejsFunction` + `Trigger`; esbuild copies `migrations/` into the asset, so normal asset hashing drives version and Trigger updates. The handler lives in `apps/db-migrator/`.                                                                                                                                            |
 | `apps/cdk/lib/constructs/cf-lambda-furl-service/` | Full CloudFront + Lambda Function URL implementation. Includes `webAclId?` / `geoRestriction?` props. The default behavior uses managed `CACHING_DISABLED`, and `/_next/static/*` uses `CACHING_OPTIMIZED` ([ADR-007](adr-007-cloudfront-flat-rate.md))                                                                                  |
 | `apps/cdk/lib/us-east-1-stack.ts`                 | Resources in us-east-1: Lambda@Edge (sign-payload), ACM certificate, and **WAF Web ACL** (scope=CLOUDFRONT; only `AWSManagedRulesKnownBadInputsRuleSet`. Required for enrollment in the CloudFront flat-rate plan)                                                                                                                       |
 | `apps/cdk/lib/main-stack.ts`                      | Entry stack. Receives `webAclId?` through a cross-region reference and passes it to the `Webapp` construct                                                                                                                                                                                                                               |
@@ -273,7 +273,7 @@ Main conversion points:
 
 - `import { prisma } from '@/lib/prisma'` → `import { db } from '@repo/db/client'`
 - `import { ... } from '@prisma/client'` → `import { ... } from '@repo/db/schema'`
-- Delete the v2 `prisma.ts` (PrismaClient with retry extensions). DSQL connects with IAM authentication and does not have Aurora v2's cold-start or idle-timeout problems, so retry logic is unnecessary
+- Delete the v2 `prisma.ts` (PrismaClient with retry extensions). DSQL connects with IAM authentication and does not have Aurora v2's cold-start or idle-timeout problems, so the Prisma-style application-level retry extension is not ported. (The migration runner itself still implements DSQL wake-up retry with exponential backoff.)
 - Add `transpilePackages: ['@repo/db', '@repo/shared-types', '@repo/event-utils']` to `next.config.ts` (merge while preserving the user's existing configuration). `@repo/event-utils` is the workspace package extracted from `apps/webapp/src/lib/events.ts` in v3 (`e9f4a4c`)
 - **Change the `sendEvent` import path**: v2 called it from `apps/webapp/src/lib/events.ts` / `apps/async-job/src/events.ts`, but v3 consolidates it in `@repo/event-utils/send-event`. Bulk-update import paths wherever the downstream app calls `sendEvent`
 - **Inventory all uses of Json columns** (use `rg 'Json|\.json\b' --type ts` to identify schema definitions and read/write locations). Prisma automatically parses/stringifies Json types, but Drizzle `text()` requires manual conversion. Add `JSON.parse()` when reading and `JSON.stringify()` when writing
@@ -416,9 +416,8 @@ pnpm -r run test:unit   # if there are CDK tests
 docker build --platform linux/arm64 -f apps/async-job/Dockerfile -t test-async-job:local .
 docker run --rm --entrypoint /bin/sh test-async-job:local -c "ls -la /var/task/"
 
-# db-migrator (the handler lives in the apps/db-migrator/ workspace; the CDK Construct remains at apps/cdk/lib/constructs/dsql-migrator/index.ts)
-docker build --platform linux/arm64 -f apps/db-migrator/Dockerfile -t test-migrator:local .
-docker run --rm --entrypoint /bin/sh test-migrator:local -c "ls -la /var/task/ && cat /var/task/migrations/*.sql"
+# db-migrator: zip-packaged `NodejsFunction` (no Dockerfile). Its `migrations/` copy is verified
+# via `cdk synth` and the CDK unit tests, not a local `docker build`.
 
 # webapp (can be skipped locally because CodeBuild runs it, but you can still catch Dockerfile syntax errors here)
 docker build --platform linux/arm64 -f apps/webapp/Dockerfile -t test-webapp:local .
@@ -428,7 +427,7 @@ Confirm:
 
 - esbuild output has the `.mjs` extension
 - `@aws/aurora-dsql-node-postgres-connector` is included in the bundle (it is not excluded by `--external:@aws-sdk/*`; `@aws/*` and `@aws-sdk/*` are different namespaces)
-- The migrations/ directory is copied correctly (db-migrator)
+- The `migrations/` directory is copied correctly into the db-migrator CDK asset (verify via `cdk synth`)
 
 To reproduce the same build process as CDK, after `cdk synth`, obtain the asset hash from `cdk.out/manifest.json` → `dockerImages`, then build with `cd cdk.out/asset.<hash> && docker build --platform linux/arm64 -f <relative Dockerfile path> -t test:local .`.
 

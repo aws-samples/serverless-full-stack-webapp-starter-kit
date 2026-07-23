@@ -23,6 +23,7 @@ apps/
   cdk/                            # CDK infrastructure
   webapp/                         # Next.js app (no jobs or migration runner)
   async-job/                      # extracted from webapp/src/jobs/
+  db-migrator/                    # Lambda migration runner
 packages/
   db/                             # Drizzle schema, client, migration SQL, runner
   shared-types/                   # job payload types (Zod schemas)
@@ -34,7 +35,7 @@ Dependency direction:
 ```
 apps/webapp       → @repo/db, @repo/shared-types, @repo/event-utils
 apps/async-job    → @repo/db, @repo/shared-types, @repo/event-utils
-apps/cdk          (no direct dependencies — references Docker build paths only)
+apps/cdk          → @repo/shared-types
 ```
 
 Apps do not depend on one another. Internal packages also do not depend on one another. The scope for internal packages is `@repo/`.
@@ -63,6 +64,8 @@ In this kit, all Lambda functions (webapp, async-job, migrator) connect with the
 ### DDL constraints
 
 Source: https://docs.aws.amazon.com/aurora-dsql/latest/userguide/ (verified 2026-03-21)
+
+> **Note:** These DSQL constraints are a point-in-time snapshot. Aurora DSQL continues to relax its limits (for example, `json`/`jsonb` were unsupported at launch and added in 2026), so verify the current constraints against the [Aurora DSQL documentation](https://docs.aws.amazon.com/aurora-dsql/) or the `dsql` agent skill before relying on them.
 
 This section records the constraints that support design decisions. As numerical quotas (connection count, table count, and so on) may change, see the [official documentation](https://docs.aws.amazon.com/aurora-dsql/latest/userguide/CHAP_quotas.html).
 
@@ -134,7 +137,7 @@ For the rationale, see [ADR-001](adr-001-dsql-drizzle-migrator.md). The followin
 
 Each layer depends only on adjacent layers, with no dependencies that skip a layer:
 
-- **Core logic** (`packages/db/src/migrate.ts`): Receives `pg.Pool` and applies files with supported extensions (`.sql` / `.mjs`) in name order. For `.sql`, transforms it to DSQL compatibility with `transformSql`, then splits it at blank lines (`\n\n`) and executes one statement at a time with `BEGIN`/`COMMIT` (runtime transformation provides defense in depth for handwritten SQL that bypasses generation-time transformation). For `.mjs`, calls the `default` export function (`async function(client)`). It has no dependency on CDK, Lambda, or Drizzle. It can be reused with any ORM or deployment tool.
+- **Core logic** (`packages/db/src/migrate.ts`): Receives `pg.Pool` and applies files with supported extensions (`.sql` / `.mjs`) in name order. For `.sql`, transforms it to DSQL compatibility with `transformSql`, then splits it at blank lines (`\n\n`) and executes one statement at a time with `BEGIN`/`COMMIT` (runtime transformation provides defense in depth for handwritten SQL that bypasses generation-time transformation). For `.mjs`, calls the `default` export function (`export default async function(client, context)`). The optional second `context` argument may be omitted when unused. It has no dependency on CDK, Lambda, or Drizzle. It can be reused with any ORM or deployment tool.
 - **Lambda handler** (`apps/db-migrator/src/handler.ts`): A thin wrapper that creates a Pool from Lambda environment variables and calls `migrate()`.
 - **CDK Construct** (`apps/cdk/lib/constructs/dsql-migrator/index.ts`): Automatically runs during `cdk deploy` using a zip-packaged `NodejsFunction` + a CDK Trigger. esbuild bundles the handler and copies the entire `migrations/` directory to the asset root, so the standard asset hash captures migration changes. A changed asset creates a new Lambda `currentVersion`, whose version `HandlerArn` makes the Trigger rerun (see C1 in [ADR-001](adr-001-dsql-drizzle-migrator.md)).
 
@@ -179,14 +182,14 @@ Before executing each SQL statement, the runner validates DSQL-incompatible patt
 
 ### .mjs migrations
 
-Use these when table recreation (DROP COLUMN, ALTER COLUMN TYPE, and so on) or batched data migration exceeding 3,000 rows is required. Export `export default async function(client)` and supplement types with JSDoc (`@param {import('pg').PoolClient} client`).
+Use these when table recreation (DROP COLUMN, ALTER COLUMN TYPE, and so on) or batched data migration exceeding 3,000 rows is required. Export `export default async function(client, context)`; the optional second `context` argument may be omitted when unused. Supplement types with JSDoc (`@param {import('pg').PoolClient} client`).
 
 The only canonical formats in `migrations/` are `.sql` and `.mjs`; `.ts` is unsupported. The reason is that local (tsx/node) and Lambda (node) **execute the same files without transformation** — inserting a transpilation step causes files to diverge between local and deployed environments, creating the conditions for double execution (for details, see [ADR-005](adr-005-migration-file-format.md)).
 
 Constraints:
 
 - Lambda's maximum execution time is 15 minutes. Migrations exceeding it require a separate mechanism such as Step Functions (outside the runner's scope).
-- The migrator Dockerfile copies `migrations/` as-is (no transpilation step).
+- The migrator is a zip-packaged `NodejsFunction`; its esbuild `afterBundling` hook copies the entire `migrations/` directory into the Lambda asset unchanged (no transpilation step).
 
 ### Workflow for unfixable patterns
 
@@ -210,7 +213,7 @@ CI validates two types of consistency:
 
 Detect DSQL-incompatible patterns at two stages: coding time and migration time.
 
-**Layer 1 — oxlint (schema-definition level)**: `no-restricted-imports` blocks imports of `serial`, `smallserial`, and `bigserial` from `drizzle-orm/pg-core` (`json`/`jsonb` are allowed because DSQL supports them). This provides immediate feedback in the editor and CI. (`no-restricted-syntax` for `.references()` is configured but does not work as of oxlint v1.56.0. See [ADR-003](adr-003-oxlint-oxfmt.md) for details.)
+**Layer 1 — oxlint (schema-definition level)**: `no-restricted-imports` blocks imports of `serial`, `smallserial`, and `bigserial` from `drizzle-orm/pg-core` (`json`/`jsonb` are allowed because DSQL supports them). This provides immediate feedback in the editor and CI. (`.references()` / foreign keys are not linted: oxlint's `no-restricted-syntax` was a no-op and has been removed. FK removal is enforced at the generated-SQL level by `dsql-compat.ts`. See [ADR-003](adr-003-oxlint-oxfmt.md) for details.)
 
 **Layer 2 — SQL validation (generated-SQL level)**: `check-dsql-compat.ts` automatically transforms drizzle-kit output and validates patterns that cannot be automatically fixed.
 
@@ -235,7 +238,7 @@ Trade-offs:
 
 ### Script conventions
 
-Each subpackage defines standard task names (`dev`, `build`, `test:unit`, `lint`, `check:ci`, and so on) in its own `package.json`; run them together from the root with `pnpm -r run <task>`. Do not add alias scripts for these tasks to the root `package.json`: it is redundant because each package owns its own scripts, and indirect calls with `--if-present` make debugging difficult.
+Each subpackage defines the task names it needs (commonly `lint` and `check:ci`, plus `build`/`test:unit`/`dev` where applicable) in its own `package.json`; run them together from the root with `pnpm -r run <task>`. Do not add alias scripts for these tasks to the root `package.json`: it is redundant because each package owns its own scripts, and indirect calls with `--if-present` make debugging difficult.
 
 The pre-commit hook uses `simple-git-hooks` + `lint-staged`: it runs oxlint/oxfmt on staged files, then runs `test:unit` for all packages. The `prepare` script automatically installs the hook during `pnpm install`. The oxlint invocation in lint-staged cannot type check through `typeCheck`: lint-staged passes only staged files as arguments, which is incompatible with type checking that requires resolving tsconfig for the entire project. CI's `check:ci` (`typeCheck: true` in `oxlintrc.json`) ensures type checking.
 
@@ -243,8 +246,8 @@ The pre-commit hook uses `simple-git-hooks` + `lint-staged`: it runs oxlint/oxfm
 
 Docker builds in strict mode have four pitfalls (see [Consequences in ADR-002](adr-002-pnpm-workspaces.md) for details):
 
-1. `pnpm install --filter` does not hoist transitive dependencies → install all dependencies without `--filter`.
-2. CDK `DockerImageCode.fromImageAsset` does not read `.dockerignore` → `ignoreMode: IgnoreMode.DOCKER` is required.
+1. The Docker `pnpm install` is unfiltered: install the whole workspace with `pnpm install --frozen-lockfile` (no `--filter`). This concerns the _install_ only — `pnpm --filter <pkg> run <script>` for task scoping is used normally. pnpm's isolated `node_modules` exposes only declared deps, so `esbuild` / `next build` need the full transitive graph on disk; a scoped install can miss transitive deps and gains nothing because the builder's `node_modules` is discarded (the runtime image copies only the bundle).
+2. CDK's Docker image asset does read `.dockerignore` and auto-excludes `cdk.out`, but by default interprets exclude patterns with GLOB semantics; with the repo root as build context, set `ignoreMode: IgnoreMode.DOCKER` so `.dockerignore` is interpreted with Docker semantics and the deep pnpm `node_modules` tree is not staged (applies to `ContainerImageBuild` / `DockerImageAsset`).
 3. esbuild output using `--format=esm` requires a `.mjs` extension in Lambda.
 4. `--external:@aws-sdk/*` does not exclude `@aws/*` packages.
 
