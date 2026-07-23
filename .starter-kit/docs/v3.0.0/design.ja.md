@@ -23,6 +23,7 @@ apps/
   cdk/                            # CDK インフラ
   webapp/                         # Next.js アプリ（ジョブ・マイグレーションランナーなし）
   async-job/                      # webapp/src/jobs/ から抽出
+  db-migrator/                    # Lambda マイグレーションランナー
 packages/
   db/                             # Drizzle スキーマ、クライアント、マイグレーション SQL、ランナー
   shared-types/                   # ジョブペイロード型（Zod スキーマ）
@@ -34,7 +35,7 @@ packages/
 ```
 apps/webapp       → @repo/db, @repo/shared-types, @repo/event-utils
 apps/async-job    → @repo/db, @repo/shared-types, @repo/event-utils
-apps/cdk          （直接依存なし — Docker ビルドパスのみ参照）
+apps/cdk          → @repo/shared-types
 ```
 
 アプリ同士は相互に依存しない。内部パッケージ同士も相互に依存しない。内部パッケージのスコープは `@repo/`。
@@ -63,6 +64,8 @@ DSQL は PostgreSQL のロールシステムを IAM と統合した2層の権限
 ### DDL 制約
 
 出典: https://docs.aws.amazon.com/aurora-dsql/latest/userguide/ （2026-03-21 確認）
+
+> **補足:** これらの DSQL 制約は執筆時点のスナップショットです。Aurora DSQL は制約を継続的に緩和しており（例: launch 時は非対応だった `json`/`jsonb` は 2026 年に追加）、依拠する前に最新の制約を [Aurora DSQL ドキュメント](https://docs.aws.amazon.com/aurora-dsql/) または `dsql` skill で確認してください。
 
 設計判断の根拠となる制約を記録する。数値的な quota（接続数、テーブル数等）は変更される可能性があるため、[公式ドキュメント](https://docs.aws.amazon.com/aurora-dsql/latest/userguide/CHAP_quotas.html)を参照のこと。
 
@@ -134,7 +137,7 @@ SET SCHEMA new_schema
 
 各層は隣接する層だけに依存し、飛び越えた依存を持たない:
 
-- **コアロジック**（`packages/db/src/migrate.ts`）: `pg.Pool` を受け取り、対象拡張子（`.sql` / `.mjs`）のファイルを名前順に適用。`.sql` は `transformSql` で DSQL 互換に変換してから空行（`\n\n`）で分割し、1文ずつ `BEGIN`/`COMMIT` で実行する（実行時変換は、生成時変換をすり抜けた手書き SQL への多層防御）。`.mjs` は `default` エクスポート関数（`async function(client)`）を呼ぶ。CDK・Lambda・Drizzle への依存なし。任意の ORM やデプロイツールで再利用可能。
+- **コアロジック**（`packages/db/src/migrate.ts`）: `pg.Pool` を受け取り、対象拡張子（`.sql` / `.mjs`）のファイルを名前順に適用。`.sql` は `transformSql` で DSQL 互換に変換してから空行（`\n\n`）で分割し、1文ずつ `BEGIN`/`COMMIT` で実行する（実行時変換は、生成時変換をすり抜けた手書き SQL への多層防御）。`.mjs` は `default` export 関数（`export default async function(client, context)`）を呼ぶ。第2引数の `context` は任意で、未使用なら省略できる。CDK・Lambda・Drizzle への依存なし。任意の ORM やデプロイツールで再利用可能。
 - **Lambda ハンドラー**（`apps/db-migrator/src/handler.ts`）: Lambda 環境変数から Pool を生成し `migrate()` を呼ぶ薄いラッパー。
 - **CDK Construct**（`apps/cdk/lib/constructs/dsql-migrator/index.ts`）: zip パッケージの `NodejsFunction` + CDK Trigger で `cdk deploy` 時に自動実行。esbuild が handler を bundle し、`migrations/` ディレクトリ全体を asset root にコピーするため、標準 asset hash が migration の変更を捉える。変更された asset は新しい Lambda `currentVersion` を生成し、その version `HandlerArn` により Trigger が再実行される（詳細は [ADR-001](adr-001-dsql-drizzle-migrator.ja.md) の C1）。
 
@@ -179,14 +182,14 @@ FK 除去が2パターンに分かれる理由: drizzle-kit は FK を2通りの
 
 ### .mjs マイグレーション
 
-テーブル再作成（DROP COLUMN、ALTER COLUMN TYPE 等）や3,000行超のバッチデータ移行が必要な場合に使用する。`export default async function(client)` をエクスポートし、型は JSDoc（`@param {import('pg').PoolClient} client`）で補う。
+テーブル再作成（DROP COLUMN、ALTER COLUMN TYPE 等）や3,000行超のバッチデータ移行が必要な場合に使用する。`export default async function(client, context)` をエクスポートし、第2引数の `context` は任意で、未使用なら省略できる。型は JSDoc（`@param {import('pg').PoolClient} client`）で補う。
 
 `migrations/` の正準形式は `.sql` と `.mjs` の2つのみで、`.ts` は非対応。理由は local（tsx/node）と Lambda（node）が**同一ファイルを無変換で実行**するため — トランスパイル工程を挟むと local と deployed でファイルが分岐し、二重実行の温床になる（詳細は [ADR-005](adr-005-migration-file-format.ja.md)）。
 
 制約:
 
 - Lambda 最大実行時間は15分。これを超えるマイグレーションは Step Functions 等の別メカニズムが必要（ランナーのスコープ外）
-- migrator Dockerfile は `migrations/` を生コピーする（トランスパイル工程なし）
+- migrator は zip パッケージの `NodejsFunction` であり、esbuild の `afterBundling` hook が `migrations/` ディレクトリ全体をトランスパイルなしでそのまま Lambda asset にコピーする。
 
 ### unfixable パターンのワークフロー
 
@@ -210,7 +213,7 @@ CI で2種類の整合性を検証する:
 
 DSQL 非互換パターンをコーディング時とマイグレーション時の2段階で検出する。
 
-**第1層 — oxlint（スキーマ定義レベル）**: `no-restricted-imports` で `drizzle-orm/pg-core` からの `serial`, `smallserial`, `bigserial` の import をブロック（`json`/`jsonb` は DSQL がサポートしたため許可）。エディタと CI で即座にフィードバック。（`.references()` 用の `no-restricted-syntax` は設定済みだが oxlint v1.56.0 時点で未動作。詳細は [ADR-003](adr-003-oxlint-oxfmt.ja.md) を参照。）
+**第1層 — oxlint（スキーマ定義レベル）**: `no-restricted-imports` で `drizzle-orm/pg-core` からの `serial`, `smallserial`, `bigserial` の import をブロック（`json`/`jsonb` は DSQL がサポートしたため許可）。エディタと CI で即座にフィードバック。（`.references()` / 外部キーは lint されない: oxlint の `no-restricted-syntax` は no-op であり、削除済み。FK の除去は `dsql-compat.ts` により生成 SQL レベルで強制する。詳細は [ADR-003](adr-003-oxlint-oxfmt.ja.md) を参照。）
 
 **第2層 — SQL バリデーション（生成 SQL レベル）**: `check-dsql-compat.ts` が drizzle-kit 出力を自動変換し、自動修正不可能なパターンを検証。
 
@@ -235,7 +238,7 @@ webapp と async-job のコンテナイメージを `@cdklabs/deploy-time-build`
 
 ### スクリプト規約
 
-各サブパッケージが定型タスク名（`dev`、`build`、`test:unit`、`lint`、`check:ci` 等）を自身の `package.json` に定義し、ルートからは `pnpm -r run <task>` で一括実行する。ルート `package.json` にはタスクのエイリアススクリプトを置かない — 各パッケージが自身のスクリプトを持つため冗長であり、`--if-present` 付きの間接呼び出しはデバッグを困難にする。
+各サブパッケージは必要なタスク名（一般に `lint` と `check:ci`、該当する場合は `build`/`test:unit`/`dev`）を自身の `package.json` に定義し、ルートからは `pnpm -r run <task>` で一括実行する。ルート `package.json` にはタスクのエイリアススクリプトを置かない — 各パッケージが自身のスクリプトを持つため冗長であり、`--if-present` 付きの間接呼び出しはデバッグを困難にする。
 
 pre-commit フックは `simple-git-hooks` + `lint-staged` で構成し、ステージ済みファイルに oxlint/oxfmt を実行した後、全パッケージの `test:unit` を実行する。`prepare` スクリプトにより `pnpm install` 時にフックが自動インストールされる。lint-staged の oxlint 呼び出しでは `typeCheck` による型チェックが効かない — lint-staged はステージ済みファイルのみを引数に渡すため、プロジェクト全体の tsconfig 解決が必要な型チェックと非互換。型チェックは CI の `check:ci`（`oxlintrc.json` の `typeCheck: true`）で担保する。
 
@@ -243,8 +246,8 @@ pre-commit フックは `simple-git-hooks` + `lint-staged` で構成し、ステ
 
 strict モードでの Docker ビルドには4つの罠がある（詳細は [ADR-002 の Consequences](adr-002-pnpm-workspaces.ja.md) を参照）:
 
-1. `pnpm install --filter` は推移的依存をホイストしない → `--filter` なしで全依存インストール
-2. CDK `DockerImageCode.fromImageAsset` は `.dockerignore` を読まない → `ignoreMode: IgnoreMode.DOCKER` 必須
+1. pnpm のデフォルトの isolated `node_modules` は各パッケージで宣言した依存関係だけを公開するため、bundler（`esbuild`/`next build`）は完全な推移的グラフをディスクから解決する必要がある → `--filter` を付けずに `pnpm install --frozen-lockfile` でワークスペース全体をインストールする。
+2. CDK の Docker イメージ asset は `.dockerignore` を読み取り `cdk.out` を自動除外するが、デフォルトでは除外パターンを GLOB semantics で解釈する。リポジトリルートをビルドコンテキストとする場合、`.dockerignore` を Docker semantics で解釈し、深い pnpm `node_modules` ツリーがステージングされないように `ignoreMode: IgnoreMode.DOCKER` を設定する（`ContainerImageBuild` / `DockerImageAsset` に適用）。
 3. esbuild `--format=esm` の出力は Lambda で `.mjs` 拡張子が必要
 4. `--external:@aws-sdk/*` は `@aws/*` パッケージを除外しない
 

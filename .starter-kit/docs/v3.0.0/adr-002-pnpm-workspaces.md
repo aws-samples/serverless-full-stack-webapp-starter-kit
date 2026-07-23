@@ -24,11 +24,11 @@ Internal packages use the `@repo/` scope. Applications do not depend on each oth
 ### Rejected alternatives
 
 - _npm workspaces_: A flat `node_modules` implicitly resolves undeclared dependencies and hides undeclared dependencies that break in Docker builds. pnpm strict mode detects these during installation.
-- _Turborepo + pnpm_: It adds task orchestration and caching, but the kit has only five packages and a simple dependency chain. At this scale, Turborepo configuration overhead is not justified. Users can add it later if needed.
+- _Turborepo + pnpm_: It adds task orchestration and caching, but the kit has only a handful of workspaces (currently seven) and a simple dependency chain. At this scale, Turborepo configuration overhead is not justified. Users can add it later if needed.
 
 ## Consequences
 
-- **Docker `--filter` limitation**: In strict mode, `pnpm install --filter` does not hoist transitive dependencies of workspace packages. Dockerfiles must install all workspace dependencies with `pnpm install --frozen-lockfile` without `--filter`.
-- **`.dockerignore` + `ignoreMode`**: CDK's `DockerImageCode.fromImageAsset` does not read `.dockerignore` by default. `ignoreMode: IgnoreMode.DOCKER` is required for all Docker assets to prevent recursive copying of `cdk.out` (`ENAMETOOLONG`).
+- **Docker `--filter` limitation**: pnpm's default isolated `node_modules` exposes only each package's declared dependencies (this strictness is intentional). A bundler must resolve the full transitive graph from disk, so Dockerfiles install the entire workspace with `pnpm install --frozen-lockfile` without `--filter`, rather than scoping the install with `--filter`.
+- **`.dockerignore` + `ignoreMode`**: CDK's Docker image asset does read `.dockerignore` and auto-excludes `cdk.out`, but by default interprets exclude patterns with GLOB semantics rather than Docker's. With the repo root as build context, set `ignoreMode: IgnoreMode.DOCKER` for all Docker assets so patterns match the actual `docker build` and the deep pnpm `node_modules` tree is not staged (otherwise staging can fail, e.g. `ENAMETOOLONG`). Applies to `ContainerImageBuild` and `DockerImageAsset` alike.
 - **ESM + Lambda**: Output from esbuild `--format=esm` requires the `.mjs` extension in Lambda. The Node.js runtime loads it as CommonJS unless it has `.mjs` or `"type": "module"` in `package.json`.
 - **`@aws/*` ≠ `@aws-sdk/*`**: `--external:@aws-sdk/*` does not exclude `@aws/aurora-dsql-node-postgres-connector`. The Lambda runtime provides only `@aws-sdk/*`. Other `@aws/*` packages must be bundled.

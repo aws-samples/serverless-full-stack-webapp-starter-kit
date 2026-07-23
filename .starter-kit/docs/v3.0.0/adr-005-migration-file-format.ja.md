@@ -58,7 +58,7 @@ v3 初期のマイグレーションランナーは `migrations/` 配下で `.sq
 - **`_migrations` 台帳キーを拡張子非依存にする。** ローカルは `.ts`、Lambda は `.mjs` という形式分岐が残るため、
   同一移行を二重実行しないよう台帳の重複判定キーを拡張子除去する（`file.replace(/\.(sql|ts|mjs)$/, '')`）。
   ランナーの対象拡張子と CDK migrator のハッシュ対象にも `.ts` を含める。
-- **`migrations/` 外への相対 import・`@repo/**`・`drizzle-orm`/`pg` の value import を禁止する\*\*（Lambda ランタイムで
+- **`migrations/` 外への相対 import・`@repo/**`・`drizzle-orm`/`pg` の value import を禁止する。**（Lambda ランタイムで
   resolve できないため）。lint で境界を機械的に検査するとよい。
 
 このコスト（形式分岐 + 拡張子除去キー + import 境界）を受け入れる判断をしたときにのみ導入する。既定のランナーに
@@ -83,7 +83,7 @@ v3 初期のマイグレーションランナーは `migrations/` 配下で `.sq
 - **`context` 注入 seam により、破壊的変更前の外部バックアップなど AWS リソースを要するデータ移行を、
   ファイル形式を変えずに `.mjs` のまま実装できる。** 移行安全性（形式非依存の冪等・swap 前検証・外部バックアップ）は
   ファイル形式ではなくこの seam と各移行の書き方が担う。
-- ドキュメント（`packages/db/README.md`, `AGENTS.md`）と実装（Dockerfile が生コピーである事実）が一致する。
+- ドキュメント（`packages/db/README.md`, `AGENTS.md`）と実装は整合している: migrator は zip パッケージ化された `NodejsFunction` であり、esbuild の `afterBundling` hook が `migrations/` をそのままコピーし、トランスパイル工程はない。
 
 ### 破壊的変更: 既存 v3 利用者向け移行手順
 
