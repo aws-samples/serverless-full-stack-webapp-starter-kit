@@ -1,19 +1,25 @@
 version: 2
 updates:
-  # pnpm workspace packages: root package.json plus every workspace under apps/* and packages/*.
-  # pnpm resolves everything through the root pnpm-lock.yaml, but dependabot still needs each
-  # package.json listed so declared deps in each workspace get updates.
+  # pnpm workspace: a single root pnpm-lock.yaml resolves every workspace.
+  # Dependabot's npm updater at "/" already traverses all workspace package.json
+  # files (apps/*, packages/*) AND updates the root lockfile in one PR.
+  # Listing subdirectories additionally would create PRs that edit a workspace
+  # package.json WITHOUT updating the root lockfile, breaking
+  # `pnpm install --frozen-lockfile` in CI (and auto-merged minor/patch ones
+  # silently corrupt the lockfile on main). So keep "/" only.
   - package-ecosystem: npm
-    directories:
-      - /
-      - /apps/*
-      - /packages/*
+    directory: /
     schedule:
       interval: weekly
     groups:
       minor-and-patch:
         update-types: [minor, patch]
     open-pull-requests-limit: 10
+    ignore:
+      # cdk-nag 3.x is a known breaking release for this kit; hold on 2.x until
+      # the migration is done manually. Minor/patch on 2.x still flow through.
+      - dependency-name: cdk-nag
+        update-types: [version-update:semver-major]
   - package-ecosystem: github-actions
     directory: /
     schedule:
