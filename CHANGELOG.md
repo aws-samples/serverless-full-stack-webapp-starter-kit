@@ -5,12 +5,16 @@
 
 ### ⚠ BREAKING CHANGES
 
+* v2-derived apps require a whole-substrate migration. Repository layout, database engine, ORM, linter/formatter, and package manager all change. See .starter-kit/docs/v3.0.0/migration-prompt.md.
+* .ts migrations no longer run. Rename to .mjs and either update _migrations.name or make each migration idempotent. See .starter-kit/docs/v3.0.0/adr-005-migration-file-format.md.
 * CloudFront distribution replaces custom cache policy with managed policies and now requires a WAF Web ACL. Manual Free-plan enrollment is required to avoid WAF charges. See README section 4 and .starter-kit/docs/v3.0.0/adr-007-cloudfront-flat-rate.md.
 
 ### Features
 
 * **cdk:** expose removalPolicy and deletionProtection on the Auth construct ([#184](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/issues/184)) ([c8552e1](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/commit/c8552e16e0eb72bfed2059d02801736155e12966))
+* **cdk:** support CloudFront flat-rate pricing plans with managed cache policies and us-east-1 WAF Web ACL — migration guide: README section 4 and .starter-kit/docs/v3.0.0/adr-007-cloudfront-flat-rate.md ([c8552e1](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/commit/c8552e16e0eb72bfed2059d02801736155e12966))
 * migrate to pnpm workspaces monorepo with Aurora DSQL and Drizzle ORM — migration guide: .starter-kit/docs/v3.0.0/migration-prompt.md ([c8552e1](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/commit/c8552e16e0eb72bfed2059d02801736155e12966))
+* standardize DSQL migrations on .sql/.mjs and harden re-run detection — migration guide: .starter-kit/docs/v3.0.0/adr-005-migration-file-format.md ([c8552e1](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/commit/c8552e16e0eb72bfed2059d02801736155e12966))
 * **webapp:** add withAuth() API Route authentication helper and migrate cognito-token ([#186](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/issues/186)) ([c8552e1](https://github.com/aws-samples/serverless-full-stack-webapp-starter-kit/commit/c8552e16e0eb72bfed2059d02801736155e12966))
 
 
