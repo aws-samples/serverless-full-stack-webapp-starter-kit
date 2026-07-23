@@ -1,3 +1,4 @@
+import { describe, test, expect, beforeEach, afterAll } from 'vitest';
 import * as cdk from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import * as fs from 'node:fs';

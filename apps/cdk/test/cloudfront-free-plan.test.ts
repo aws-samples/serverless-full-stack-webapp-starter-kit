@@ -1,3 +1,4 @@
+import { describe, test, expect } from 'vitest';
 import * as cdk from 'aws-cdk-lib';
 import { Template } from 'aws-cdk-lib/assertions';
 import { MainStack } from '../lib/main-stack';

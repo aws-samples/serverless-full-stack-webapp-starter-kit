@@ -19,7 +19,7 @@
     "@smithy/signature-v4": "^5"
   },
   "devDependencies": {
-    "@types/node": "^22",
+    "@types/node": "^26",
     "typescript": "^5"
   }
 }

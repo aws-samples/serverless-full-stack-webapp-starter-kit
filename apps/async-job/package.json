@@ -17,9 +17,9 @@
     "@repo/event-utils": "workspace:*",
     "@repo/shared-types": "workspace:*",
     "@types/aws-lambda": "^8.10.162",
-    "@types/node": "^22",
+    "@types/node": "^26",
     "drizzle-orm": "^0.45",
     "typescript": "^5",
-    "zod": "^3.24.2"
+    "zod": "^4.4.3"
   }
 }
