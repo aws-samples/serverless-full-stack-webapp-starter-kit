@@ -1,0 +1,40 @@
+{
+  "name": "@repo/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./schema": "./src/schema.ts",
+    "./client": "./src/client.ts",
+    "./migrate": "./src/migrate.ts",
+    "./migration-files": "./src/migration-files.ts"
+  },
+  "scripts": {
+    "generate": "drizzle-kit generate && tsx src/check-dsql-compat.ts",
+    "migrate": "tsx --env-file=.env src/migrate-cli.ts",
+    "cluster": "tsx src/cluster-cli.ts",
+    "test:unit": "vitest run --exclude '**/*.integ.test.ts'",
+    "test:integ": "vitest run --config vitest.integ.config.ts",
+    "test:watch": "vitest --exclude '**/*.integ.test.ts'",
+    "format": "oxfmt --write .",
+    "format:ci": "oxfmt --check .",
+    "lint": "oxlint --config ../../oxlintrc.json --fix .",
+    "lint:ci": "oxlint --config ../../oxlintrc.json --max-warnings 0 .",
+    "check": "pnpm run lint && pnpm run format && pnpm run check:migrations",
+    "check:ci": "pnpm run lint:ci && pnpm run format:ci && pnpm run check:migrations",
+    "check:migrations": "drizzle-kit check"
+  },
+  "dependencies": {
+    "@aws/aurora-dsql-node-postgres-connector": "^0",
+    "drizzle-orm": "^0.44",
+    "pg": "^8"
+  },
+  "devDependencies": {
+    "@aws-sdk/client-dsql": "^3",
+    "@types/pg": "^8",
+    "drizzle-kit": "^0.31.10",
+    "tsx": "^4",
+    "typescript": "^5",
+    "vitest": "^3"
+  }
+}

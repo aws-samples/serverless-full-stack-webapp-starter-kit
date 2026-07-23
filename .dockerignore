@@ -1,0 +1,20 @@
+# dependencies (reinstalled inside container)
+**/node_modules
+
+# build artifacts
+**/.next
+apps/cdk/cdk.out
+apps/cdk/.cdk.staging
+
+# vcs / ci / editor
+.git
+.github
+.kiro
+.playwright-cli
+
+# docs / meta
+.starter-kit
+scripts
+*.md
+LICENSE
+CHANGELOG.md

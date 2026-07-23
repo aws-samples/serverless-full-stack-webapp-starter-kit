@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
   pull_request:
 jobs:
-  Build-and-Test-CDK:
+  Build-and-Test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -16,31 +16,27 @@ jobs:
         uses: actions/setup-node@v6
         with:
           node-version: '22.x'
-      - run: |
-          npm ci
-          npm run format:check
-        working-directory: ./cdk
-        name: Install dependencies and run static analysis
-      - run: |
-          npm run build
-          npm run test
-        working-directory: ./cdk
-        name: build and test
-  Build-and-Test-Webapp:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - name: Use Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: '22.x'
-      - run: |
-          npm ci
-          npm run format:check
-        working-directory: ./webapp
-        name: Install dependencies and run static analysis
-      - run: |
-          cp .env.local.example .env.local
-          npm run build
-        working-directory: ./webapp
-        name: build
+      - name: Install pnpm
+        run: corepack enable && corepack prepare pnpm@10.34.4 --activate
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Check
+        run: pnpm -r run check:ci
+      - name: Migration drift check
+        # Fail if schema.ts changed but migrations were not regenerated.
+        # `generate` is DB-less (schema-diff only); stdin is closed so a rename prompt
+        # fails cleanly instead of hanging in non-interactive CI.
+        run: |
+          pnpm --filter @repo/db run generate < /dev/null
+          if [ -n "$(git status --porcelain packages/db/migrations)" ]; then
+            echo "::error::schema.ts changed but migrations were not regenerated. Run 'pnpm --filter @repo/db run generate' and commit the result."
+            git status --porcelain packages/db/migrations
+            git --no-pager diff -- packages/db/migrations
+            exit 1
+          fi
+      - name: Test
+        run: pnpm -r run test:unit
+      - name: Build
+        run: |
+          cp apps/webapp/.env.local.example apps/webapp/.env.local
+          pnpm -r run build

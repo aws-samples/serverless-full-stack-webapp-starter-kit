@@ -1,0 +1,35 @@
+{
+  "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
+  "plugins": ["eslint", "typescript", "unicorn", "oxc", "nextjs", "react", "jsx-a11y", "import", "vitest"],
+  "options": {
+    "typeAware": true,
+    "typeCheck": true
+  },
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "rules": {
+    "typescript/no-unused-vars": "off",
+    "typescript/no-unsafe-type-assertion": "off",
+    "unicorn/no-array-sort": "off",
+    "no-new": "off",
+    "no-unused-expressions": "off",
+    "react/react-in-jsx-scope": "off",
+    "import/no-cycle": "error",
+    "import/no-unassigned-import": "off",
+    "no-restricted-imports": [
+      "error",
+      {
+        "paths": [
+          {
+            "name": "drizzle-orm/pg-core",
+            "importNames": ["serial", "smallserial", "bigserial"],
+            "message": "DSQL has no sequences. Use uuid() or text() for IDs. (json/jsonb are supported.)"
+          }
+        ]
+      }
+    ]
+  },
+  "ignorePatterns": ["node_modules", ".next", "cdk.out", "dist", "*.js", "*.mjs", "*.d.ts"]
+}

@@ -1,0 +1,12 @@
+*.js
+!jest.config.js
+*.d.ts
+node_modules
+
+# CDK asset staging directory
+.cdk.staging
+cdk.out
+
+# Ignoring this file only because it is an OSS sample solution.
+# It is generally recommended to store the cdk.context.json in git.
+cdk.context.json
