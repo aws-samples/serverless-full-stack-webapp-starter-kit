@@ -12,13 +12,13 @@
     "check:ci": "pnpm run lint:ci && pnpm run format:ci"
   },
   "devDependencies": {
-    "@aws-sdk/client-translate": "^3.995.0",
+    "@aws-sdk/client-translate": "^3.1093.0",
     "@repo/db": "workspace:*",
     "@repo/event-utils": "workspace:*",
     "@repo/shared-types": "workspace:*",
-    "@types/aws-lambda": "^8.10.149",
+    "@types/aws-lambda": "^8.10.162",
     "@types/node": "^22",
-    "drizzle-orm": "^0.44",
+    "drizzle-orm": "^0.45",
     "typescript": "^5",
     "zod": "^3.24.2"
   }

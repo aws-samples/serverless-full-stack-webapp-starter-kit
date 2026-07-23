@@ -4,7 +4,7 @@
     "prepare": "simple-git-hooks"
   },
   "devDependencies": {
-    "esbuild": "^0.25.4",
+    "esbuild": "^0.28.1",
     "lint-staged": "^16.4.0",
     "oxfmt": "^0",
     "oxlint": "^1",
