@@ -34,7 +34,7 @@
     "@types/pg": "^8",
     "drizzle-kit": "^0.31.10",
     "tsx": "^4",
-    "typescript": "^5",
+    "typescript": "^7",
     "vitest": "^3"
   }
 }
