@@ -84,6 +84,14 @@ The webapp runs on Lambda behind CloudFront via Lambda Web Adapter (response str
 
 Lambda@Edge function versions (`edge-function.ts`) are retained (`RemovalPolicy.RETAIN`) instead of deleted by CDK, since CloudFront replica deletion is asynchronous and premature deletion causes `DELETE_FAILED`. Retained versions accumulate over deploys and must be deleted manually (via the Lambda console/CLI, after confirming they are no longer replicated to any edge location) if cleanup is needed.
 
+### Container and bundle assets
+
+Both container images are built from the repo root (`directory: join('..', '..')`) with `ignoreMode: IgnoreMode.DOCKER`, so the root `.dockerignore` governs what is staged. Without `IgnoreMode.DOCKER`, CDK applies its own ignore semantics and recursively copies `cdk.out` into the asset staging directory, which fails with `ENAMETOOLONG`.
+
+- The Dockerfiles run `pnpm install` without `--filter`. Under pnpm's strict `node_modules` layout, a filtered install omits transitive dependencies that esbuild needs to resolve while bundling.
+- esbuild emits `.mjs`. The bundle is ESM (`--format=esm`) and the packages do not set `"type": "module"`, so a `.js` extension would be loaded as CJS at Lambda runtime and fail.
+- `--external:@aws-sdk/*` does not match `@aws/*`. `@aws/aurora-dsql-node-postgres-connector` is bundled, not externalized — do not assume the AWS SDK exclusion covers it.
+
 ### Real-time notifications
 
 Server → client push uses AppSync Events. Server-side: `sendEvent(channelName, payload)` with IAM SigV4 signing. Client-side: `useEventBus` hook with Cognito user pool auth. The channel namespace is `event-bus/`.
