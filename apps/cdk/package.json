@@ -16,18 +16,18 @@
   },
   "dependencies": {
     "@aws-appsync/utils": "^2.1.1",
-    "@aws-sdk/client-cognito-identity-provider": "^3.1093.0",
-    "@cdklabs/deploy-time-build": "^0.1.6",
+    "@aws-sdk/client-cognito-identity-provider": "^3.1096.0",
+    "@cdklabs/deploy-time-build": "^0.1.7",
     "@repo/shared-types": "workspace:*",
-    "aws-cdk-lib": "^2.262.0",
-    "cdk-nag": "^2.14.29",
+    "aws-cdk-lib": "^2.262.1",
+    "cdk-nag": "^2.38.2",
     "constructs": "^10.7.1",
     "source-map-support": "^0.5.21"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.162",
     "@types/node": "^26",
-    "aws-cdk": "^2.1132.1",
+    "aws-cdk": "^2.1133.0",
     "esbuild": "^0.28.1",
     "ts-node": "^10.7.0",
     "typescript": "^5.9.2",
