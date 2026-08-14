@@ -12,7 +12,7 @@
     "check:ci": "pnpm run lint:ci && pnpm run format:ci"
   },
   "devDependencies": {
-    "@aws-sdk/client-translate": "^3.1102.0",
+    "@aws-sdk/client-translate": "^3.1107.0",
     "@repo/db": "workspace:*",
     "@repo/event-utils": "workspace:*",
     "@repo/shared-types": "workspace:*",
