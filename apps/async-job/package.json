@@ -19,7 +19,7 @@
     "@types/aws-lambda": "^8.10.162",
     "@types/node": "^26",
     "drizzle-orm": "^0.45",
-    "typescript": "^5",
+    "typescript": "^7",
     "zod": "^4.4.3"
   }
 }
