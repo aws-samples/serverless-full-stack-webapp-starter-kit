@@ -8,7 +8,7 @@
     "lint-staged": "^16.4.0",
     "oxfmt": "^0",
     "oxlint": "^1",
-    "oxlint-tsgolint": "^0",
+    "oxlint-tsgolint": "^7",
     "simple-git-hooks": "^2.13.1"
   },
   "simple-git-hooks": {
