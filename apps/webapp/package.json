@@ -21,8 +21,8 @@
   },
   "dependencies": {
     "@aws-amplify/adapter-nextjs": "^1.7.3",
-    "@aws-sdk/client-lambda": "^3.1107.0",
-    "@aws-sdk/client-ssm": "^3.1107.0",
+    "@aws-sdk/client-lambda": "^3.1112.0",
+    "@aws-sdk/client-ssm": "^3.1112.0",
     "@repo/db": "workspace:*",
     "@repo/event-utils": "workspace:*",
     "@repo/shared-types": "workspace:*",
@@ -31,7 +31,7 @@
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45",
     "lucide-react": "^0.488.0",
-    "next": "^16.3.0",
+    "next": "^16.3.1",
     "next-safe-action": "^8.6.0",
     "next-themes": "^0.4.6",
     "react": "^19.2.8",
@@ -43,8 +43,8 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@aws-sdk/client-cognito-identity-provider": "3.1107.0",
-    "@hookform/resolvers": "^5.7.1",
+    "@aws-sdk/client-cognito-identity-provider": "3.1112.0",
+    "@hookform/resolvers": "^5.9.1",
     "@next-safe-action/adapter-react-hook-form": "^2.1.0",
     "@playwright/test": "1.62.1",
     "@tailwindcss/postcss": "^4",
