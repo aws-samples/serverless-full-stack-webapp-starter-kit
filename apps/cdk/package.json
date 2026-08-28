@@ -30,7 +30,7 @@
     "aws-cdk": "^2.1138.0",
     "esbuild": "^0.28.2",
     "ts-node": "^10.7.0",
-    "typescript": "^5.9.2",
+    "typescript": "^7.0.2",
     "vitest": "^4"
   }
 }
