@@ -5,7 +5,7 @@
   },
   "devDependencies": {
     "esbuild": "^0.28.2",
-    "lint-staged": "^16.4.0",
+    "lint-staged": "^17.3.0",
     "oxfmt": "^0",
     "oxlint": "^1",
     "oxlint-tsgolint": "^0",
