@@ -13,7 +13,7 @@
   },
   "devDependencies": {
     "@repo/db": "workspace:*",
-    "@types/aws-lambda": "^8.10.162",
+    "@types/aws-lambda": "^8.10.163",
     "@types/node": "^26",
     "typescript": "^5"
   }
