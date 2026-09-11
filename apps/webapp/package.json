@@ -54,6 +54,6 @@
     "tailwindcss": "^4",
     "tsx": "4.23.13",
     "typescript": "^5",
-    "vitest": "^4"
+    "vitest": "^5"
   }
 }
