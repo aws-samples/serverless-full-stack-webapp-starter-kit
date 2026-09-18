@@ -13,7 +13,7 @@
     "check:ci": "pnpm run lint:ci"
   },
   "dependencies": {
-    "zod": "^4.5.4"
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "typescript": "^5"
