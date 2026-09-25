@@ -32,7 +32,7 @@
   "devDependencies": {
     "@aws-sdk/client-dsql": "^3",
     "@types/pg": "^8",
-    "drizzle-kit": "^0.31.10",
+    "drizzle-kit": "^0.31.11",
     "tsx": "^4",
     "typescript": "^5",
     "vitest": "^4"
