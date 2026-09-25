@@ -31,6 +31,6 @@
     "esbuild": "^0.28.2",
     "ts-node": "^10.7.0",
     "typescript": "^5.9.2",
-    "vitest": "^4"
+    "vitest": "^5"
   }
 }
