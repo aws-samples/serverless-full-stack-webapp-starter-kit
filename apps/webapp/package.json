@@ -20,13 +20,13 @@
     "check:ci": "pnpm run lint:ci && pnpm run format:ci"
   },
   "dependencies": {
-    "@aws-amplify/adapter-nextjs": "^1.7.3",
-    "@aws-sdk/client-lambda": "^3.1132.0",
-    "@aws-sdk/client-ssm": "^3.1132.0",
+    "@aws-amplify/adapter-nextjs": "^1.8.0",
+    "@aws-sdk/client-lambda": "^3.1137.0",
+    "@aws-sdk/client-ssm": "^3.1137.0",
     "@repo/db": "workspace:*",
     "@repo/event-utils": "workspace:*",
     "@repo/shared-types": "workspace:*",
-    "aws-amplify": "^6.20.0",
+    "aws-amplify": "^6.22.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45",
@@ -43,7 +43,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@aws-sdk/client-cognito-identity-provider": "3.1132.0",
+    "@aws-sdk/client-cognito-identity-provider": "3.1137.0",
     "@hookform/resolvers": "^5.9.1",
     "@next-safe-action/adapter-react-hook-form": "^2.1.0",
     "@playwright/test": "1.63.0",
@@ -52,7 +52,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "tailwindcss": "^4",
-    "tsx": "4.23.13",
+    "tsx": "4.23.15",
     "typescript": "^5",
     "vitest": "^4"
   }
