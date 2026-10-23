@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@aws-appsync/utils": "^2.1.1",
-    "@aws-sdk/client-cognito-identity-provider": "^3.1150.0",
+    "@aws-sdk/client-cognito-identity-provider": "^3.1153.0",
     "@cdklabs/deploy-time-build": "^0.1.11",
     "@repo/shared-types": "workspace:*",
     "aws-cdk-lib": "^2.273.0",
@@ -27,7 +27,7 @@
   "devDependencies": {
     "@types/aws-lambda": "^8.10.164",
     "@types/node": "^26",
-    "aws-cdk": "^2.1145.0",
+    "aws-cdk": "^2.1146.0",
     "esbuild": "^0.28.2",
     "ts-node": "^10.7.0",
     "typescript": "^5.9.2",
