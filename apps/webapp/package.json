@@ -44,7 +44,7 @@
   },
   "devDependencies": {
     "@aws-sdk/client-cognito-identity-provider": "3.1165.0",
-    "@hookform/resolvers": "^5.9.1",
+    "@hookform/resolvers": "^7.0.7",
     "@next-safe-action/adapter-react-hook-form": "^2.1.0",
     "@playwright/test": "1.65.0",
     "@tailwindcss/postcss": "^4",
